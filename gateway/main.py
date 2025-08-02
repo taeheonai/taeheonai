@@ -77,7 +77,8 @@ class ServiceDiscovery:
         except Exception as e:
             service["status"] = "unhealthy"
             service["last_check"] = datetime.now()
-            logger.error(f"❌ {name} health check failed: {e}")
+            # 로그 레벨을 DEBUG로 변경하여 에러 스팸 방지
+            logger.debug(f"Health check failed for {name}: {e}")
             return False
     
     async def check_all_services_health(self):
@@ -137,40 +138,51 @@ class ProxyService:
 # 프록시 서비스 인스턴스
 proxy_service = ProxyService(service_discovery)
 
-# 초기 서비스 등록
-INITIAL_SERVICES = [
-    {
-        "name": "user-service",
-        "url": "http://localhost:8001",
-        "health_url": "http://localhost:8001/health"
-    },
-    {
-        "name": "auth-service", 
-        "url": "http://localhost:8002",
-        "health_url": "http://localhost:8002/health"
-    },
-    {
-        "name": "notification-service",
-        "url": "http://localhost:8003", 
-        "health_url": "http://localhost:8003/health"
-    }
-]
+# 초기 서비스 등록 (환경 변수로 제어)
+import os
+
+# 환경 변수에서 초기 서비스 설정 가져오기
+INITIAL_SERVICES = []
+if os.getenv("ENABLE_INITIAL_SERVICES", "false").lower() == "true":
+    INITIAL_SERVICES = [
+        {
+            "name": "user-service",
+            "url": os.getenv("USER_SERVICE_URL", "http://localhost:8001"),
+            "health_url": os.getenv("USER_SERVICE_HEALTH_URL", "http://localhost:8001/health")
+        },
+        {
+            "name": "auth-service", 
+            "url": os.getenv("AUTH_SERVICE_URL", "http://localhost:8002"),
+            "health_url": os.getenv("AUTH_SERVICE_HEALTH_URL", "http://localhost:8002/health")
+        },
+        {
+            "name": "notification-service",
+            "url": os.getenv("NOTIFICATION_SERVICE_URL", "http://localhost:8003"), 
+            "health_url": os.getenv("NOTIFICATION_SERVICE_HEALTH_URL", "http://localhost:8003/health")
+        }
+    ]
 
 @app.on_event("startup")
 async def startup_event():
     """애플리케이션 시작 시 실행"""
     logger.info("🚀 API Gateway starting up...")
     
-    # 초기 서비스 등록
-    for service_data in INITIAL_SERVICES:
-        await service_discovery.register_service(
-            service_data["name"],
-            service_data["url"],
-            service_data["health_url"]
-        )
-    
-    # 초기 헬스 체크
-    await service_discovery.check_all_services_health()
+    # 초기 서비스 등록 (환경 변수로 제어)
+    if INITIAL_SERVICES:
+        logger.info(f"📝 Registering {len(INITIAL_SERVICES)} initial services...")
+        for service_data in INITIAL_SERVICES:
+            await service_discovery.register_service(
+                service_data["name"],
+                service_data["url"],
+                service_data["health_url"]
+            )
+        
+        # 초기 헬스 체크 (선택적)
+        if os.getenv("ENABLE_HEALTH_CHECK", "false").lower() == "true":
+            logger.info("🔍 Performing initial health checks...")
+            await service_discovery.check_all_services_health()
+    else:
+        logger.info("ℹ️ No initial services configured. Services can be registered via /register endpoint.")
     
     logger.info("✅ API Gateway started successfully")
 
