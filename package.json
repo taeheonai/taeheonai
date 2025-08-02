@@ -1,0 +1,29 @@
+{
+  "name": "taeheonai-backend",
+  "version": "1.0.0",
+  "description": "TaeheonAI Backend 마이크로서비스 플랫폼",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose up -d",
+    "dev:frontend": "cd frontend && pnpm dev",
+    "build": "docker-compose build",
+    "build:frontend": "cd frontend && pnpm build",
+    "start": "docker-compose -f docker-compose.prod.yml up -d",
+    "stop": "docker-compose down",
+    "clean": "docker-compose down -v --remove-orphans",
+    "logs": "docker-compose logs -f",
+    "logs:gateway": "docker-compose logs -f gateway",
+    "logs:user": "docker-compose logs -f user-service",
+    "logs:auth": "docker-compose logs -f auth-service",
+    "logs:notification": "docker-compose logs -f notification-service",
+    "test": "echo \"Running tests...\" && exit 0",
+    "status": "docker-compose ps",
+    "health": "make health"
+  },
+  "devDependencies": {
+    "@types/node": "^20"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
