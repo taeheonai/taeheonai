@@ -5,7 +5,6 @@ import httpx
 import logging
 from datetime import datetime
 from typing import Dict, Optional
-import os
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
