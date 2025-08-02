@@ -2,12 +2,10 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import httpx
-import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
-from pydantic import BaseModel
-import json
+from typing import Dict, Optional
+import os
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="TaeheonAI API Gateway",
-    description="Microservice Architecture API Gateway with Service Discovery",
+    description="Microservice Architecture API Gateway",
     version="1.0.0"
 )
 
@@ -32,7 +30,6 @@ app.add_middleware(
 class ServiceDiscovery:
     def __init__(self):
         self.services: Dict[str, Dict] = {}
-        self.health_check_interval = 30  # 30초
     
     async def register_service(self, name: str, url: str, health_url: str = None):
         """서비스 등록"""
@@ -43,8 +40,7 @@ class ServiceDiscovery:
             "name": name,
             "url": url,
             "health_url": health_url,
-            "status": "unknown",
-            "last_check": None,
+            "status": "registered",
             "registered_at": datetime.now()
         }
         logger.info(f"📝 Registered service: {name} at {url}")
@@ -56,35 +52,6 @@ class ServiceDiscovery:
     async def get_all_services(self) -> Dict[str, Dict]:
         """모든 서비스 정보 조회"""
         return self.services.copy()
-    
-    async def check_service_health(self, name: str) -> bool:
-        """서비스 헬스 체크"""
-        service = self.services.get(name)
-        if not service:
-            return False
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(service["health_url"], timeout=5.0)
-                if response.status_code == 200:
-                    service["status"] = "healthy"
-                    service["last_check"] = datetime.now()
-                    return True
-                else:
-                    service["status"] = "unhealthy"
-                    service["last_check"] = datetime.now()
-                    return False
-        except Exception as e:
-            service["status"] = "unhealthy"
-            service["last_check"] = datetime.now()
-            # 로그 레벨을 DEBUG로 변경하여 에러 스팸 방지
-            logger.debug(f"Health check failed for {name}: {e}")
-            return False
-    
-    async def check_all_services_health(self):
-        """모든 서비스 헬스 체크"""
-        for name in self.services.keys():
-            await self.check_service_health(name)
 
 # 서비스 디스커버리 인스턴스
 service_discovery = ServiceDiscovery()
@@ -99,9 +66,6 @@ class ProxyService:
         service = await self.service_discovery.get_service(service_name)
         if not service:
             raise HTTPException(status_code=404, detail=f"Service {service_name} not found")
-        
-        if service["status"] != "healthy":
-            raise HTTPException(status_code=503, detail=f"Service {service_name} is unhealthy")
         
         # 요청 본문 읽기
         body = await request.body()
@@ -138,52 +102,10 @@ class ProxyService:
 # 프록시 서비스 인스턴스
 proxy_service = ProxyService(service_discovery)
 
-# 초기 서비스 등록 (환경 변수로 제어)
-import os
-
-# 환경 변수에서 초기 서비스 설정 가져오기
-INITIAL_SERVICES = []
-if os.getenv("ENABLE_INITIAL_SERVICES", "false").lower() == "true":
-    INITIAL_SERVICES = [
-        {
-            "name": "user-service",
-            "url": os.getenv("USER_SERVICE_URL", "http://localhost:8001"),
-            "health_url": os.getenv("USER_SERVICE_HEALTH_URL", "http://localhost:8001/health")
-        },
-        {
-            "name": "auth-service", 
-            "url": os.getenv("AUTH_SERVICE_URL", "http://localhost:8002"),
-            "health_url": os.getenv("AUTH_SERVICE_HEALTH_URL", "http://localhost:8002/health")
-        },
-        {
-            "name": "notification-service",
-            "url": os.getenv("NOTIFICATION_SERVICE_URL", "http://localhost:8003"), 
-            "health_url": os.getenv("NOTIFICATION_SERVICE_HEALTH_URL", "http://localhost:8003/health")
-        }
-    ]
-
 @app.on_event("startup")
 async def startup_event():
     """애플리케이션 시작 시 실행"""
     logger.info("🚀 API Gateway starting up...")
-    
-    # 초기 서비스 등록 (환경 변수로 제어)
-    if INITIAL_SERVICES:
-        logger.info(f"📝 Registering {len(INITIAL_SERVICES)} initial services...")
-        for service_data in INITIAL_SERVICES:
-            await service_discovery.register_service(
-                service_data["name"],
-                service_data["url"],
-                service_data["health_url"]
-            )
-        
-        # 초기 헬스 체크 (선택적)
-        if os.getenv("ENABLE_HEALTH_CHECK", "false").lower() == "true":
-            logger.info("🔍 Performing initial health checks...")
-            await service_discovery.check_all_services_health()
-    else:
-        logger.info("ℹ️ No initial services configured. Services can be registered via /register endpoint.")
-    
     logger.info("✅ API Gateway started successfully")
 
 # 메인 라우터 - 서비스 디스커버리 및 프록시
@@ -209,14 +131,12 @@ async def health_check():
 async def get_services():
     """등록된 서비스 목록 조회"""
     services = await service_discovery.get_all_services()
-    healthy_count = sum(1 for s in services.values() if s["status"] == "healthy")
     
     return {
         "services": services,
         "stats": {
             "total": len(services),
-            "healthy": healthy_count,
-            "unhealthy": len(services) - healthy_count
+            "registered": len(services)
         }
     }
 
@@ -238,28 +158,15 @@ async def register_service(request: Request):
         "status": "registered"
     }
 
-# 서비스 헬스 체크
-@app.get("/health/{service_name}")
-async def check_service_health(service_name: str):
-    """특정 서비스 헬스 체크"""
-    is_healthy = await service_discovery.check_service_health(service_name)
-    return {
-        "service": service_name,
-        "healthy": is_healthy,
-        "timestamp": datetime.now().isoformat()
-    }
-
 # 통계 정보
 @app.get("/stats")
 async def get_stats():
     """서비스 통계 정보"""
     services = await service_discovery.get_all_services()
-    healthy_count = sum(1 for s in services.values() if s["status"] == "healthy")
     
     return {
         "total_services": len(services),
-        "healthy_services": healthy_count,
-        "unhealthy_services": len(services) - healthy_count,
+        "registered_services": len(services),
         "uptime": "running",
         "timestamp": datetime.now().isoformat()
     }
