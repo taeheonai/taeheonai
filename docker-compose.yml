@@ -3,33 +3,25 @@ version: '3.8'
 services:
   gateway:
     build:
-      context: ./gateway
+      context: ./gateway/app
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=development
+      - PORT=8000
     volumes:
-      - ./gateway:/app
+      - ./gateway/app:/app
     networks:
       - taeheonai-network
     depends_on:
-      - user-service
       - auth-service
-      - notification-service
-
-  user-service:
-    build:
-      context: ./services/user-service
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8001"
-    environment:
-      - ENVIRONMENT=development
-    volumes:
-      - ./services/user-service:/app
-    networks:
-      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   auth-service:
     build:
@@ -39,23 +31,17 @@ services:
       - "8002:8002"
     environment:
       - ENVIRONMENT=development
+      - PORT=8002
     volumes:
       - ./services/auth-service:/app
     networks:
       - taeheonai-network
-
-  notification-service:
-    build:
-      context: ./services/notification-service
-      dockerfile: Dockerfile
-    ports:
-      - "8003:8003"
-    environment:
-      - ENVIRONMENT=development
-    volumes:
-      - ./services/notification-service:/app
-    networks:
-      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   taeheonai-network:
