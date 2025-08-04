@@ -17,4 +17,4 @@ ENV PORT=8000
 EXPOSE 8000
 
 # Railway 환경에 맞는 시작 명령어
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"] 
+CMD python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} 
