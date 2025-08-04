@@ -8,7 +8,8 @@
 - ✅ `services/auth-service/Dockerfile`: Railway 환경변수 지원 추가
 
 ### 2. **Railway 설정 수정**
-- ✅ `gateway/app/railway.json`: Dockerfile 경로 수정 및 PORT 환경변수 사용
+- ✅ `gateway/railway.json`: 새로운 Railway 설정 파일 생성
+- ✅ `gateway/app/railway.json`: Dockerfile 경로 수정
 - ✅ `services/auth-service/railway.json`: PORT 환경변수 사용
 
 ### 3. **헬스체크 개선**
@@ -20,8 +21,8 @@
 
 ### 1. **Gateway 배포**
 ```bash
-# Gateway 디렉토리로 이동
-cd gateway/app
+# Gateway 디렉토리로 이동 (app 폴더의 상위 디렉토리)
+cd gateway
 
 # Railway에 배포
 railway up
@@ -47,6 +48,30 @@ python test_deployment.py
 ```
 
 ## 🐛 문제 해결
+
+### Dockerfile을 찾을 수 없는 경우:
+
+1. **디렉토리 구조 확인**
+   ```bash
+   # Gateway 디렉토리 구조
+   ls gateway/
+   ls gateway/app/
+   ```
+
+2. **Railway 설정 확인**
+   - `gateway/railway.json`에서 `dockerfilePath: "app/Dockerfile"`
+   - `gateway/app/railway.json`에서 `dockerfilePath: "./Dockerfile"`
+
+3. **배포 디렉토리 변경**
+   ```bash
+   # 방법 1: gateway 디렉토리에서 배포
+   cd gateway
+   railway up
+   
+   # 방법 2: gateway/app 디렉토리에서 배포
+   cd gateway/app
+   railway up
+   ```
 
 ### Healthcheck 실패 시 확인사항:
 
@@ -116,4 +141,13 @@ railway logs
 ```bash
 # Railway 환경변수 확인
 railway variables
+```
+
+### Dockerfile 경로 문제 해결:
+```bash
+# 현재 디렉토리에서 Dockerfile 확인
+ls -la Dockerfile
+
+# Railway 빌드 컨텍스트 확인
+railway build --help
 ``` 
