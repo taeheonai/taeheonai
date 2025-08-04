@@ -7,6 +7,7 @@ Railway 배포 후 서비스들이 정상적으로 작동하는지 확인
 import requests
 import time
 import sys
+import os
 from typing import Dict, List
 
 def test_health_endpoint(url: str, service_name: str) -> bool:
@@ -41,11 +42,18 @@ def main():
     """메인 테스트 함수"""
     print("🚀 배포 테스트 시작...")
     
-    # 테스트할 서비스들 (Railway URL로 변경 필요)
+    # Railway URL 환경변수에서 가져오거나 로컬 테스트용
+    gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
+    auth_service_url = os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002')
+    
+    # 테스트할 서비스들
     services = {
-        "gateway": "http://localhost:8000",  # 로컬 테스트용
-        "auth-service": "http://localhost:8002"  # 로컬 테스트용
+        "gateway": gateway_url,
+        "auth-service": auth_service_url
     }
+    
+    print(f"🔗 Gateway URL: {gateway_url}")
+    print(f"🔗 Auth Service URL: {auth_service_url}")
     
     print("\n📋 서비스 헬스체크 테스트:")
     health_results = {}

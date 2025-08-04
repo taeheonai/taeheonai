@@ -38,6 +38,10 @@ railway up
 
 ### 3. **배포 확인**
 ```bash
+# 환경변수 설정 (Railway URL로 변경)
+set GATEWAY_URL=https://your-gateway-url.railway.app
+set AUTH_SERVICE_URL=https://your-auth-service-url.railway.app
+
 # 테스트 스크립트 실행
 python test_deployment.py
 ```
@@ -47,11 +51,11 @@ python test_deployment.py
 ### Healthcheck 실패 시 확인사항:
 
 1. **포트 설정 확인**
-   - Gateway: 8000번 포트
-   - Auth Service: 8002번 포트
+   - Gateway: Railway에서 자동 할당된 포트
+   - Auth Service: Railway에서 자동 할당된 포트
 
 2. **환경변수 확인**
-   - `PORT` 환경변수가 올바르게 설정되었는지 확인
+   - `PORT` 환경변수가 Railway에서 자동 설정되었는지 확인
 
 3. **로그 확인**
    - Railway 대시보드에서 로그 확인
@@ -87,4 +91,29 @@ python test_deployment.py
 ### 프론트엔드 연동:
 1. `frontend/` 디렉토리의 환경변수 설정
 2. Gateway URL을 프론트엔드 환경변수에 설정
-3. CORS 설정 확인 
+3. CORS 설정 확인
+
+## 🔍 문제 해결 체크리스트
+
+### Docker 로컬 테스트:
+```bash
+# Docker Compose로 로컬 테스트
+docker-compose up --build
+
+# 헬스체크 확인
+curl http://localhost:8000/health
+curl http://localhost:8002/health
+```
+
+### Railway 배포 확인:
+```bash
+# Railway CLI로 배포 상태 확인
+railway status
+railway logs
+```
+
+### 환경변수 확인:
+```bash
+# Railway 환경변수 확인
+railway variables
+``` 
