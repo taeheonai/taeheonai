@@ -109,4 +109,8 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001, reload=True) 
+    import os
+    
+    # Railway에서 제공하는 PORT 환경변수 사용
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port) 
