@@ -45,15 +45,30 @@ def main():
     # Railway URL 환경변수에서 가져오거나 로컬 테스트용
     gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
     auth_service_url = os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002')
+    chatbot_service_url = os.getenv('CHATBOT_SERVICE_URL', 'http://localhost:8003')
+    gri_service_url = os.getenv('GRI_SERVICE_URL', 'http://localhost:8004')
+    materiality_service_url = os.getenv('MATERIALITY_SERVICE_URL', 'http://localhost:8005')
+    report_service_url = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8006')
+    tcfd_service_url = os.getenv('TCFD_SERVICE_URL', 'http://localhost:8007')
     
     # 테스트할 서비스들
     services = {
         "gateway": gateway_url,
-        "auth-service": auth_service_url
+        "auth-service": auth_service_url,
+        "chatbot-service": chatbot_service_url,
+        "gri-service": gri_service_url,
+        "materiality-service": materiality_service_url,
+        "report-service": report_service_url,
+        "tcfd-service": tcfd_service_url
     }
     
     print(f"🔗 Gateway URL: {gateway_url}")
     print(f"🔗 Auth Service URL: {auth_service_url}")
+    print(f"🔗 Chatbot Service URL: {chatbot_service_url}")
+    print(f"🔗 GRI Service URL: {gri_service_url}")
+    print(f"🔗 Materiality Service URL: {materiality_service_url}")
+    print(f"🔗 Report Service URL: {report_service_url}")
+    print(f"🔗 TCFD Service URL: {tcfd_service_url}")
     
     print("\n📋 서비스 헬스체크 테스트:")
     health_results = {}

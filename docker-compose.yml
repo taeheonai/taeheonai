@@ -1,4 +1,4 @@
-version: '3.8'
+name: esg_mate
 
 services:
   gateway:
@@ -6,43 +6,174 @@ services:
       context: ./gateway/app
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      - ./gateway/app:/app/app
+      - ./gateway/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./gateway/app/.env
     environment:
       - ENVIRONMENT=development
-      - PORT=8000
-    volumes:
-      - ./gateway/app:/app
+      - PORT=8080
+      - PYTHONUNBUFFERED=1
+    restart: always
+    depends_on:
+      - chatbot-service
+      - gri-service
+      - materiality-service
+      - report-service
+      - tcfd-service
+      - redis
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     networks:
       - taeheonai-network
-    depends_on:
-      - auth-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  auth-service:
+
+  chatbot-service:
     build:
-      context: ./services/auth-service
+      context: ./services/chatbot-service/app
       dockerfile: Dockerfile
     ports:
-      - "8002:8002"
+      - "8003:8003"
+    volumes:
+      - ./services/chatbot-service/app:/app/app
+      - ./services/chatbot-service/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./services/chatbot-service/app/.env
     environment:
       - ENVIRONMENT=development
-      - PORT=8002
-    volumes:
-      - ./services/auth-service:/app
+      - PORT=8003
+      - PYTHONUNBUFFERED=1
+    restart: always
     networks:
       - taeheonai-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  gri-service:
+    build:
+      context: ./services/gri-service/app
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./services/gri-service/app:/app/app
+      - ./services/gri-service/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./services/gri-service/app/.env
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8004
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  materiality-service:
+    build:
+      context: ./services/materiality-service/app
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./services/materiality-service/app:/app/app
+      - ./services/materiality-service/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./services/materiality-service/app/.env
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8005
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  report-service:
+    build:
+      context: ./services/report-service/app
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    volumes:
+      - ./services/report-service/app:/app/app
+      - ./services/report-service/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./services/report-service/app/.env
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8006
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  tcfd-service:
+    build:
+      context: ./services/tcfd-service/app
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8007"
+    volumes:
+      - ./services/tcfd-service/app:/app/app
+      - ./services/tcfd-service/app/requirements.txt:/app/requirements.txt
+    env_file:
+      - ./services/tcfd-service/app/.env
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8007
+      - PYTHONUNBUFFERED=1
+    restart: always
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - taeheonai-network
+    restart: always
 
 networks:
   taeheonai-network:
-    driver: bridge 
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16 
