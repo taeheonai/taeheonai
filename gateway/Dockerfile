@@ -16,5 +16,9 @@ COPY . .
 ENV PORT=8080
 EXPOSE 8080
 
-# Railway 환경에 맞는 시작 명령어 (모듈 경로 수정)
-CMD python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# 헬스체크 추가
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/v1/health || exit 1
+
+# 다른 서비스들과 일관성 있는 CMD 형식
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT

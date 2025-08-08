@@ -63,19 +63,21 @@ class ServiceType(str, Enum):
     chatbot = "chatbot"
     gri = "gri"
     materiality = "materiality"
-    report = "report"
     tcfd = "tcfd"
+    grireport = "grireport"
+    tcfdreport = "tcfdreport"
 
 
 class ServiceDiscovery:
     def __init__(self, service_type: ServiceType):
         self.service_type = service_type
         self.base_urls = {
-            ServiceType.chatbot: "http://chatbot-service:8003",
-            ServiceType.gri: "http://gri-service:8004",
-            ServiceType.materiality: "http://materiality-service:8005",
-            ServiceType.report: "http://report-service:8006",
-            ServiceType.tcfd: "http://tcfd-service:8007",
+            ServiceType.chatbot: "http://chatbot-service:8001",
+            ServiceType.gri: "http://gri-service:8003",
+            ServiceType.materiality: "http://materiality-service:8002",
+            ServiceType.tcfd: "http://tcfd-service:8005",
+            ServiceType.grireport: "http://grireport-service:8004",
+            ServiceType.tcfdreport: "http://tcfdreport-service:8006",
         }
 
     async def request(

@@ -217,11 +217,11 @@ async def log_requests(request: Request, call_next):
         raise
 
 if __name__ == "__main__":
-    logger.info(f"💻 개발 모드로 실행 - 포트: 8001")
+    logger.info(f"💻 개발 모드로 실행 - 포트: 8008")
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8001,
+        port=8008,
         reload=True,
         log_level="info"
     ) 
