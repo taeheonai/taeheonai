@@ -348,6 +348,10 @@ async def not_found_handler(request: Request, exc):
 async def root():
     return {"message": "Gateway API", "version": "0.1.0"}
 
+@app.get("/api/v1/health", include_in_schema=False)
+async def health():
+    return {"status": "ok"}
+
 # ✅ 서버 실행
 if __name__ == "__main__":
     import uvicorn
