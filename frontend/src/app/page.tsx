@@ -26,10 +26,11 @@ export default function Home() {
 
   // axios를 브라우저 콘솔에서 사용할 수 있도록 바인딩 (경고 방지를 위한 사용 처리)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).axios = axios;
+    if (typeof window !== "undefined") {
+      window.axios = axios;
     }
   }, []);
+
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
