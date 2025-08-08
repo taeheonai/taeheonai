@@ -13,8 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Railway에서는 PORT 환경변수를 사용
-ENV PORT=8000
-EXPOSE 8000
+ENV PORT=8080
+EXPOSE 8080
 
 # Railway 환경에 맞는 시작 명령어 (모듈 경로 수정)
 CMD python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
