@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -39,3 +39,23 @@ api.interceptors.response.use(
 );
 
 export default api; 
+
+// ===== Helpers for gateway auth logging =====
+export async function postSignupPayload(payload: {
+  company_id?: string | null;
+  industry?: string | null;
+  email?: string | null;
+  name?: string | null;
+  age?: string | null;
+  auth_id: string;
+  auth_pw: string;
+}) {
+  return api.post('/v1/auth/signup', payload);
+}
+
+export async function postLoginPayload(payload: {
+  auth_id: string;
+  auth_pw: string;
+}) {
+  return api.post('/v1/auth/login', payload);
+}

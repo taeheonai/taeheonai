@@ -11,6 +11,8 @@ import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from fastapi import Request
+from pydantic import BaseModel, Field
+import json
 
 # Import statements need to be adjusted based on actual project structure
 # from app.router.auth_router import auth_router
@@ -63,7 +65,7 @@ app.add_middleware(
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 # gateway_router.include_router(auth_router)
 # 필요시: gateway_router.include_router(user_router)
-app.include_router(gateway_router)
+# app.include_router(gateway_router)  # moved to bottom after route definitions
 
 # 🪡🪡🪡 파일이 필요한 서비스 목록 (현재는 없음)
 FILE_REQUIRED_SERVICES = set()
@@ -122,7 +124,35 @@ class ResponseFactory:
 
 @gateway_router.get("/health", summary="테스트 엔드포인트")
 async def health_check():
+    logger.info("health check")
     return {"status": "healthy!"}
+
+# ===== Auth demo endpoints: log payloads to stdout (Docker logs) =====
+class SignupPayload(BaseModel):
+    company_id: Optional[str] = Field(default=None)
+    industry: Optional[str] = Field(default=None)
+    email: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    age: Optional[str] = Field(default=None)
+    auth_id: str
+    auth_pw: str
+
+
+class LoginPayload(BaseModel):
+    auth_id: str
+    auth_pw: str
+
+
+@gateway_router.post("/auth/signup", summary="회원가입 입력 로깅 (미저장)")
+async def auth_signup_log(payload: SignupPayload):
+    logger.info("[AUTH][SIGNUP] 입력 데이터: %s", json.dumps(payload.model_dump(), ensure_ascii=False))
+    return {"ok": True, "message": "signup payload logged"}
+
+
+@gateway_router.post("/auth/login", summary="로그인 입력 로깅 (미저장)")
+async def auth_login_log(payload: LoginPayload):
+    logger.info("[AUTH][LOGIN] 입력 데이터: %s", json.dumps(payload.model_dump(), ensure_ascii=False))
+    return {"ok": True, "message": "login payload logged"}
 
 @gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
 async def proxy_get(
@@ -302,6 +332,9 @@ async def proxy_patch(service: ServiceType, path: str, request: Request):
             status_code=500
         )
 
+# 모든 라우트 정의 후 라우터 등록
+app.include_router(gateway_router)
+
 # 404 에러 핸들러
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
@@ -319,4 +352,4 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True) 
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)

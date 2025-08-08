@@ -3,15 +3,13 @@ name: esg_mate
 services:
   gateway:
     build:
-      context: ./gateway/app
+      context: ./gateway
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     volumes:
       - ./gateway/app:/app/app
-      - ./gateway/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./gateway/app/.env
+      - ./gateway/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8080
@@ -30,7 +28,7 @@ services:
     networks:
       - taeheonai-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -39,15 +37,13 @@ services:
 
   chatbot-service:
     build:
-      context: ./services/chatbot-service/app
+      context: ./services/chatbot-service
       dockerfile: Dockerfile
     ports:
       - "8003:8003"
     volumes:
       - ./services/chatbot-service/app:/app/app
-      - ./services/chatbot-service/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./services/chatbot-service/app/.env
+      - ./services/chatbot-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8003
@@ -64,15 +60,13 @@ services:
 
   gri-service:
     build:
-      context: ./services/gri-service/app
+      context: ./services/gri-service
       dockerfile: Dockerfile
     ports:
       - "8004:8004"
     volumes:
       - ./services/gri-service/app:/app/app
-      - ./services/gri-service/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./services/gri-service/app/.env
+      - ./services/gri-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8004
@@ -89,15 +83,13 @@ services:
 
   materiality-service:
     build:
-      context: ./services/materiality-service/app
+      context: ./services/materiality-service
       dockerfile: Dockerfile
     ports:
       - "8005:8005"
     volumes:
       - ./services/materiality-service/app:/app/app
-      - ./services/materiality-service/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./services/materiality-service/app/.env
+      - ./services/materiality-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8005
@@ -114,15 +106,13 @@ services:
 
   report-service:
     build:
-      context: ./services/report-service/app
+      context: ./services/report-service
       dockerfile: Dockerfile
     ports:
       - "8006:8006"
     volumes:
       - ./services/report-service/app:/app/app
-      - ./services/report-service/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./services/report-service/app/.env
+      - ./services/report-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8006
@@ -139,15 +129,13 @@ services:
 
   tcfd-service:
     build:
-      context: ./services/tcfd-service/app
+      context: ./services/tcfd-service
       dockerfile: Dockerfile
     ports:
       - "8007:8007"
     volumes:
       - ./services/tcfd-service/app:/app/app
-      - ./services/tcfd-service/app/requirements.txt:/app/requirements.txt
-    env_file:
-      - ./services/tcfd-service/app/.env
+      - ./services/tcfd-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8007

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 
 interface Message {
   id: string;
@@ -22,6 +23,13 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // axios를 브라우저 콘솔에서 사용할 수 있도록 바인딩 (경고 방지를 위한 사용 처리)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).axios = axios;
+    }
+  }, []);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -69,6 +77,20 @@ export default function Home() {
             <p className="text-lg text-gray-600 dark:text-gray-300">
               AI와 대화하는 새로운 경험
             </p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <a
+                href="/signup"
+                className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white text-sm font-medium hover:bg-blue-700"
+              >
+                회원가입
+              </a>
+              <a
+                href="/login"
+                className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                로그인
+              </a>
+            </div>
           </header>
 
           {/* 채팅 인터페이스 */}
