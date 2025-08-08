@@ -299,6 +299,8 @@ async def root():
         "docs": "/docs"
     }
 
+# 라우터를 앱에 포함
+app.include_router(gateway_router)
 
 # ✅ 모듈 경로 정확히
 if __name__ == "__main__":
