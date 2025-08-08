@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Cookie, HTTPException, Query
 from fastapi.responses import JSONResponse
+from app.domain.user.user_controller import UserController, SignupRequest
 
-from http://app.domain.auth.controller.google_controller import GoogleController
+from app.domain.auth.controller.google_controller import GoogleController
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 google_controller = GoogleController()
+user_controller = UserController()
 
 @auth_router.get("/google/login", summary="Google 로그인 시작")
 async def google_login(
@@ -52,6 +54,17 @@ async def logout(session_token: str | None = Cookie(None)):
     
     print("✅ 로그아웃 완료 - 인증 쿠키 삭제됨")
     return response
+
+@auth_router.post("/signup", summary="회원가입")
+async def signup(request: SignupRequest):
+    """
+    사용자 회원가입을 처리합니다.
+    """
+    try:
+        return await user_controller.signup(request)
+    except Exception as e:
+        print(f"회원가입 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @auth_router.get("/profile", summary="사용자 프로필 조회")
 async def get_profile(session_token: str | None = Cookie(None)):

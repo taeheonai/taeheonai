@@ -16,6 +16,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.router.auth_router import auth_router
+
 # 로컬 개발 시 .env 로딩 (Railway 등 배포환경에선 스킵)
 if not os.getenv("RAILWAY_ENVIRONMENT"):
     from dotenv import load_dotenv
@@ -44,10 +46,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — taeheonai.com 도메인만 허용
+# CORS 설정 - 로컬 개발 환경 포함
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://taeheonai.com", "http://taeheonai.com"],
+    allow_origins=[
+        "http://localhost:3000",  # 로컬 프론트엔드
+        "http://127.0.0.1:3000",  # 로컬 IP
+        "http://frontend:3000",   # Docker 내부 네트워크
+        "https://taeheonai.com",  # 프로덕션 도메인
+        "http://taeheonai.com",   # 프로덕션 도메인
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,6 +74,7 @@ class ServiceType(str, Enum):
     tcfd = "tcfd"
     grireport = "grireport"
     tcfdreport = "tcfdreport"
+    auth = "auth"
 
 
 class ServiceDiscovery:
@@ -78,6 +87,7 @@ class ServiceDiscovery:
             ServiceType.tcfd: "http://tcfd-service:8005",
             ServiceType.grireport: "http://grireport-service:8004",
             ServiceType.tcfdreport: "http://tcfdreport-service:8006",
+            ServiceType.auth: "http://auth-service:8008",
         }
 
     async def request(
@@ -299,7 +309,8 @@ async def root():
         "docs": "/docs"
     }
 
-# 라우터를 앱에 포함
+# 라우터를 앱에 포함 (auth_router를 먼저 등록하여 우선순위 부여)
+app.include_router(auth_router)
 app.include_router(gateway_router)
 
 # ✅ 모듈 경로 정확히

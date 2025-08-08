@@ -50,7 +50,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8008
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/auth_db
+      - DATABASE_URL=postgresql://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@postgres.railway.internal:5432/railway
     restart: always
     depends_on:
       - postgres
