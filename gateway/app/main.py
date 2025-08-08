@@ -44,10 +44,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — 초기엔 전체 허용으로 빠르게 확인, 이후 프론트 도메인으로 좁혀가도 됨
+# CORS — taeheonai.com 도메인만 허용
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://taeheonai.com", "http://taeheonai.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
