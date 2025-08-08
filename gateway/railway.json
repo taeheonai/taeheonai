@@ -2,7 +2,8 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "gateway/Dockerfile"
+    "dockerfilePath": "gateway/Dockerfile",
+    "context": "gateway"
   },
   "deploy": {
     "startCommand": "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT",
@@ -11,4 +12,4 @@
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
-} 
+}
