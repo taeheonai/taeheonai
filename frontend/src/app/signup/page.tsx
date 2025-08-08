@@ -5,6 +5,7 @@ import Link from 'next/link';
 import axios from 'axios';
 
 type SignupFormState = {
+  id: string;
   company_id: string;
   industry: string;
   email: string;
@@ -16,6 +17,7 @@ type SignupFormState = {
 
 export default function SignupPage() {
   const [form, setForm] = useState<SignupFormState>({
+    id: '',
     company_id: '',
     industry: '',
     email: '',
@@ -24,7 +26,9 @@ export default function SignupPage() {
     auth_id: '',
     auth_pw: '',
   });
-  const [submitted, setSubmitted] = useState<SignupFormState | null>(null);
+  const [submitted, setSubmitted] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -35,7 +39,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setLoading(true);
+    setError(null);
+    
     const payload = {
+      id: form.id || undefined, // id가 비어있으면 undefined로 전송
       company_id: form.company_id,
       industry: form.industry,
       email: form.email,
@@ -50,10 +58,28 @@ export default function SignupPage() {
 
     // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
     try {
+      // 환경 변수 또는 기본값 사용
       const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-      await axios.post(`${baseURL}/v1/auth/signup`, payload);
-    } catch (err) {
+      console.log('API URL:', baseURL);
+      console.log('Request payload:', payload);
+      const response = await axios.post(`${baseURL}/v1/auth/signup`, payload);
+      console.log('Signup successful:', response.data);
+    } catch (err: any) {
       console.error('signup log post failed', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        config: {
+          url: err.config?.url,
+          method: err.config?.method,
+          headers: err.config?.headers
+        }
+      });
+      setError(err.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,6 +95,17 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">사용자 ID (id) - 선택사항</label>
+              <input
+                name="id"
+                value={form.id}
+                onChange={handleChange}
+                className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="예: 12345 (비워두면 자동 생성)"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">회사 ID (company_id)</label>
               <input
@@ -153,11 +190,18 @@ export default function SignupPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full md:w-auto px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                disabled={loading}
+                className="w-full md:w-auto px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium"
               >
-                제출 (미저장)
+                {loading ? '처리 중...' : '제출 (미저장)'}
               </button>
             </div>
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
           </form>
 
           {submitted && (

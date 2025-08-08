@@ -10,11 +10,20 @@ import traceback
 import os
 import hashlib
 
-from .database import get_db, engine
-from .models import Base, User
+from .database import get_db, engine, Base
+from .models import User
 
-# 데이터베이스 테이블 생성
-Base.metadata.create_all(bind=engine)
+# 데이터베이스 테이블 생성 (연결 실패 시 무시)
+try:
+    if engine:
+        Base.metadata.create_all(bind=engine)
+        logging.info("Database tables created successfully")
+    else:
+        logging.warning("Database engine not available, skipping table creation")
+except Exception as e:
+    logging.error(f"Failed to create database tables: {e}")
+    # 로컬 개발 환경에서는 데이터베이스 없이도 동작하도록 설정
+    logging.info("Continuing without database for local development")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,7 +59,7 @@ auth_router = APIRouter()
 
 # 요청 모델
 class SignupRequest(BaseModel):
-    id: str
+    id: str = None
     company_id: str = None
     industry: str = None
     email: str
@@ -80,12 +89,28 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 @auth_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
+    db_status = "connected" if engine else "disconnected"
     return {
         "status": "healthy",
         "service": "auth-service",
+        "database": db_status,
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
     }
+
+@auth_router.get("/db-status")
+async def database_status():
+    """데이터베이스 연결 상태 확인"""
+    try:
+        if engine:
+            # 간단한 연결 테스트
+            with engine.connect() as conn:
+                conn.execute("SELECT 1")
+            return {"status": "connected", "message": "Database is available"}
+        else:
+            return {"status": "disconnected", "message": "Database engine not available"}
+    except Exception as e:
+        return {"status": "error", "message": f"Database connection failed: {str(e)}"}
 
 @auth_router.get("/")
 async def root():
@@ -105,6 +130,18 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """회원가입 처리"""
     try:
         logger.info(f"Signup request for user: {request.auth_id}")
+        logger.info(f"Database session: {db}")
+        
+        # 데이터베이스 연결 확인
+        if not db:
+            # 데이터베이스 없이도 동작 (로컬 개발용)
+            logger.info("Database not available, proceeding without database")
+            return AuthResponse(
+                success=True,
+                message="회원가입이 완료되었습니다. (데이터베이스 저장 안됨)",
+                user_id=request.id or "temp_id",
+                timestamp=datetime.now()
+            )
         
         # 기존 사용자 확인
         existing_user = db.query(User).filter(User.auth_id == request.auth_id).first()
@@ -116,7 +153,7 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
         
         # 새 사용자 생성
         new_user = User(
-            id=int(request.id) if request.id.isdigit() else None,
+            id=int(request.id) if request.id and request.id.isdigit() else None,
             company_id=request.company_id,
             industry=request.industry,
             email=request.email,
@@ -142,7 +179,8 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
         raise
     except Exception as e:
         logger.error(f"Signup error: {e}")
-        db.rollback()
+        if db:
+            db.rollback()
         raise HTTPException(status_code=500, detail="회원가입 처리 중 오류가 발생했습니다.")
 
 @auth_router.post("/login")
@@ -150,6 +188,17 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """로그인 처리"""
     try:
         logger.info(f"Login request for user: {request.auth_id}")
+        
+        # 데이터베이스 연결 확인
+        if not db:
+            # 데이터베이스 없이도 동작 (로컬 개발용)
+            logger.info("Database not available, proceeding without database")
+            return AuthResponse(
+                success=True,
+                message="로그인이 완료되었습니다. (데이터베이스 확인 안됨)",
+                user_id="temp_user",
+                timestamp=datetime.now()
+            )
         
         # 사용자 조회
         user = db.query(User).filter(User.auth_id == request.auth_id).first()
