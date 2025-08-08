@@ -6,9 +6,9 @@
     "context": "gateway"
   },
   "deploy": {
-    "startCommand": "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT",
-    "healthcheckPath": "/api/v1/health",
-    "healthcheckTimeout": 300,
+    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port $PORT",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
