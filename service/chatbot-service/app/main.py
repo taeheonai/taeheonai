@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -23,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# APIRouter 정의
+chatbot_router = APIRouter()
+
 # 요청 모델
 class ChatRequest(BaseModel):
     message: str
@@ -34,7 +37,7 @@ class ChatResponse(BaseModel):
     timestamp: datetime
     session_id: str
 
-@app.get("/health")
+@chatbot_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
@@ -44,7 +47,7 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/")
+@chatbot_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
@@ -56,7 +59,7 @@ async def root():
         }
     }
 
-@app.post("/chat")
+@chatbot_router.post("/chat")
 async def chat(request: ChatRequest):
     """채팅 요청 처리"""
     try:
@@ -74,7 +77,7 @@ async def chat(request: ChatRequest):
         logger.error(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail="Chat processing error")
 
-@app.get("/chat/history/{session_id}")
+@chatbot_router.get("/chat/history/{session_id}")
 async def get_chat_history(session_id: str):
     """채팅 히스토리 조회"""
     try:
@@ -87,6 +90,9 @@ async def get_chat_history(session_id: str):
     except Exception as e:
         logger.error(f"History error: {e}")
         raise HTTPException(status_code=500, detail="History retrieval error")
+
+# 라우터를 앱에 포함
+app.include_router(chatbot_router)
 
 if __name__ == "__main__":
     import uvicorn

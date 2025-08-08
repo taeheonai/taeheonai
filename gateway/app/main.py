@@ -99,69 +99,57 @@ class ServiceDiscovery:
         url = f"{base_url}{path}"
 
         async with httpx.AsyncClient() as client:
-            resp = await client.request(
-                method=method,
-                url=url,
-                headers=headers,
-                content=body,
-                files=files,
-                params=params,  # ✅ 쿼리스트링 전달
-                data=data,
-                timeout=30.0,
-            )
-            return resp
+            try:
+                if method.upper() == "GET":
+                    response = await client.get(url, headers=headers, params=params)
+                elif method.upper() == "POST":
+                    if files:
+                        response = await client.post(url, headers=headers, files=files, params=params)
+                    elif data:
+                        response = await client.post(url, headers=headers, json=data, params=params)
+                    else:
+                        response = await client.post(url, headers=headers, content=body, params=params)
+                elif method.upper() == "PUT":
+                    response = await client.put(url, headers=headers, content=body, params=params)
+                elif method.upper() == "DELETE":
+                    response = await client.delete(url, headers=headers, params=params)
+                elif method.upper() == "PATCH":
+                    response = await client.patch(url, headers=headers, content=body, params=params)
+                else:
+                    raise HTTPException(status_code=405, detail=f"Method {method} not allowed")
+
+                return response
+            except httpx.RequestError as e:
+                logger.error(f"Request error: {e}")
+                raise HTTPException(status_code=503, detail=f"Service {self.service_type} unavailable")
 
 
 class ResponseFactory:
     @staticmethod
     def create_response(response):
         # JSON이면 JSON으로, 아니면 텍스트로
-        content_type = response.headers.get("content-type", "")
-        if content_type.startswith("application/json"):
-            content = response.json()
-        else:
-            # JSONResponse에 str을 넣어도 되지만, plain text면 그대로 반환
+        try:
             return JSONResponse(
-                content=response.text,
+                content=response.json(),
                 status_code=response.status_code,
-                headers={"content-type": content_type},
+                headers=dict(response.headers)
             )
-        return JSONResponse(content=content, status_code=response.status_code)
+        except:
+            return JSONResponse(
+                content={"detail": response.text},
+                status_code=response.status_code,
+                headers=dict(response.headers)
+            )
 
 
-# ---------- Basic Health ----------
 @gateway_router.get("/health", summary="게이트웨이 헬스체크")
 async def health_check():
-    logger.info("health check")
-    return {"status": "healthy!"}
-
-
-# ---------- Demo auth payload log ----------
-class SignupPayload(BaseModel):
-    company_id: Optional[str] = Field(default=None)
-    industry: Optional[str] = Field(default=None)
-    email: Optional[str] = Field(default=None)
-    name: Optional[str] = Field(default=None)
-    age: Optional[str] = Field(default=None)
-    auth_id: str
-    auth_pw: str
-
-
-class LoginPayload(BaseModel):
-    auth_id: str
-    auth_pw: str
-
-
-@gateway_router.post("/auth/signup", summary="회원가입 입력 로깅 (미저장)")
-async def auth_signup_log(payload: SignupPayload):
-    logger.info("[AUTH][SIGNUP] 입력 데이터: %s", json.dumps(payload.model_dump(), ensure_ascii=False))
-    return {"ok": True, "message": "signup payload logged"}
-
-
-@gateway_router.post("/auth/login", summary="로그인 입력 로깅 (미저장)")
-async def auth_login_log(payload: LoginPayload):
-    logger.info("[AUTH][LOGIN] 입력 데이터: %s", json.dumps(payload.model_dump(), ensure_ascii=False))
-    return {"ok": True, "message": "login payload logged"}
+    return {
+        "status": "healthy",
+        "service": "gateway",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "version": "0.1.0"
+    }
 
 
 # ---------- Proxy ----------
@@ -244,8 +232,14 @@ async def proxy_put(service: ServiceType, path: str, request: Request):
         factory = ServiceDiscovery(service_type=service)
         headers = dict(request.headers)
         body = await request.body()
-        params = dict(request.query_params) if request.query_params else None
-        resp = await factory.request(method="PUT", path=path, headers=headers, body=body, params=params)
+        params = dict(request.query_params)
+        resp = await factory.request(
+            method="PUT",
+            path=path,
+            headers=headers,
+            body=body,
+            params=params,
+        )
         return ResponseFactory.create_response(resp)
     except Exception as e:
         logger.error(f"Error in PUT proxy: {str(e)}")
@@ -257,8 +251,13 @@ async def proxy_delete(service: ServiceType, path: str, request: Request):
     try:
         factory = ServiceDiscovery(service_type=service)
         headers = dict(request.headers)
-        params = dict(request.query_params) if request.query_params else None
-        resp = await factory.request(method="DELETE", path=path, headers=headers, params=params)
+        params = dict(request.query_params)
+        resp = await factory.request(
+            method="DELETE",
+            path=path,
+            headers=headers,
+            params=params,
+        )
         return ResponseFactory.create_response(resp)
     except Exception as e:
         logger.error(f"Error in DELETE proxy: {str(e)}")
@@ -271,32 +270,38 @@ async def proxy_patch(service: ServiceType, path: str, request: Request):
         factory = ServiceDiscovery(service_type=service)
         headers = dict(request.headers)
         body = await request.body()
-        params = dict(request.query_params) if request.query_params else None
-        resp = await factory.request(method="PATCH", path=path, headers=headers, body=body, params=params)
+        params = dict(request.query_params)
+        resp = await factory.request(
+            method="PATCH",
+            path=path,
+            headers=headers,
+            body=body,
+            params=params,
+        )
         return ResponseFactory.create_response(resp)
     except Exception as e:
         logger.error(f"Error in PATCH proxy: {str(e)}")
         return JSONResponse(content={"detail": f"Error processing request: {str(e)}"}, status_code=500)
 
 
-# 모든 라우트 정의 후 라우터 등록
-app.include_router(gateway_router)
-
-# 404 에러 핸들러
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
-    return JSONResponse(status_code=404, content={"detail": "요청한 리소스를 찾을 수 없습니다."})
+    return JSONResponse(content={"detail": "Service not found"}, status_code=404)
 
-# 기본 루트
+
 @app.get("/")
 async def root():
-    return {"message": "Gateway API", "version": "0.1.0"}
+    return {
+        "message": "Gateway API",
+        "version": "0.1.0",
+        "docs": "/docs"
+    }
 
-# ⚠️ 중복이던 app 레벨 /api/v1/health 는 제거 (router 하나만 유지)
 
-# ✅ 서버 실행 (로컬 전용)
+# ✅ 모듈 경로 정확히
 if __name__ == "__main__":
     import uvicorn
+    import os
+    
     port = int(os.getenv("PORT", 8080))
-    # ✅ 모듈 경로 정확히
     uvicorn.run("gateway.app.main:app", host="0.0.0.0", port=port, reload=True)

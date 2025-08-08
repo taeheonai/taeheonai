@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -23,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# APIRouter 정의
+tcfd_router = APIRouter()
+
 # 요청 모델
 class TCFDRequest(BaseModel):
     company_data: dict
@@ -34,7 +37,7 @@ class TCFDResponse(BaseModel):
     timestamp: datetime
     risk_score: float
 
-@app.get("/health")
+@tcfd_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
@@ -44,7 +47,7 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/")
+@tcfd_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
@@ -57,7 +60,7 @@ async def root():
         }
     }
 
-@app.post("/analyze")
+@tcfd_router.post("/analyze")
 async def analyze_tcfd(request: TCFDRequest):
     """TCFD 분석"""
     try:
@@ -92,7 +95,7 @@ async def analyze_tcfd(request: TCFDRequest):
         logger.error(f"TCFD analysis error: {e}")
         raise HTTPException(status_code=500, detail="TCFD analysis error")
 
-@app.get("/scenarios")
+@tcfd_router.get("/scenarios")
 async def get_climate_scenarios():
     """기후 시나리오 조회"""
     try:
@@ -123,7 +126,7 @@ async def get_climate_scenarios():
         logger.error(f"Scenarios error: {e}")
         raise HTTPException(status_code=500, detail="Scenarios retrieval error")
 
-@app.get("/framework")
+@tcfd_router.get("/framework")
 async def get_tcfd_framework():
     """TCFD 프레임워크 조회"""
     try:
@@ -139,6 +142,9 @@ async def get_tcfd_framework():
     except Exception as e:
         logger.error(f"Framework error: {e}")
         raise HTTPException(status_code=500, detail="Framework retrieval error")
+
+# 라우터를 앱에 포함
+app.include_router(tcfd_router)
 
 if __name__ == "__main__":
     import uvicorn

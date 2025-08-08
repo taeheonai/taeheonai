@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -23,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# APIRouter 정의
+gri_router = APIRouter()
+
 # 요청 모델
 class GRIRequest(BaseModel):
     standard: str
@@ -34,7 +37,7 @@ class GRIResponse(BaseModel):
     timestamp: datetime
     standard: str
 
-@app.get("/health")
+@gri_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
@@ -44,7 +47,7 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/")
+@gri_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
@@ -57,7 +60,7 @@ async def root():
         }
     }
 
-@app.post("/analyze")
+@gri_router.post("/analyze")
 async def analyze_gri(request: GRIRequest):
     """GRI 표준 분석"""
     try:
@@ -80,7 +83,7 @@ async def analyze_gri(request: GRIRequest):
         logger.error(f"GRI analysis error: {e}")
         raise HTTPException(status_code=500, detail="GRI analysis error")
 
-@app.get("/standards")
+@gri_router.get("/standards")
 async def get_gri_standards():
     """GRI 표준 목록 조회"""
     try:
@@ -97,6 +100,9 @@ async def get_gri_standards():
     except Exception as e:
         logger.error(f"Standards error: {e}")
         raise HTTPException(status_code=500, detail="Standards retrieval error")
+
+# 라우터를 앱에 포함
+app.include_router(gri_router)
 
 if __name__ == "__main__":
     import uvicorn

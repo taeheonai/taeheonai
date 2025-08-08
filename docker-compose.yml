@@ -16,6 +16,7 @@ services:
       - PYTHONUNBUFFERED=1
     restart: always
     depends_on:
+      - auth-service
       - chatbot-service
       - gri-service
       - materiality-service
@@ -34,16 +35,41 @@ services:
       retries: 3
       start_period: 40s
 
+  auth-service:
+    build:
+      context: ./service/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./service/auth-service/app:/app/app
+      - ./service/auth-service/requirements.txt:/app/requirements.txt
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8001
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/auth_db
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   chatbot-service:
     build:
-      context: ./services/chatbot-service
+      context: ./service/chatbot-service
       dockerfile: Dockerfile
     ports:
       - "8003:8003"
     volumes:
-      - ./services/chatbot-service/app:/app/app
-      - ./services/chatbot-service/requirements.txt:/app/requirements.txt
+      - ./service/chatbot-service/app:/app/app
+      - ./service/chatbot-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8003
@@ -60,13 +86,13 @@ services:
 
   gri-service:
     build:
-      context: ./services/gri-service
+      context: ./service/gri-service
       dockerfile: Dockerfile
     ports:
       - "8004:8004"
     volumes:
-      - ./services/gri-service/app:/app/app
-      - ./services/gri-service/requirements.txt:/app/requirements.txt
+      - ./service/gri-service/app:/app/app
+      - ./service/gri-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8004
@@ -83,13 +109,13 @@ services:
 
   materiality-service:
     build:
-      context: ./services/materiality-service
+      context: ./service/materiality-service
       dockerfile: Dockerfile
     ports:
       - "8005:8005"
     volumes:
-      - ./services/materiality-service/app:/app/app
-      - ./services/materiality-service/requirements.txt:/app/requirements.txt
+      - ./service/materiality-service/app:/app/app
+      - ./service/materiality-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8005
@@ -106,13 +132,13 @@ services:
 
   report-service:
     build:
-      context: ./services/report-service
+      context: ./service/report-service
       dockerfile: Dockerfile
     ports:
       - "8006:8006"
     volumes:
-      - ./services/report-service/app:/app/app
-      - ./services/report-service/requirements.txt:/app/requirements.txt
+      - ./service/report-service/app:/app/app
+      - ./service/report-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8006
@@ -129,13 +155,13 @@ services:
 
   tcfd-service:
     build:
-      context: ./services/tcfd-service
+      context: ./service/tcfd-service
       dockerfile: Dockerfile
     ports:
       - "8007:8007"
     volumes:
-      - ./services/tcfd-service/app:/app/app
-      - ./services/tcfd-service/requirements.txt:/app/requirements.txt
+      - ./service/tcfd-service/app:/app/app
+      - ./service/tcfd-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8007
@@ -150,6 +176,27 @@ services:
       retries: 3
       start_period: 40s
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=auth_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taeheonai-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -158,6 +205,9 @@ services:
     networks:
       - taeheonai-network
     restart: always
+
+volumes:
+  postgres_data:
 
 networks:
   taeheonai-network:

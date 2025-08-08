@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
@@ -23,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# APIRouter 정의
+materiality_router = APIRouter()
+
 # 요청 모델
 class MaterialityRequest(BaseModel):
     company_data: dict
@@ -34,7 +37,7 @@ class MaterialityResponse(BaseModel):
     timestamp: datetime
     score: float
 
-@app.get("/health")
+@materiality_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
@@ -44,7 +47,7 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/")
+@materiality_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
@@ -57,7 +60,7 @@ async def root():
         }
     }
 
-@app.post("/assess")
+@materiality_router.post("/assess")
 async def assess_materiality(request: MaterialityRequest):
     """중요성 평가"""
     try:
@@ -85,7 +88,7 @@ async def assess_materiality(request: MaterialityRequest):
         logger.error(f"Materiality assessment error: {e}")
         raise HTTPException(status_code=500, detail="Materiality assessment error")
 
-@app.get("/criteria")
+@materiality_router.get("/criteria")
 async def get_assessment_criteria():
     """평가 기준 조회"""
     try:
@@ -101,6 +104,9 @@ async def get_assessment_criteria():
     except Exception as e:
         logger.error(f"Criteria error: {e}")
         raise HTTPException(status_code=500, detail="Criteria retrieval error")
+
+# 라우터를 앱에 포함
+app.include_router(materiality_router)
 
 if __name__ == "__main__":
     import uvicorn

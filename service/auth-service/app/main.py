@@ -1,27 +1,52 @@
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, HTTPException, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
+from sqlalchemy.orm import Session
+import uvicorn
 import logging
+import traceback
+import os
+import hashlib
 
-# 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('auth-service')
+from .database import get_db, engine
+from .models import Base, User
+
+# 데이터베이스 테이블 생성
+Base.metadata.create_all(bind=engine)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("auth_main")
+
+if os.getenv("RAILWAY_ENVIRONMENT") != "true":
+    load_dotenv()
 
 app = FastAPI(
-    title="Auth Service",
-    description="Authentication Service for TaeheonAI",
-    version="1.0.0"
+    title="Auth Service API",
+    description="Authentication 서비스",
+    version="1.0.0",
 )
 
-# CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://taeheonai.com", "http://taeheonai.com"],
-    allow_credentials=True,
+    allow_origins=[
+        "http://localhost:3000",  # 로컬 접근
+        "http://127.0.0.1:3000",  # 로컬 IP 접근
+        "http://frontend:3000",   # Docker 내부 네트워크
+        "https://taeheonai.com",  # 프로덕션 도메인
+        "http://taeheonai.com",   # 프로덕션 도메인
+    ],
+    allow_credentials=True,  # HttpOnly 쿠키 사용을 위해 필수
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# APIRouter 정의
+auth_router = APIRouter()
 
 # 요청 모델
 class SignupRequest(BaseModel):
@@ -44,7 +69,15 @@ class AuthResponse(BaseModel):
     user_id: str = None
     timestamp: datetime
 
-@app.get("/health")
+# 비밀번호 해싱 함수
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# 비밀번호 검증 함수
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return hash_password(plain_password) == hashed_password
+
+@auth_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
@@ -54,7 +87,7 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/")
+@auth_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
@@ -67,15 +100,37 @@ async def root():
         }
     }
 
-@app.post("/signup")
-async def signup(request: SignupRequest):
+@auth_router.post("/signup")
+async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """회원가입 처리"""
     try:
         logger.info(f"Signup request for user: {request.auth_id}")
         
-        # 실제로는 데이터베이스에 저장
-        # 여기서는 로그만 출력
-        logger.info(f"User data: {request.dict()}")
+        # 기존 사용자 확인
+        existing_user = db.query(User).filter(User.auth_id == request.auth_id).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다.")
+        
+        # 비밀번호 해싱
+        hashed_password = hash_password(request.auth_pw)
+        
+        # 새 사용자 생성
+        new_user = User(
+            id=int(request.id) if request.id.isdigit() else None,
+            company_id=request.company_id,
+            industry=request.industry,
+            email=request.email,
+            name=request.name,
+            age=request.age,
+            auth_id=request.auth_id,
+            auth_pw=hashed_password
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        logger.info(f"User created successfully: {request.auth_id}")
         
         return AuthResponse(
             success=True,
@@ -83,46 +138,90 @@ async def signup(request: SignupRequest):
             user_id=request.id,
             timestamp=datetime.now()
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Signup error: {e}")
-        raise HTTPException(status_code=500, detail="Signup processing error")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="회원가입 처리 중 오류가 발생했습니다.")
 
-@app.post("/login")
-async def login(request: LoginRequest):
+@auth_router.post("/login")
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """로그인 처리"""
     try:
         logger.info(f"Login request for user: {request.auth_id}")
         
-        # 실제로는 데이터베이스에서 인증 확인
-        # 여기서는 로그만 출력
-        logger.info(f"Login attempt: {request.dict()}")
+        # 사용자 조회
+        user = db.query(User).filter(User.auth_id == request.auth_id).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
+        
+        # 비밀번호 검증
+        if not verify_password(request.auth_pw, user.auth_pw):
+            raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
+        
+        logger.info(f"Login successful: {request.auth_id}")
         
         return AuthResponse(
             success=True,
             message="로그인이 완료되었습니다.",
-            user_id=request.auth_id,
+            user_id=str(user.id),
             timestamp=datetime.now()
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Login error: {e}")
-        raise HTTPException(status_code=500, detail="Login processing error")
+        raise HTTPException(status_code=500, detail="로그인 처리 중 오류가 발생했습니다.")
 
-@app.get("/user/{user_id}")
-async def get_user_info(user_id: str):
+@auth_router.get("/user/{user_id}")
+async def get_user_info(user_id: str, db: Session = Depends(get_db)):
     """사용자 정보 조회"""
     try:
-        # 실제로는 데이터베이스에서 조회
+        user = db.query(User).filter(User.id == int(user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        
         return {
-            "user_id": user_id,
+            "user_id": str(user.id),
+            "company_id": user.company_id,
+            "industry": user.industry,
+            "email": user.email,
+            "name": user.name,
+            "age": user.age,
+            "auth_id": user.auth_id,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
             "timestamp": datetime.now().isoformat()
         }
+    except ValueError:
+        raise HTTPException(status_code=400, detail="잘못된 사용자 ID입니다.")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"User info error: {e}")
-        raise HTTPException(status_code=500, detail="User info retrieval error")
+        raise HTTPException(status_code=500, detail="사용자 정보 조회 중 오류가 발생했습니다.")
+
+# 라우터를 앱에 포함
+app.include_router(auth_router)
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"📥 요청: {request.method} {request.url.path} (클라이언트: {request.client.host})")
+    try:
+        response = await call_next(request)
+        logger.info(f"📤 응답: {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 if __name__ == "__main__":
-    import uvicorn
-    import os
-    
-    port = int(os.getenv("PORT", 8001))
-    uvicorn.run(app, host="0.0.0.0", port=port) 
+    logger.info(f"💻 개발 모드로 실행 - 포트: 8001")
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8001,
+        reload=True,
+        log_level="info"
+    ) 
