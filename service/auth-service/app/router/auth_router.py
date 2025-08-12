@@ -7,8 +7,17 @@ from datetime import datetime
 import hashlib
 import logging
 
-# 로거 설정
-logger = logging.getLogger(__name__)
+# 로거 설정 - auth_router 전용
+logger = logging.getLogger("auth_router")
+logger.setLevel(logging.INFO)
+
+# 로거가 핸들러를 가지고 있는지 확인하고 없으면 추가
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 auth_router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
