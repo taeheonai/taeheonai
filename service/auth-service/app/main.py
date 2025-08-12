@@ -14,23 +14,35 @@ from .database import get_db, engine, Base, check_database_connection, test_data
 from .models import User
 from .router.auth_router import auth_router
 
+# 로깅 설정 강화
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # 콘솔 출력
+        logging.FileHandler('/tmp/auth-service.log')  # 파일 출력 (Docker에서 확인 가능)
+    ]
+)
+
+# 루트 로거 설정
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# auth_main 로거 설정
+logger = logging.getLogger("auth_main")
+logger.setLevel(logging.INFO)
+
 # 데이터베이스 테이블 생성 (연결 실패 시 무시)
 try:
     if engine:
         # Async 엔진이므로 테이블 생성은 나중에 처리
-        logging.info("Async Database engine available, tables will be created on first connection")
+        logger.info("Async Database engine available, tables will be created on first connection")
     else:
-        logging.warning("Database engine not available, skipping table creation")
+        logger.warning("Database engine not available, skipping table creation")
 except Exception as e:
-    logging.error(f"Failed to create database tables: {e}")
+    logger.error(f"Failed to create database tables: {e}")
     # 로컬 개발 환경에서는 데이터베이스 없이도 동작하도록 설정
-    logging.info("Continuing without database for local development")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("auth_main")
+    logger.info("Continuing without database for local development")
 
 # 로컬 개발 환경에서 .env 파일 로드
 load_dotenv()
@@ -66,7 +78,7 @@ app.include_router(auth_router)
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
     """CORS preflight 요청을 처리하는 핸들러"""
-    logger.info(f"🔍 OPTIONS preflight 요청 처리: /{full_path}")
+    logger.info(f"�� OPTIONS preflight 요청 처리: /{full_path}")
     return {"message": "CORS preflight OK"}
 
 # Docker health check를 위한 루트 레벨 /health 엔드포인트
@@ -75,6 +87,7 @@ async def root_health_check():
     """Docker health check용 루트 레벨 헬스체크"""
     from .database import engine
     db_status = "connected" if engine else "disconnected"
+    logger.info(f"🏥 헬스체크 요청 - DB 상태: {db_status}")
     return {
         "status": "healthy",
         "service": "auth-service",
@@ -89,6 +102,7 @@ async def database_status_check():
     """Railway PostgreSQL 연결 상태를 상세하게 확인하는 엔드포인트"""
     try:
         connection_ok = await check_database_connection()
+        logger.info(f"🔍 DB 상태 확인 요청 - 연결 상태: {connection_ok}")
         return {
             "status": "success" if connection_ok else "failed",
             "service": "auth-service",
@@ -115,7 +129,9 @@ async def database_status_check():
 async def database_test():
     """Railway PostgreSQL 연결을 테스트하는 엔드포인트"""
     try:
+        logger.info("🧪 DB 연결 테스트 요청")
         test_result = await test_database_connection()
+        logger.info(f"🧪 DB 연결 테스트 결과: {test_result}")
         return {
             "status": "success" if test_result else "failed",
             "service": "auth-service",
