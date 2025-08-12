@@ -10,6 +10,10 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Manifest-Debug",
+          "value": "true"
         }
       ]
     }
@@ -25,7 +29,8 @@
       "src": "/manifest.json",
       "dest": "/manifest.json",
       "headers": {
-        "Content-Type": "application/manifest+json"
+        "Content-Type": "application/manifest+json",
+        "X-Manifest-Debug": "true"
       }
     }
   ],
@@ -33,5 +38,8 @@
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install"
 }
