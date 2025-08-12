@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* next-pwa가 자동으로 manifest를 처리하므로 수동 링크 제거 */}
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
