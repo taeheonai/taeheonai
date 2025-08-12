@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Railway에서는 PORT 환경변수를 사용
+# Docker 환경에서 PORT 환경변수 사용
 ENV PORT=8080
 EXPOSE 8080
 

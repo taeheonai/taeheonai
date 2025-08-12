@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 배포 테스트 스크립트
-Railway 배포 후 서비스들이 정상적으로 작동하는지 확인
+Docker 환경에서 서비스들이 정상적으로 작동하는지 확인
 """
 
 import requests
@@ -42,14 +42,14 @@ def main():
     """메인 테스트 함수"""
     print("🚀 배포 테스트 시작...")
     
-    # Railway URL 환경변수에서 가져오거나 로컬 테스트용
-    gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8000')
-    auth_service_url = os.getenv('AUTH_SERVICE_URL', 'http://localhost:8002')
-    chatbot_service_url = os.getenv('CHATBOT_SERVICE_URL', 'http://localhost:8003')
-    gri_service_url = os.getenv('GRI_SERVICE_URL', 'http://localhost:8004')
-    materiality_service_url = os.getenv('MATERIALITY_SERVICE_URL', 'http://localhost:8005')
-    report_service_url = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8006')
-    tcfd_service_url = os.getenv('TCFD_SERVICE_URL', 'http://localhost:8007')
+    # Docker 환경 URL 설정
+    gateway_url = os.getenv('GATEWAY_URL', 'http://localhost:8080')
+    auth_service_url = os.getenv('AUTH_SERVICE_URL', 'http://localhost:8008')
+    chatbot_service_url = os.getenv('CHATBOT_SERVICE_URL', 'http://localhost:8001')
+    gri_service_url = os.getenv('GRI_SERVICE_URL', 'http://localhost:8003')
+    materiality_service_url = os.getenv('MATERIALITY_SERVICE_URL', 'http://localhost:8002')
+    report_service_url = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8004')
+    tcfd_service_url = os.getenv('TCFD_SERVICE_URL', 'http://localhost:8005')
     
     # 테스트할 서비스들
     services = {

@@ -54,7 +54,13 @@ export default function SignupPage() {
     };
 
     setSubmitted(payload);
-    alert(`회원가입 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`);
+    
+    // 브라우저 alert와 Docker 로그 모두에서 확인 가능
+    const alertMessage = `회원가입 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`;
+    alert(alertMessage);
+    console.log('=== 회원가입 Alert 데이터 ===');
+    console.log(alertMessage);
+    console.log('=== Alert 데이터 끝 ===');
 
     // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
     try {

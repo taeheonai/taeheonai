@@ -50,10 +50,8 @@ services:
       - ENVIRONMENT=development
       - PORT=8008
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@postgres.railway.internal:5432/railway
+      - DATABASE_URL=${DATABASE_URL}
     restart: always
-    depends_on:
-      - postgres
     networks:
       - taeheonai-network
     healthcheck:
@@ -224,26 +222,7 @@ services:
       retries: 3
       start_period: 40s
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_DB=auth_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - taeheonai-network
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # PostgreSQL 서비스 제거 - Railway PostgreSQL 사용
 
   redis:
     image: redis:7-alpine
@@ -254,8 +233,7 @@ services:
       - taeheonai-network
     restart: always
 
-volumes:
-  postgres_data:
+# volumes 섹션 제거 (현재 사용하지 않음)
 
 networks:
   taeheonai-network:

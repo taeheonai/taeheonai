@@ -32,7 +32,14 @@ export default function LoginPage() {
       auth_id: form.auth_id,
       auth_pw: form.auth_pw,
     };
-    alert(`로그인 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`);
+    
+    // 브라우저 alert와 Docker 로그 모두에서 확인 가능
+    const alertMessage = `로그인 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`;
+    alert(alertMessage);
+    console.log('=== 로그인 Alert 데이터 ===');
+    console.log(alertMessage);
+    console.log('=== Alert 데이터 끝 ===');
+    
     try {
       const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
       await axios.post(`${baseURL}/v1/auth/login`, payload);

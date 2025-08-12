@@ -16,12 +16,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.router.auth_router import auth_router
+# auth_router import 제거 - generic proxy로 처리
 
-# 로컬 개발 시 .env 로딩 (Railway 등 배포환경에선 스킵)
-if not os.getenv("RAILWAY_ENVIRONMENT"):
-    from dotenv import load_dotenv
-    load_dotenv()
+# 로컬 개발 환경에서 .env 파일 로드
+from dotenv import load_dotenv
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,6 +107,11 @@ class ServiceDiscovery:
 
         # ✅ path는 반드시 슬래시 보장
         path = "/" + path.lstrip("/")
+        
+        # Auth 서비스의 경우 /v1/auth 접두사 추가
+        if self.service_type == ServiceType.auth:
+            path = f"/v1/auth{path}"
+        
         url = f"{base_url}{path}"
 
         async with httpx.AsyncClient() as client:
@@ -120,7 +124,14 @@ class ServiceDiscovery:
                     elif data:
                         response = await client.post(url, headers=headers, json=data, params=params)
                     else:
-                        response = await client.post(url, headers=headers, content=body, params=params)
+                        # body가 bytes인 경우 json으로 변환 시도
+                        try:
+                            import json
+                            body_json = json.loads(body.decode('utf-8')) if body else {}
+                            response = await client.post(url, headers=headers, json=body_json, params=params)
+                        except (json.JSONDecodeError, AttributeError):
+                            # JSON 변환 실패 시 content로 전달
+                            response = await client.post(url, headers=headers, content=body, params=params)
                 elif method.upper() == "PUT":
                     response = await client.put(url, headers=headers, content=body, params=params)
                 elif method.upper() == "DELETE":
@@ -219,6 +230,32 @@ async def proxy_post(
                 params["sheet_name"] = sheet_names
         else:
             body = await request.body()
+            
+            # Auth 서비스 요청에 대한 상세 로깅 추가
+            if service == ServiceType.auth:
+                try:
+                    import json
+                    body_json = json.loads(body.decode('utf-8'))
+                    if path == "login":
+                        logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
+                        logger.info(f"로그인 데이터 (JSON):")
+                        logger.info(f"Auth ID: {body_json.get('auth_id')}")
+                        logger.info(f"Auth PW: {body_json.get('auth_pw')}")
+                        logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                    elif path == "signup":
+                        logger.info("=== 회원가입 Alert 데이터 (Gateway Generic Proxy) ===")
+                        logger.info(f"회원가입 데이터 (JSON):")
+                        logger.info(f"ID: {body_json.get('id')}")
+                        logger.info(f"Company ID: {body_json.get('company_id')}")
+                        logger.info(f"Industry: {body_json.get('industry')}")
+                        logger.info(f"Email: {body_json.get('email')}")
+                        logger.info(f"Name: {body_json.get('name')}")
+                        logger.info(f"Age: {body_json.get('age')}")
+                        logger.info(f"Auth ID: {body_json.get('auth_id')}")
+                        logger.info(f"Auth PW: {body_json.get('auth_pw')}")
+                        logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                except Exception as e:
+                    logger.warning(f"Auth 서비스 요청 로깅 중 오류: {e}")
 
         resp = await factory.request(
             method="POST",
@@ -309,8 +346,7 @@ async def root():
         "docs": "/docs"
     }
 
-# 라우터를 앱에 포함 (auth_router를 먼저 등록하여 우선순위 부여)
-app.include_router(auth_router)
+# 라우터를 앱에 포함 (generic proxy만 사용)
 app.include_router(gateway_router)
 
 # ✅ 모듈 경로 정확히

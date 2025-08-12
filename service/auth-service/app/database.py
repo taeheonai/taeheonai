@@ -6,16 +6,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Railway PostgreSQL 환경변수 사용 (로컬 환경에서는 Docker PostgreSQL 사용)
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:password@postgres:5432/postgres"
-)
+# Railway PostgreSQL 환경변수 사용
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 로컬 개발 환경에서는 데이터베이스 연결을 비활성화
-if "railway" in DATABASE_URL.lower() and os.getenv("RAILWAY_ENVIRONMENT") != "true":
-    logger.warning("Railway database URL detected in local environment, disabling database connection")
-    DATABASE_URL = None
+if not DATABASE_URL:
+    logger.error("DATABASE_URL 환경변수가 설정되지 않았습니다. Railway에서 DATABASE_URL을 설정해주세요.")
+    logger.warning("로컬 개발 환경에서는 .env 파일을 확인해주세요.")
+    raise ValueError("DATABASE_URL environment variable is required")
 
 # SQLAlchemy 엔진 생성 (연결 오류 처리 추가)
 try:
@@ -43,14 +40,24 @@ def get_db():
         yield None
         return
     
-    db = SessionLocal()
     try:
+        db = SessionLocal()
+        logger.info("Database session created successfully")
         yield db
     except Exception as e:
         logger.error(f"Database session error: {e}")
-        if db:
-            db.rollback()
+        logger.error(f"SessionLocal: {SessionLocal}")
+        logger.error(f"Engine: {engine}")
+        if 'db' in locals() and db:
+            try:
+                db.rollback()
+            except Exception as rollback_error:
+                logger.error(f"Rollback error: {rollback_error}")
         raise
     finally:
-        if db:
-            db.close()
+        if 'db' in locals() and db:
+            try:
+                db.close()
+                logger.info("Database session closed")
+            except Exception as close_error:
+                logger.error(f"Close error: {close_error}")
