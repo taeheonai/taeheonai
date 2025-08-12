@@ -3,22 +3,22 @@ from fastapi import FastAPI, Request, HTTPException, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 import logging
 import traceback
 import os
 import hashlib
 
-from .database import get_db, engine, Base, check_database_connection
+from .database import get_db, engine, Base, check_database_connection, test_database_connection
 from .models import User
 from .router.auth_router import auth_router
 
 # 데이터베이스 테이블 생성 (연결 실패 시 무시)
 try:
     if engine:
-        Base.metadata.create_all(bind=engine)
-        logging.info("Database tables created successfully")
+        # Async 엔진이므로 테이블 생성은 나중에 처리
+        logging.info("Async Database engine available, tables will be created on first connection")
     else:
         logging.warning("Database engine not available, skipping table creation")
 except Exception as e:
@@ -88,7 +88,7 @@ async def root_health_check():
 async def database_status_check():
     """Railway PostgreSQL 연결 상태를 상세하게 확인하는 엔드포인트"""
     try:
-        connection_ok = check_database_connection()
+        connection_ok = await check_database_connection()
         return {
             "status": "success" if connection_ok else "failed",
             "service": "auth-service",
@@ -102,6 +102,29 @@ async def database_status_check():
         }
     except Exception as e:
         logger.error(f"Database status check failed: {e}")
+        return {
+            "status": "error",
+            "service": "auth-service",
+            "database": "Railway PostgreSQL",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
+# 데이터베이스 연결 테스트 엔드포인트
+@app.get("/db-test")
+async def database_test():
+    """Railway PostgreSQL 연결을 테스트하는 엔드포인트"""
+    try:
+        test_result = await test_database_connection()
+        return {
+            "status": "success" if test_result else "failed",
+            "service": "auth-service",
+            "database": "Railway PostgreSQL",
+            "test_result": test_result,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Database test failed: {e}")
         return {
             "status": "error",
             "service": "auth-service",

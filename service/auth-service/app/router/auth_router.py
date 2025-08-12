@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models import User
 from datetime import datetime
@@ -17,7 +17,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return hash_password(plain_password) == hashed_password
 
 @auth_router.post("/signup", summary="회원가입")
-async def signup(request: dict, db: Session = Depends(get_db)):
+async def signup(request: dict, db: AsyncSession = Depends(get_db)):
     """
     사용자 회원가입을 처리합니다.
     """
@@ -46,7 +46,10 @@ async def signup(request: dict, db: Session = Depends(get_db)):
             }
         
         # 기존 사용자 확인
-        existing_user = db.query(User).filter(User.auth_id == request.get('auth_id')).first()
+        from sqlalchemy import select
+        result = await db.execute(select(User).filter(User.auth_id == request.get('auth_id')))
+        existing_user = result.scalar_one_or_none()
+        
         if existing_user:
             raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다.")
         
@@ -66,8 +69,8 @@ async def signup(request: dict, db: Session = Depends(get_db)):
         )
         
         db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        await db.commit()
+        await db.refresh(new_user)
         
         print(f"User created successfully: {request.get('auth_id')}")
         
@@ -82,11 +85,11 @@ async def signup(request: dict, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Signup error: {e}")
         if db:
-            db.rollback()
+            await db.rollback()
         raise HTTPException(status_code=500, detail="회원가입 처리 중 오류가 발생했습니다.")
 
 @auth_router.post("/login", summary="로그인")
-async def login(request: dict, db: Session = Depends(get_db)):
+async def login(request: dict, db: AsyncSession = Depends(get_db)):
     """
     사용자 로그인을 처리합니다.
     """
@@ -115,7 +118,10 @@ async def login(request: dict, db: Session = Depends(get_db)):
             }
         
         # 사용자 조회
-        user = db.query(User).filter(User.auth_id == auth_id).first()
+        from sqlalchemy import select
+        result = await db.execute(select(User).filter(User.auth_id == auth_id))
+        user = result.scalar_one_or_none()
+        
         if not user:
             raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
         
