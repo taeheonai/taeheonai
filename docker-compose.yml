@@ -50,7 +50,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8008
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql:asyncpg//postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
     restart: always
     networks:
       - taeheonai-network
@@ -233,7 +233,7 @@ services:
       - taeheonai-network
     restart: always
 
-# volumes 섹션 제거 (현재 사용하지 않음)
+# volumes 섹션 제거 (Railway PostgreSQL 사용)
 
 networks:
   taeheonai-network:
