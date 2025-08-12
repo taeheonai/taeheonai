@@ -20,16 +20,13 @@ logger.info(f"🔗 DATABASE_URL 환경변수 확인: {DATABASE_URL[:20]}...{DATA
 try:
     logger.info("🚀 Railway PostgreSQL 연결 시도 중...")
     
-    # asyncpg 사용 시 호환되는 파라미터만 설정
+    # asyncpg 사용 시 최소한의 파라미터만 설정
     if "asyncpg" in DATABASE_URL:
         engine = create_engine(
             DATABASE_URL,
             pool_pre_ping=True,  # 연결 상태 확인
             pool_recycle=300,     # 5분마다 연결 재생성
-            echo=False,           # SQL 로그 비활성화
-            connect_args={
-                "application_name": "taeheonai-auth-service"
-            }
+            echo=False            # SQL 로그 비활성화
         )
     else:
         # psycopg2 사용 시 기존 파라미터 유지
