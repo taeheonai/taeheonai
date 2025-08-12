@@ -69,7 +69,7 @@ export default function SignupPage() {
     // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
     try {
       // 환경 변수 또는 기본값 사용
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+      const baseURL = 'https://disciplined-imagination-production-df5c.up.railway.app/api';
       console.log('API URL:', baseURL);
       console.log('Request payload:', payload);
       const response = await axios.post(`${baseURL}/v1/auth/signup`, payload);
