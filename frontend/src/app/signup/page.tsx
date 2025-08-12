@@ -15,6 +15,10 @@ type SignupFormState = {
   auth_pw: string;
 };
 
+type SignupPayload = Omit<SignupFormState, 'id'> & {
+  id?: string;
+};
+
 export default function SignupPage() {
   const [form, setForm] = useState<SignupFormState>({
     id: '',
@@ -26,7 +30,7 @@ export default function SignupPage() {
     auth_id: '',
     auth_pw: '',
   });
-  const [submitted, setSubmitted] = useState<any>(null);
+  const [submitted, setSubmitted] = useState<SignupPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,20 +74,21 @@ export default function SignupPage() {
       console.log('Request payload:', payload);
       const response = await axios.post(`${baseURL}/v1/auth/signup`, payload);
       console.log('Signup successful:', response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('signup log post failed', err);
-      console.error('Error details:', {
-        message: err.message,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        config: {
-          url: err.config?.url,
-          method: err.config?.method,
-          headers: err.config?.headers
-        }
-      });
-      setError(err.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
+      
+      // AxiosError 타입 가드
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { status?: number; statusText?: string; data?: { detail?: string } } };
+        console.error('Error details:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+        });
+        setError(axiosError.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
+      } else {
+        setError('회원가입 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }
