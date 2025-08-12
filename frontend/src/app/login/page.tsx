@@ -41,7 +41,7 @@ export default function LoginPage() {
     console.log('=== Alert 데이터 끝 ===');
     
     try {
-      const baseURL = 'https://disciplined-imagination-production-df5c.up.railway.app/api';
+      const baseURL = 'https://disciplined-imagination-production-df5c.up.railway.app';
       await axios.post(`${baseURL}/v1/auth/login`, payload);
     } catch (err) {
       console.error('login log post failed', err);
