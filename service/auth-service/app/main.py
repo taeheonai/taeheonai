@@ -10,7 +10,7 @@ import traceback
 import os
 import hashlib
 
-from .database import get_db, engine, Base
+from .database import get_db, engine, Base, check_database_connection
 from .models import User
 from .router.auth_router import auth_router
 
@@ -49,9 +49,10 @@ app.add_middleware(
         "http://frontend:3000",   # Docker 내부 네트워크
         "https://taeheonai.com",  # 프로덕션 도메인
         "http://taeheonai.com",   # 프로덕션 도메인
+        "https://www.taeheonai.com",  # www 서브도메인 추가
     ],
     allow_credentials=True,  # HttpOnly 쿠키 사용을 위해 필수
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # OPTIONS 명시적 추가
     allow_headers=["*"],
 )
 
@@ -60,6 +61,13 @@ from .database import engine
 
 # 라우터를 앱에 포함
 app.include_router(auth_router)
+
+# CORS preflight 요청을 위한 OPTIONS 핸들러
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """CORS preflight 요청을 처리하는 핸들러"""
+    logger.info(f"🔍 OPTIONS preflight 요청 처리: /{full_path}")
+    return {"message": "CORS preflight OK"}
 
 # Docker health check를 위한 루트 레벨 /health 엔드포인트
 @app.get("/health")
@@ -74,6 +82,33 @@ async def root_health_check():
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
     }
+
+# Railway PostgreSQL 연결 상태 상세 확인 엔드포인트
+@app.get("/db-status")
+async def database_status_check():
+    """Railway PostgreSQL 연결 상태를 상세하게 확인하는 엔드포인트"""
+    try:
+        connection_ok = check_database_connection()
+        return {
+            "status": "success" if connection_ok else "failed",
+            "service": "auth-service",
+            "database": "Railway PostgreSQL",
+            "connection": "connected" if connection_ok else "disconnected",
+            "timestamp": datetime.now().isoformat(),
+            "details": {
+                "engine_available": engine is not None,
+                "connection_test": connection_ok
+            }
+        }
+    except Exception as e:
+        logger.error(f"Database status check failed: {e}")
+        return {
+            "status": "error",
+            "service": "auth-service",
+            "database": "Railway PostgreSQL",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):

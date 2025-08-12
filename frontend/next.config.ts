@@ -12,9 +12,9 @@ const withPWAConfig = withPWA({
   // Vercel에서 manifest.json 서빙을 위한 설정
   runtimeCaching: [],
   buildExcludes: [/middleware-manifest\.json$/],
-  // manifest 설정을 올바른 위치로 이동
+  // PWA 설정 강화
+  sw: "sw.js",
   swDest: "public/sw.js",
-  // manifest는 별도로 설정하지 않음 - next-pwa가 자동 생성
 });
 
 export default withPWAConfig(nextConfig);
