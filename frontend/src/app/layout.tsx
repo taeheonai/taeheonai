@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,8 +16,6 @@ export const metadata: Metadata = {
   title: "TaeheonAI",
   description: "A Next.js PWA application with TypeScript, React, Zustand, and Axios",
   manifest: "/manifest.json",
-  themeColor: "#000000",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -26,6 +24,13 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
