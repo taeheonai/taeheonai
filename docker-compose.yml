@@ -50,7 +50,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8008
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql:asyncpg//postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+      - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
     restart: always
     networks:
       - taeheonai-network
