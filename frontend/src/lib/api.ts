@@ -50,12 +50,12 @@ export async function postSignupPayload(payload: {
   auth_id: string;
   auth_pw: string;
 }) {
-  return api.post('/v1/auth/signup', payload);
+  return api.post('/api/v1/auth/signup', payload);
 }
 
 export async function postLoginPayload(payload: {
   auth_id: string;
   auth_pw: string;
 }) {
-  return api.post('/v1/auth/login', payload);
+  return api.post('/api/v1/auth/login', payload);
 }

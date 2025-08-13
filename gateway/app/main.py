@@ -8,6 +8,7 @@ import sys
 import json
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import (
     APIRouter, FastAPI, Request, UploadFile, Query, HTTPException
@@ -204,9 +205,15 @@ async def proxy_post(
     sheet_names: Optional[List[str]] = Query(None, alias="sheet_name"),
 ):
     try:
-        logger.info(f"🌈 POST 요청 받음: 서비스={service}, 경로={path}")
+        logger.info(f"🚀 === Gateway POST 요청 시작 ===")
+        logger.info(f"📅 요청 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"🎯 서비스: {service}")
+        logger.info(f"📍 경로: {path}")
+        logger.info(f"🌐 클라이언트: {request.client.host}")
+        logger.info(f"📋 User-Agent: {request.headers.get('user-agent', 'N/A')}")
+        
         if file:
-            logger.info(f"파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
+            logger.info(f"📁 파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
 
         factory = ServiceDiscovery(service_type=service)
         headers = dict(request.headers)
@@ -257,6 +264,7 @@ async def proxy_post(
                 except Exception as e:
                     logger.warning(f"Auth 서비스 요청 로깅 중 오류: {e}")
 
+        logger.info(f"🔗 {service} 서비스로 요청 전달 중...")
         resp = await factory.request(
             method="POST",
             path=path,
@@ -266,6 +274,8 @@ async def proxy_post(
             params=params,
             data=data,
         )
+        logger.info(f"✅ {service} 서비스 응답 수신 완료")
+        logger.info(f"🚀 === Gateway POST 요청 완료 ===")
         return ResponseFactory.create_response(resp)
 
     except HTTPException as he:

@@ -69,10 +69,12 @@ export default function SignupPage() {
     // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
     try {
       // 환경 변수 또는 기본값 사용
-      const baseURL = 'https://disciplined-imagination-production-df5c.up.railway.app';
+      const baseURL = process.env.NODE_ENV === 'production' 
+        ? 'https://disciplined-imagination-production-df5c.up.railway.app/api/v1'
+        : 'http://localhost:8080/api/v1';
       console.log('API URL:', baseURL);
       console.log('Request payload:', payload);
-      const response = await axios.post(`${baseURL}/v1/auth/signup`, payload);
+      const response = await axios.post(`${baseURL}/auth/signup`, payload);
       console.log('Signup successful:', response.data);
     } catch (err: unknown) {
       console.error('signup log post failed', err);
