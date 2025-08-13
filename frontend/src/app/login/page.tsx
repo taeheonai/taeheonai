@@ -22,6 +22,13 @@ export default function LoginPage() {
     event.preventDefault();
     setError(null);
 
+    // 환경변수 상태 확인 로깅 추가
+    console.log('🔍 === 환경변수 상태 확인 ===');
+    console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('NEXT_PUBLIC_ENVIRONMENT:', process.env.NEXT_PUBLIC_ENVIRONMENT);
+    console.log('🔍 === 환경변수 상태 끝 ===');
+
     // 간단한 클라이언트 측 검증 (DB 저장/호출 없음)
     if (!form.auth_id.trim() || !form.auth_pw.trim()) {
       setError('아이디와 비밀번호를 입력하세요.');
