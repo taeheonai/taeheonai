@@ -11,6 +11,16 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // 디버깅 로깅 추가
+    console.log('🚀 === API 요청 시작 ===');
+    console.log('📋 Method:', config.method?.toUpperCase());
+    console.log('🔗 URL:', config.url);
+    console.log('🌐 Base URL:', config.baseURL);
+    console.log('🎯 Full URL:', `${config.baseURL}${config.url}`);
+    console.log('📦 Data:', config.data);
+    console.log('🔑 Headers:', config.headers);
+    console.log('🚀 === API 요청 끝 ===');
+    
     // Add auth token if available
     const token = localStorage.getItem('token');
     if (token) {
@@ -19,6 +29,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('❌ API 요청 인터셉터 오류:', error);
     return Promise.reject(error);
   }
 );
