@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -50,12 +50,12 @@ export async function postSignupPayload(payload: {
   auth_id: string;
   auth_pw: string;
 }) {
-  return api.post('/v1/auth/signup', payload);
+  return api.post('/api/v1/auth/signup', payload);
 }
 
 export async function postLoginPayload(payload: {
   auth_id: string;
   auth_pw: string;
 }) {
-  return api.post('/v1/auth/login', payload);
+  return api.post('/api/v1/auth/login', payload);
 }

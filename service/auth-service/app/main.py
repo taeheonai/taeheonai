@@ -1,105 +1,90 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException, APIRouter, Depends
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 import logging
 import traceback
 import os
-import hashlib
+import tempfile
 
-from .database import get_db, engine, Base, check_database_connection, test_database_connection
-from .models import User
+from .database import get_db, engine, check_database_connection, test_database_connection
 from .router.auth_router import auth_router
 
-# 로깅 설정 강화
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),  # 콘솔 출력
-        logging.FileHandler('/tmp/auth-service.log')  # 파일 출력 (Docker에서 확인 가능)
-    ]
-)
+# ---------- 로깅 설정 ----------
+log_dir = tempfile.gettempdir()
+log_path = os.path.join(log_dir, "auth-service.log")
 
-# 루트 로거 설정
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
+if not root_logger.handlers:  # ✅ 중복 핸들러 방지
+    root_logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-# auth_main 로거 설정
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.INFO)
+    sh.setFormatter(formatter)
+    root_logger.addHandler(sh)
+
+    try:
+        fh = logging.FileHandler(log_path, encoding="utf-8")
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        root_logger.addHandler(fh)
+    except Exception as e:
+        # 파일 핸들러 실패해도 콘솔 로깅은 유지
+        root_logger.warning(f"FileHandler init failed: {e}")
+
 logger = logging.getLogger("auth_main")
 logger.setLevel(logging.INFO)
 
-# 데이터베이스 테이블 생성 (연결 실패 시 무시)
-try:
-    if engine:
-        # Async 엔진이므로 테이블 생성은 나중에 처리
-        logger.info("Async Database engine available, tables will be created on first connection")
-    else:
-        logger.warning("Database engine not available, skipping table creation")
-except Exception as e:
-    logger.error(f"Failed to create database tables: {e}")
-    # 로컬 개발 환경에서는 데이터베이스 없이도 동작하도록 설정
-    logger.info("Continuing without database for local development")
-
-# 로컬 개발 환경에서 .env 파일 로드
+# ---------- .env ----------
 load_dotenv()
 
+# ---------- FastAPI ----------
 app = FastAPI(
     title="Auth Service API",
     description="Authentication 서비스",
     version="1.0.0",
 )
 
+# ---------- CORS ----------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # 로컬 접근
-        "http://127.0.0.1:3000",  # 로컬 IP 접근
-        "http://frontend:3000",   # Docker 내부 네트워크
-        "https://taeheonai.com",  # 프로덕션 도메인
-        "http://taeheonai.com",   # 프로덕션 도메인
-        "https://www.taeheonai.com",  # www 서브도메인 추가
+        # 로컬
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://frontend:3000",
+        # 프로덕션
+        "https://taeheonai.com",
+        "http://taeheonai.com",
+        "https://www.taeheonai.com",
+        "http://www.taeheonai.com",
     ],
-    allow_credentials=True,  # HttpOnly 쿠키 사용을 위해 필수
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # OPTIONS 명시적 추가
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # ✅ PATCH 추가
     allow_headers=["*"],
 )
 
-# 데이터베이스 상태 확인을 위한 import
-from .database import engine
-
-# 라우터를 앱에 포함
+# ---------- 라우터 ----------
 app.include_router(auth_router)
 
-# CORS preflight 요청을 위한 OPTIONS 핸들러
-@app.options("/{full_path:path}")
-async def options_handler(full_path: str):
-    """CORS preflight 요청을 처리하는 핸들러"""
-    logger.info(f"�� OPTIONS preflight 요청 처리: /{full_path}")
-    return {"message": "CORS preflight OK"}
-
-# Docker health check를 위한 루트 레벨 /health 엔드포인트
+# ---------- 헬스/DB ----------
 @app.get("/health")
 async def root_health_check():
-    """Docker health check용 루트 레벨 헬스체크"""
-    from .database import engine
     db_status = "connected" if engine else "disconnected"
     logger.info(f"🏥 헬스체크 요청 - DB 상태: {db_status}")
     return {
         "status": "healthy",
         "service": "auth-service",
         "database": db_status,
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0"
+        "timestamp": datetime.now(timezone.utc).isoformat(),  # ✅ UTC
+        "version": "1.0.0",
     }
 
-# Railway PostgreSQL 연결 상태 상세 확인 엔드포인트
 @app.get("/db-status")
 async def database_status_check():
-    """Railway PostgreSQL 연결 상태를 상세하게 확인하는 엔드포인트"""
     try:
         connection_ok = await check_database_connection()
         logger.info(f"🔍 DB 상태 확인 요청 - 연결 상태: {connection_ok}")
@@ -108,11 +93,11 @@ async def database_status_check():
             "service": "auth-service",
             "database": "Railway PostgreSQL",
             "connection": "connected" if connection_ok else "disconnected",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "details": {
                 "engine_available": engine is not None,
-                "connection_test": connection_ok
-            }
+                "connection_test": connection_ok,
+            },
         }
     except Exception as e:
         logger.error(f"Database status check failed: {e}")
@@ -121,13 +106,11 @@ async def database_status_check():
             "service": "auth-service",
             "database": "Railway PostgreSQL",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-# 데이터베이스 연결 테스트 엔드포인트
 @app.get("/db-test")
 async def database_test():
-    """Railway PostgreSQL 연결을 테스트하는 엔드포인트"""
     try:
         logger.info("🧪 DB 연결 테스트 요청")
         test_result = await test_database_connection()
@@ -137,7 +120,7 @@ async def database_test():
             "service": "auth-service",
             "database": "Railway PostgreSQL",
             "test_result": test_result,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         logger.error(f"Database test failed: {e}")
@@ -146,15 +129,19 @@ async def database_test():
             "service": "auth-service",
             "database": "Railway PostgreSQL",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
+# ---------- 요청 로깅 미들웨어 ----------
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    logger.info(f"📥 요청: {request.method} {request.url.path} (클라이언트: {request.client.host})")
+    start = datetime.now().timestamp()
+    client = request.client.host if request.client else "unknown"
+    logger.info(f"📥 요청: {request.method} {request.url.path} (클라이언트: {client})")
     try:
         response = await call_next(request)
-        logger.info(f"📤 응답: {response.status_code}")
+        took_ms = (datetime.now().timestamp() - start) * 1000
+        logger.info(f"📤 응답: {response.status_code} ({took_ms:.1f} ms)")
         return response
     except Exception as e:
         logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
@@ -162,11 +149,12 @@ async def log_requests(request: Request, call_next):
         raise
 
 if __name__ == "__main__":
-    logger.info(f"💻 개발 모드로 실행 - 포트: 8008")
+    port = int(os.getenv("PORT", 8008))
+    logger.info(f"💻 개발 모드로 실행 - 포트: {port}, 로그: {log_path}")
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8008,
+        port=port,
         reload=True,
-        log_level="info"
-    ) 
+        log_level="info",
+    )
