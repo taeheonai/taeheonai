@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import { postSignupPayload } from '@/lib/api';
 
 type SignupFormState = {
   id: string;
@@ -15,8 +15,14 @@ type SignupFormState = {
   auth_pw: string;
 };
 
-type SignupPayload = Omit<SignupFormState, 'id'> & {
-  id?: string;
+type SignupPayload = {
+  company_id?: string | null;
+  industry?: string | null;
+  email?: string | null;
+  name?: string | null;
+  age?: string | null;
+  auth_id: string;
+  auth_pw: string;
 };
 
 export default function SignupPage() {
@@ -43,21 +49,26 @@ export default function SignupPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setLoading(true);
     setError(null);
-    
-    const payload = {
-      id: form.id || undefined, // id가 비어있으면 undefined로 전송
-      company_id: form.company_id,
-      industry: form.industry,
-      email: form.email,
-      name: form.name,
-      age: form.age,
+    setLoading(true);
+
+    // 간단한 클라이언트 측 검증
+    if (!form.auth_id.trim() || !form.auth_pw.trim()) {
+      setError('아이디와 비밀번호를 입력하세요.');
+      setLoading(false);
+      return;
+    }
+
+    // JSON 생성 및 알림
+    const payload: SignupPayload = {
+      company_id: form.company_id || null,
+      industry: form.industry || null,
+      email: form.email || null,
+      name: form.name || null,
+      age: form.age || null,
       auth_id: form.auth_id,
       auth_pw: form.auth_pw,
     };
-
-    setSubmitted(payload);
     
     // 브라우저 alert와 Docker 로그 모두에서 확인 가능
     const alertMessage = `회원가입 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`;
@@ -65,16 +76,11 @@ export default function SignupPage() {
     console.log('=== 회원가입 Alert 데이터 ===');
     console.log(alertMessage);
     console.log('=== Alert 데이터 끝 ===');
-
+    
     // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
     try {
-      // 환경 변수 또는 기본값 사용
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? 'https://disciplined-imagination-production-df5c.up.railway.app/api/v1'
-        : 'http://localhost:8080/api/v1';
-      console.log('API URL:', baseURL);
-      console.log('Request payload:', payload);
-      const response = await axios.post(`${baseURL}/auth/signup`, payload);
+      // api.ts의 함수 사용
+      const response = await postSignupPayload(payload);
       console.log('Signup successful:', response.data);
     } catch (err: unknown) {
       console.error('signup log post failed', err);

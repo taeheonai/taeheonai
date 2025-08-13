@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import { postLoginPayload } from '@/lib/api';
 
 type LoginFormState = {
   auth_id: string;
@@ -41,10 +41,9 @@ export default function LoginPage() {
     console.log('=== Alert 데이터 끝 ===');
     
     try {
-      const baseURL = process.env.NODE_ENV === 'production' 
-        ? 'https://disciplined-imagination-production-df5c.up.railway.app/api/v1'
-        : 'http://localhost:8080/api/v1';
-      await axios.post(`${baseURL}/auth/login`, payload);
+      // api.ts의 함수 사용
+      const response = await postLoginPayload(payload);
+      console.log('Login successful:', response.data);
     } catch (err) {
       console.error('login log post failed', err);
     }
