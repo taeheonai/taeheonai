@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TaeheonAI",
   description: "A Next.js PWA application with TypeScript, React, Zustand, and Axios",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
