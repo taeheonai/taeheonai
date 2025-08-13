@@ -1,52 +1,21 @@
 import type { NextConfig } from "next";
-// @ts-ignore
 import withPWA from "next-pwa";
 
-const nextConfig: NextConfig = {
-  // PWA 설정 강화
-  experimental: {
-    // 정적 파일 서빙 개선
-    optimizePackageImports: ['next-pwa'],
-  },
-  // 정적 파일 서빙 디버깅
-  output: 'standalone',
-  // 정적 파일 경로 확인
-  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : undefined,
-  // 디버그 로그 활성화
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
-};
-
+// PWA 설정 - 자동 생성(GenerateSW) 방식
 const withPWAConfig = withPWA({
-  dest: "public",
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development', // dev에서는 비활성화
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
-  // Vercel에서 manifest.json 서빙을 위한 설정
-  runtimeCaching: [],
-  // PWA 설정 강화
-  sw: "sw.js",
-  swDest: "public/sw.js",
-  // manifest 파일 경로 명시적 지정
-  manifest: {
-    name: "TaeheonAI",
-    short_name: "TaeheonAI",
-    start_url: "/",
-    display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#111111",
-    icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" }
-    ]
-  },
-  // 디버그 모드 활성화
-  debug: true,
-  // 빌드 로그 상세화
-  buildExcludes: [/middleware-manifest\.json$/, /\.map$/],
+  // runtimeCaching 같은 커스텀은 지금은 넣지 말고, 빌드 성공 후 점진 추가
 });
+
+// Vercel 배포 환경인지 확인
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
+
+const nextConfig: NextConfig = {
+  // 로컬에서는 standalone 비활성화, Vercel 배포일 때만 활성화
+  ...(isVercel ? { output: 'standalone' as const } : {}),
+};
 
 export default withPWAConfig(nextConfig);

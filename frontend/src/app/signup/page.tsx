@@ -36,7 +36,6 @@ export default function SignupPage() {
     auth_id: '',
     auth_pw: '',
   });
-  const [submitted, setSubmitted] = useState<SignupPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -230,14 +229,7 @@ export default function SignupPage() {
             )}
           </form>
 
-          {submitted && (
-            <div className="px-6 pb-6">
-              <div className="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-                <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">제출 미리보기 (DB 저장 안 함)</h2>
-                <pre className="text-xs text-gray-800 dark:text-gray-100 whitespace-pre-wrap break-all">{JSON.stringify(submitted, null, 2)}</pre>
-              </div>
-            </div>
-          )}
+          {/* submitted state was removed, so this block is no longer relevant */}
         </div>
       </div>
     </div>
