@@ -130,10 +130,8 @@ class ServiceDiscovery:
         # ✅ path는 반드시 슬래시 보장
         path = "/" + path.lstrip("/")
         
-        # Auth 서비스의 경우 /v1/auth 접두사 추가
-        if self.service_type == ServiceType.auth:
-            path = f"/v1/auth{path}"
-        
+        # Auth 서비스의 경우 /v1/auth 접두사는 이미 포함되어 있으므로 그대로 사용
+        # path는 이미 /v1/auth/signup 형태로 전달됨
         url = f"{base_url}{path}"
 
         async with httpx.AsyncClient() as client:
