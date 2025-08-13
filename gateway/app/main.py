@@ -44,7 +44,7 @@ app = FastAPI(
 )
 
 # CORS 설정 - 환경별 분기
-is_railway = os.getenv("RAILWAY_ENVIRONMENT") == "true"
+is_railway = os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]
 
 # 환경변수 디버깅 로깅 추가
 logger.info("🔍 === Gateway 환경변수 상태 ===")
@@ -110,7 +110,16 @@ class ServiceDiscovery:
             ServiceType.tcfdreport: os.getenv("TCFDREPORT_SERVICE_URL", "http://localhost:8006"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "http://localhost:8008"),
         }
-        self.is_railway = os.getenv("RAILWAY_ENVIRONMENT") == "true"
+        
+        # Railway 환경에서 프로토콜 자동 추가
+        if self.is_railway:
+            for service_type, url in self.base_urls.items():
+                if url and not url.startswith(('http://', 'https://')):
+                    self.base_urls[service_type] = f"https://{url}"
+                    logger.info(f"🔗 {service_type} URL에 https:// 추가: {self.base_urls[service_type]}")
+        
+        # Railway 환경 감지
+        self.is_railway = os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]
         if self.is_railway:
             logger.info(f"🌐 Railway 환경에서 {service_type} 서비스 연결 시도")
         else:
