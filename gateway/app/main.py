@@ -46,19 +46,30 @@ app = FastAPI(
 # CORS 설정 - 환경별 분기
 is_railway = os.getenv("RAILWAY_ENVIRONMENT") == "true"
 
+# 환경변수 디버깅 로깅 추가
+logger.info("🔍 === Gateway 환경변수 상태 ===")
+logger.info(f"RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+logger.info(f"PORT: {os.getenv('PORT', '8080')}")
+logger.info(f"SERVICE_NAME: {os.getenv('SERVICE_NAME', 'gateway')}")
+logger.info(f"AUTH_SERVICE_URL: {os.getenv('AUTH_SERVICE_URL', 'http://localhost:8008')}")
+logger.info(f"is_railway: {is_railway}")
+logger.info("🔍 === 환경변수 상태 끝 ===")
+
 if is_railway:
+    # Railway 프로덕션 환경
     cors_origins = [
         "https://taeheonai.com",
         "http://taeheonai.com",
         "https://www.taeheonai.com",
-        "http://www.taeheonai.com",
+        "http://www.taeheonai.com"
     ]
     logger.info("🌐 Railway 프로덕션 환경 CORS 설정 적용")
 else:
+    # 로컬 개발 환경
     cors_origins = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://frontend:3000",
+        "http://frontend:3000"
     ]
     logger.info("💻 로컬 개발 환경 CORS 설정 적용")
 
@@ -420,6 +431,30 @@ async def root():
 
 # 라우터를 앱에 포함 (generic proxy만 사용)
 app.include_router(gateway_router)
+
+# 모든 요청 로깅 미들웨어 추가
+@app.middleware("http")
+async def log_all_requests(request: Request, call_next):
+    start_time = datetime.now()
+    client_host = request.client.host if request.client else "unknown"
+    
+    logger.info(f"🌐 === Gateway 요청 수신 ===")
+    logger.info(f"📅 시간: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"🌐 클라이언트: {client_host}")
+    logger.info(f"📋 메서드: {request.method}")
+    logger.info(f"📍 경로: {request.url.path}")
+    logger.info(f"🔗 전체 URL: {request.url}")
+    logger.info(f"📋 User-Agent: {request.headers.get('user-agent', 'N/A')}")
+    logger.info(f"🌐 === 요청 로깅 끝 ===")
+    
+    try:
+        response = await call_next(request)
+        process_time = (datetime.now() - start_time).total_seconds()
+        logger.info(f"✅ 응답 완료: {response.status_code} ({process_time:.3f}s)")
+        return response
+    except Exception as e:
+        logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
+        raise
 
 # ✅ uvicorn 실행 경로 단순화
 if __name__ == "__main__":
