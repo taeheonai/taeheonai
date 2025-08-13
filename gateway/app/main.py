@@ -46,16 +46,30 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS 설정 - 로컬 개발 환경 포함
+# CORS 설정 - 환경별로 분기
+is_railway = os.getenv("RAILWAY_ENVIRONMENT") == "true"
+
+if is_railway:
+    # Railway 프로덕션 환경
+    cors_origins = [
+        "https://taeheonai.com",
+        "http://taeheonai.com",
+        "https://www.taeheonai.com",
+        "http://www.taeheonai.com"
+    ]
+    logger.info("🌐 Railway 프로덕션 환경 CORS 설정 적용")
+else:
+    # 로컬 개발 환경
+    cors_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://frontend:3000"
+    ]
+    logger.info("💻 로컬 개발 환경 CORS 설정 적용")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # 로컬 프론트엔드
-        "http://127.0.0.1:3000",  # 로컬 IP
-        "http://frontend:3000",   # Docker 내부 네트워크
-        "https://taeheonai.com",  # 프로덕션 도메인
-        "http://taeheonai.com",   # 프로덕션 도메인
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,16 +93,23 @@ class ServiceType(str, Enum):
 
 class ServiceDiscovery:
     def __init__(self, service_type: ServiceType):
-        self.service_type = service_type
+        # 환경변수에서 서비스 URL 가져오기 (기본값은 로컬 개발용)
         self.base_urls = {
-            ServiceType.chatbot: "http://chatbot-service:8001",
-            ServiceType.gri: "http://gri-service:8003",
-            ServiceType.materiality: "http://materiality-service:8002",
-            ServiceType.tcfd: "http://tcfd-service:8005",
-            ServiceType.grireport: "http://grireport-service:8004",
-            ServiceType.tcfdreport: "http://tcfdreport-service:8006",
-            ServiceType.auth: "http://auth-service:8008",
+            ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "http://localhost:8001"),
+            ServiceType.gri: os.getenv("GRI_SERVICE_URL", "http://localhost:8003"),
+            ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "http://localhost:8002"),
+            ServiceType.tcfd: os.getenv("TCFD_SERVICE_URL", "http://localhost:8005"),
+            ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "http://localhost:8004"),
+            ServiceType.tcfdreport: os.getenv("TCFDREPORT_SERVICE_URL", "http://localhost:8006"),
+            ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "http://localhost:8008"),
         }
+        
+        # Railway 환경 감지
+        self.is_railway = os.getenv("RAILWAY_ENVIRONMENT") == "true"
+        if self.is_railway:
+            logger.info(f"🌐 Railway 환경에서 {service_type} 서비스 연결 시도")
+        else:
+            logger.info(f"💻 로컬 환경에서 {service_type} 서비스 연결 시도")
 
     async def request(
         self,
