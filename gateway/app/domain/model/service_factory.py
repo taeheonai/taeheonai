@@ -66,9 +66,9 @@ class ServiceProxyFactory:
         if path.startswith("/api/v1/"):
             return path[4:]  # /api 제거
         
-        # auth 서비스의 경우 /login → /v1/auth/login으로 변환 (이미 prefix가 있으므로 path만 반환)
+        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
         if self.service_type == ServiceType.auth:
-            return path  # /login, /signup 등 path만 반환
+            return f"/v1/auth{path}"  # /v1/auth + /login = /v1/auth/login
         
         return f"{prefix}{path}"
 
@@ -91,6 +91,9 @@ class ServiceProxyFactory:
         
         print(f"🎯🎯🎯 Requesting URL: {url}")
         logger.info(f"🎯 Requesting URL: {url}")
+        logger.info(f"🔍 Path 변환 과정: {path} → {full_path} → {url}")
+        logger.info(f"🔍 Base URL: {base_url}")
+        logger.info(f"🔍 Service Type: {self.service_type}")
 
         # 업스트림에 보낼 헤더 정리
         fwd_headers = dict(headers or {})
