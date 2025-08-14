@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { UserInfo } from "@/types/user";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   useEffect(() => {
     // 로컬 스토리지에서 로그인 상태 확인

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
+import { SignupPayload } from '@/types/user';
 
 type SignupFormState = {
   id: string;
@@ -12,16 +13,6 @@ type SignupFormState = {
   email: string;
   name: string;
   age: string;
-  auth_id: string;
-  auth_pw: string;
-};
-
-type SignupPayload = {
-  company_id?: string | null;
-  industry?: string | null;
-  email?: string | null;
-  name?: string | null;
-  age?: string | null;
   auth_id: string;
   auth_pw: string;
 };
