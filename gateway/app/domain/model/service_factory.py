@@ -66,9 +66,9 @@ class ServiceProxyFactory:
         if path.startswith("/api/v1/"):
             return path[4:]  # /api 제거
         
-        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
-        if self.service_type == ServiceType.auth and path == "/login":
-            return "/v1/auth/login"
+        # auth 서비스의 경우 /login → /v1/auth/login으로 변환 (이미 prefix가 있으므로 path만 반환)
+        if self.service_type == ServiceType.auth:
+            return path  # /login, /signup 등 path만 반환
         
         return f"{prefix}{path}"
 
