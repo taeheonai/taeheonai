@@ -149,6 +149,10 @@ class ServiceDiscovery:
         if path.startswith("/api/v1/"):
             return path[4:]  # /api 제거
         
+        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
+        if self.service_type == ServiceType.auth and path == "/login":
+            return "/v1/auth/login"
+        
         return f"{prefix}{path}"
 
     async def request(
@@ -341,6 +345,10 @@ async def proxy_post(
                     logger.warning(f"Auth 서비스 요청 로깅 중 오류: {e}")
 
         logger.info(f"🔗 {service} 서비스로 요청 전달 중...")
+        logger.info(f"🔍 요청 경로: {path}")
+        logger.info(f"🔍 변환된 경로: {factory.upstream_path(path)}")
+        logger.info(f"🔍 최종 URL: {factory.base_urls.get(service)}{factory.upstream_path(path)}")
+        
         resp = await factory.request(
             method="POST",
             path=path,

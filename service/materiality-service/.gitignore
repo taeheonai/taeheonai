@@ -23,10 +23,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # PyInstaller
-*.manifest
 *.spec
 
 # Installer logs
