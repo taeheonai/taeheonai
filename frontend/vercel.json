@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/manifest.json",
+      "source": "/manifest.webmanifest",
       "headers": [
         {
           "key": "Content-Type",
@@ -20,14 +20,14 @@
   ],
   "rewrites": [
     {
-      "source": "/manifest.json",
-      "destination": "/manifest.json"
+      "source": "/manifest.webmanifest",
+      "destination": "/manifest.webmanifest"
     }
   ],
   "routes": [
     {
-      "src": "/manifest.json",
-      "dest": "/manifest.json",
+      "src": "/manifest.webmanifest",
+      "dest": "/manifest.webmanifest",
       "headers": {
         "Content-Type": "application/manifest+json",
         "X-Manifest-Debug": "true"
