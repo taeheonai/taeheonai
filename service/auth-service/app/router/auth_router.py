@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db, engine
@@ -32,7 +32,7 @@ class SignupIn(BaseModel):
     id: Optional[int] = Field(default=None)
     company_id: Optional[str] = None
     industry: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     name: Optional[str] = None
     age: Optional[int] = None
     auth_id: str = Field(..., min_length=3, max_length=64)
