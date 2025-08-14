@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from dotenv import load_dotenv
-from domain.model.service_factory import ServiceProxyFactory, ServiceType
+from app.domain.model.service_factory import ServiceProxyFactory, ServiceType
 
 load_dotenv()
 
