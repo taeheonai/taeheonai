@@ -13,6 +13,16 @@ interface DebugInfo {
   timestamp: string;
 }
 
+interface AxiosErrorResponse {
+  response?: {
+    status?: number;
+    data?: {
+      detail?: string;
+      [key: string]: unknown;
+    };
+  };
+}
+
 export default function DebugPage() {
   const [debugInfo, setDebugInfo] = useState<DebugInfo>({
     hostname: 'SSR',
@@ -73,7 +83,7 @@ export default function DebugPage() {
       setSignupResult(`✅ 회원가입 성공: ${JSON.stringify(response.data, null, 2)}`);
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number; data?: any } };
+        const axiosError = error as AxiosErrorResponse;
         setSignupResult(`❌ 회원가입 실패: HTTP ${axiosError.response?.status} - ${JSON.stringify(axiosError.response?.data, null, 2)}`);
       } else if (error instanceof Error) {
         setSignupResult(`❌ 회원가입 실패: ${error.message}`);
