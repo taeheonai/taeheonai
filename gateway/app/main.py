@@ -62,8 +62,8 @@ if is_railway:
         "https://taeheonai.com",
         "http://taeheonai.com",
         "https://www.taeheonai.com",
-        "http://www.taeheonai.com"
-        "taeheonai-ma3rjk7vx-oheth9-gmailcoms-projects.vercel.app",
+        "http://www.taeheonai.com",
+        "taeheonai-9df6jy61w-oheth9-gmailcoms-projects.vercel.app",
         "taeheonai-oheth9-gmailcoms-projects.vercel.app"
     ]
     logger.info("🌐 Railway 프로덕션 환경 CORS 설정 적용")
