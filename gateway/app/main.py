@@ -1,7 +1,7 @@
 """
 gateway-router 메인 파일 (정리본)
 """
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import os
 import sys
 import json
@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import (
-    APIRouter, FastAPI, Request, UploadFile, Query, HTTPException
+    APIRouter, FastAPI, Request, UploadFile, Query, HTTPException, Body
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -157,114 +157,69 @@ async def proxy_get(service: ServiceType, path: str, request: Request):
         return JSONResponse(content={"detail": f"Error processing request: {str(e)}"}, status_code=500)
 
 
-@gateway_router.post("/{service}/{path:path}", summary="POST 프록시")
-async def proxy_post(
+@gateway_router.post("/{service}/{path:path}", summary="POST 프록시 (JSON 전용)")
+async def proxy_post_json(
     service: ServiceType,
     path: str,
     request: Request,
-    file: Optional[UploadFile] = None,
-    sheet_names: Optional[List[str]] = Query(None, alias="sheet_name"),
-    body_data: Optional[dict] = None,  # Swagger에서 JSON 입력을 위한 파라미터
+    # ✅ JSON 전용 바디 선언 → Swagger에 JSON 에디터 표시
+    payload: Dict[str, Any] = Body(
+        ...,  # required
+        example={"auth_id": "test@example.com", "auth_pw": "****"}
+    ),
 ):
+    logger.info(f"🚀 POST 프록시(JSON) 시작: service={service}, path={path}")
+    logger.info(f"🚀 요청 URL: {request.url}")
+    logger.info(f"🔍 받은 payload: {payload}")
+
     try:
-        logger.info("🚀 === Gateway POST 요청 시작 ===")
-        logger.info(f"📅 요청 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"🎯 서비스: {service}")
-        logger.info(f"📍 경로: {path}")
-        logger.info(f"🌐 클라이언트: {request.client.host}")
-        logger.info(f"📋 User-Agent: {request.headers.get('user-agent', 'N/A')}")
-
-        if file:
-            logger.info(f"📁 파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
-
         factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
-
-        files = None
-        params = dict(request.query_params) if request.query_params else None
-        body = None
-        data = None
-
-        if service in FILE_REQUIRED_SERVICES:
-            if "upload" in path and not file:
-                raise HTTPException(status_code=400, detail=f"서비스 {service}에는 파일 업로드가 필요합니다.")
-
-            if file:
-                file_content = await file.read()
-                files = {"file": (file.filename, file_content, file.content_type)}
-                await file.seek(0)
-
-            if sheet_names:
-                params = params or {}
-                params["sheet_name"] = sheet_names
-        else:
-            # Swagger에서 전달된 body_data가 있으면 우선 사용, 없으면 request.body() 사용
-            if body_data is not None:
-                logger.info(f"🔍 === Swagger에서 전달된 body_data 사용 ===")
-                body_json = body_data
-                body = json.dumps(body_data).encode('utf-8')
-            else:
-                body = await request.body()
-                body_json = None
+        headers["content-type"] = "application/json"
+        
+        # Content-Length 헤더 제거 (자동 계산되도록)
+        if "content-length" in headers:
+            del headers["content-length"]
+        
+        # payload를 JSON 문자열로 변환하여 body 생성
+        body = json.dumps(payload).encode('utf-8')
+        
+        # Auth 서비스 요청에 대한 상세 로깅(민감정보 마스킹)
+        if service == ServiceType.auth:
+            logger.info(f"🔍 === Auth 서비스 요청 로깅 시작 ===")
+            logger.info(f"🔍 Payload 타입: {type(payload)}")
+            logger.info(f"🔍 Payload 내용: {payload}")
+            logger.info(f"🔍 Body 길이: {len(body)} bytes")
             
-            # Auth 서비스 요청에 대한 상세 로깅(민감정보 마스킹)
-            if service == ServiceType.auth:
-                logger.info(f"🔍 === Auth 서비스 요청 로깅 시작 ===")
-                logger.info(f"🔍 Body 타입: {type(body)}")
-                logger.info(f"🔍 Body 길이: {len(body) if body else 0}")
-                logger.info(f"🔍 Body 내용 (raw): {body}")
-                
-                try:
-                    if body_data is not None:
-                        # Swagger에서 전달된 데이터 사용
-                        body_json = body_data
-                        logger.info(f"🔍 Swagger body_data: {body_json}")
-                    elif body:
-                        # request.body()에서 파싱
-                        body_str = body.decode("utf-8")
-                        logger.info(f"🔍 Decoded body: {body_str}")
-                        body_json = json.loads(body_str)
-                        logger.info(f"🔍 Parsed JSON: {body_json}")
-                    else:
-                        body_json = {}
-                        logger.warning("⚠️ Body가 비어있음")
+            try:
+                if path == "login":
+                    logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
+                    logger.info(f"Auth ID: {payload.get('auth_id')}")
+                    pw = payload.get("auth_pw")
+                    masked_pw = "*" * len(pw) if isinstance(pw, str) else None
+                    logger.info(f"Auth PW: {masked_pw}")
+                    logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                elif path == "signup":
+                    logger.info("=== 회원가입 Alert 데이터 (Gateway Generic Proxy) ===")
+                    logger.info(f"ID: {payload.get('id')}")
+                    logger.info(f"Company ID: {payload.get('company_id')}")
+                    logger.info(f"Industry: {payload.get('industry')}")
+                    logger.info(f"Email: {payload.get('email')}")
+                    logger.info(f"Name: {payload.get('name')}")
+                    logger.info(f"Age: {payload.get('age')}")
+                    logger.info(f"Auth ID: {payload.get('auth_id')}")
+                    pw = payload.get("auth_pw")
+                    masked_pw = "*" * len(pw) if isinstance(pw, str) else None
+                    logger.info(f"Auth PW: {masked_pw}")
+                    logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
                     
-                    # 로깅 처리
-                    if body_json:
-                        if path == "login":
-                            logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
-                            logger.info(f"Auth ID: {body_json.get('auth_id')}")
-                            pw = body_json.get("auth_pw")
-                            masked_pw = "*" * len(pw) if isinstance(pw, str) else None
-                            logger.info(f"Auth PW: {masked_pw}")
-                            logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
-                        elif path == "signup":
-                            logger.info("=== 회원가입 Alert 데이터 (Gateway Generic Proxy) ===")
-                            logger.info(f"ID: {body_json.get('id')}")
-                            logger.info(f"Company ID: {body_json.get('company_id')}")
-                            logger.info(f"Industry: {body_json.get('industry')}")
-                            logger.info(f"Email: {body_json.get('email')}")
-                            logger.info(f"Name: {body_json.get('name')}")
-                            logger.info(f"Age: {body_json.get('age')}")
-                            logger.info(f"Auth ID: {body_json.get('auth_id')}")
-                            pw = body_json.get("auth_pw")
-                            masked_pw = "*" * len(pw) if isinstance(pw, str) else None
-                            logger.info(f"Auth PW: {masked_pw}")
-                            logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
-                        
-                except json.JSONDecodeError as e:
-                    logger.error(f"❌ JSON 파싱 실패: {e}")
-                    logger.error(f"❌ Raw body: {body}")
-                except UnicodeDecodeError as e:
-                    logger.error(f"❌ UTF-8 디코딩 실패: {e}")
-                    logger.error(f"❌ Raw body: {body}")
-                except Exception as e:
-                    logger.error(f"❌ Auth 서비스 요청 로깅 중 예외 발생: {e}")
-                    logger.error(f"❌ Exception type: {type(e)}")
-                    import traceback
-                    logger.error(f"❌ Traceback: {traceback.format_exc()}")
-                
-                logger.info(f"🔍 === Auth 서비스 요청 로깅 끝 ===")
+            except Exception as e:
+                logger.error(f"❌ Auth 서비스 요청 로깅 중 예외 발생: {e}")
+                logger.error(f"❌ Exception type: {type(e)}")
+                import traceback
+                logger.error(f"❌ Traceback: {traceback.format_exc()}")
+            
+            logger.info(f"🔍 === Auth 서비스 요청 로깅 끝 ===")
 
         logger.info(f"🔗 {service} 서비스로 요청 전달 중...")
         logger.info(f"🔍 요청 경로: {path}")
@@ -276,10 +231,11 @@ async def proxy_post(
             path=path,
             headers=headers,
             body=body,
-            files=files,
-            params=params,
-            data=data,
+            files=None,
+            params=None,
+            data=None,
         )
+        
         logger.info(f"✅ {service} 서비스 응답 수신 완료")
         logger.info("🚀 === Gateway POST 요청 완료 ===")
         return ResponseFactory.create_response(resp)
@@ -287,8 +243,11 @@ async def proxy_post(
     except HTTPException as he:
         return JSONResponse(content={"detail": he.detail}, status_code=he.status_code)
     except Exception as e:
-        logger.error(f"POST 요청 처리 중 오류 발생: {str(e)}")
-        return JSONResponse(content={"detail": f"Gateway error: {str(e)}"}, status_code=500)
+        logger.error(f"🚨 POST(JSON) 처리 중 오류: {e}", exc_info=True)
+        return JSONResponse(
+            content={"detail": f"Gateway error: {str(e)}", "error_type": type(e).__name__},
+            status_code=500
+        )
 
 
 @gateway_router.put("/{service}/{path:path}", summary="PUT 프록시")
