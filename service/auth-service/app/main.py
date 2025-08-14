@@ -9,7 +9,7 @@ import traceback
 import os
 import tempfile
 
-from .database import get_db, engine, check_database_connection, test_database_connection, init_database, check_tables_status
+from app.common.database import get_db, engine, check_database_connection, test_database_connection, init_database, check_tables_status
 from .router.auth_router import auth_router
 
 # ---------- 로깅 설정 ----------

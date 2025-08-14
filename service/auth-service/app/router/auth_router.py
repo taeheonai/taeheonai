@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_db, engine
+from app.common.database import get_db, engine
 from app.domain.user.user_controller import UserController
 from app.domain.user.user_schema import SignupIn, LoginIn
 from pydantic import ValidationError
