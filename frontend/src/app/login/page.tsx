@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postLoginPayload } from '@/lib/api';
-import { LoginResponse } from '@/types/user';
 
 type LoginFormState = {
   auth_id: string;

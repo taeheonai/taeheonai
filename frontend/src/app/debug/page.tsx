@@ -1,15 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { postLoginPayload } from '@/lib/api';
+
+interface DebugInfo {
+  NODE_ENV?: string;
+  VERCEL?: string;
+  RAILWAY?: string;
+  NEXT_PUBLIC_API_URL?: string;
+  hostname: string;
+  userAgent: string;
+  timestamp: string;
+}
 
 export default function DebugPage() {
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [debugInfo, setDebugInfo] = useState<DebugInfo>({
+    hostname: 'SSR',
+    userAgent: 'SSR',
+    timestamp: new Date().toISOString(),
+  });
   const [testResult, setTestResult] = useState<string>('');
 
   useEffect(() => {
     // 환경 정보 수집
-    const info = {
+    const info: DebugInfo = {
       NODE_ENV: process.env.NODE_ENV,
       VERCEL: process.env.VERCEL,
       RAILWAY: process.env.RAILWAY,
@@ -24,13 +37,20 @@ export default function DebugPage() {
   const testAPI = async () => {
     try {
       setTestResult('테스트 중...');
-      const response = await postLoginPayload({
-        auth_id: 'test',
-        auth_pw: 'test'
-      });
-      setTestResult(`✅ 성공: ${JSON.stringify(response.data, null, 2)}`);
-    } catch (error: any) {
-      setTestResult(`❌ 실패: ${error.message || error.toString()}`);
+      // 간단한 fetch 테스트
+      const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/health');
+      if (response.ok) {
+        const data = await response.json();
+        setTestResult(`✅ 성공: ${JSON.stringify(data, null, 2)}`);
+      } else {
+        setTestResult(`❌ HTTP 오류: ${response.status} ${response.statusText}`);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setTestResult(`❌ 실패: ${error.message}`);
+      } else {
+        setTestResult(`❌ 실패: ${String(error)}`);
+      }
     }
   };
 
@@ -59,7 +79,7 @@ export default function DebugPage() {
             onClick={testAPI}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            로그인 API 테스트
+            Gateway Health Check
           </button>
           {testResult && (
             <div className="mt-4 p-3 bg-gray-50 rounded">
