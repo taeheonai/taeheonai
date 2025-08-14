@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/manifest.webmanifest",
+      "source": "/manifest.json",
       "headers": [
         {
           "key": "Content-Type",
@@ -16,12 +16,6 @@
           "value": "true"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/manifest.webmanifest",
-      "destination": "/manifest.webmanifest"
     }
   ],
   "functions": {
