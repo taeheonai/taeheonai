@@ -71,7 +71,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public  # PWA 파일들을 위해 주석 처리
 
 # Storybook build outputs
 .out

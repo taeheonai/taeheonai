@@ -68,7 +68,7 @@ app.add_middleware(
 )
 
 # ---------- 라우터 ----------
-app.include_router(auth_router)
+app.include_router(auth_router, prefix="/v1/auth")
 
 # ---------- 헬스/DB ----------
 @app.get("/health")
