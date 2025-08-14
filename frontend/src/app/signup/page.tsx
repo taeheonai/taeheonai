@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
 
 type SignupFormState = {
@@ -38,6 +39,7 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -88,6 +90,26 @@ export default function SignupPage() {
       // api.ts의 함수 사용
       const response = await postSignupPayload(payload);
       console.log('Signup successful:', response.data);
+      
+      // 회원가입 성공 시 자동 로그인 처리
+      if (response.data) {
+        // 사용자 정보를 로컬 스토리지에 저장
+        const userInfo = {
+          auth_id: form.auth_id,
+          name: form.name || form.auth_id,
+          email: form.email,
+          company_id: form.company_id,
+          industry: form.industry,
+          age: form.age
+        };
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        
+        // 성공 메시지 표시
+        alert('회원가입 성공! 자동으로 로그인되었습니다.');
+        
+        // 홈페이지로 리다이렉트
+        router.push('/');
+      }
     } catch (err: unknown) {
       console.error('signup log post failed', err);
       
@@ -128,6 +150,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 12345 (비워두면 자동 생성)"
+                disabled={loading}
               />
             </div>
 
@@ -139,6 +162,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="예: THN-001"
+                disabled={loading}
               />
             </div>
 
@@ -150,6 +174,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="예: 제조, 금융"
+                disabled={loading}
               />
             </div>
 
@@ -162,6 +187,7 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="you@example.com"
+                disabled={loading}
               />
             </div>
 
@@ -174,6 +200,7 @@ export default function SignupPage() {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="홍길동"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -184,6 +211,7 @@ export default function SignupPage() {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="예: 30"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -197,6 +225,7 @@ export default function SignupPage() {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="로그인에 사용할 아이디"
+                  disabled={loading}
                 />
               </div>
               <div>
@@ -208,6 +237,7 @@ export default function SignupPage() {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="••••••••"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -218,7 +248,7 @@ export default function SignupPage() {
                 disabled={loading}
                 className="w-full md:w-auto px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium"
               >
-                {loading ? '처리 중...' : '제출 (미저장)'}
+                {loading ? '처리 중...' : '회원가입'}
               </button>
             </div>
 
@@ -228,8 +258,6 @@ export default function SignupPage() {
               </div>
             )}
           </form>
-
-          {/* submitted state was removed, so this block is no longer relevant */}
         </div>
       </div>
     </div>

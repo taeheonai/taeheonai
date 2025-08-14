@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { postLoginPayload } from '@/lib/api';
 
 type LoginFormState = {
@@ -12,6 +13,8 @@ type LoginFormState = {
 export default function LoginPage() {
   const [form, setForm] = useState<LoginFormState>({ auth_id: '', auth_pw: '' });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -21,6 +24,7 @@ export default function LoginPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setLoading(true);
 
     // 환경변수 상태 확인 로깅 추가
     console.log('🔍 === 환경변수 상태 확인 ===');
@@ -32,27 +36,52 @@ export default function LoginPage() {
     // 간단한 클라이언트 측 검증 (DB 저장/호출 없음)
     if (!form.auth_id.trim() || !form.auth_pw.trim()) {
       setError('아이디와 비밀번호를 입력하세요.');
+      setLoading(false);
       return;
     }
-    // JSON 생성 및 알림
-    const payload = {
-      auth_id: form.auth_id,
-      auth_pw: form.auth_pw,
-    };
-    
-    // 브라우저 alert와 Docker 로그 모두에서 확인 가능
-    const alertMessage = `로그인 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`;
-    alert(alertMessage);
-    console.log('=== 로그인 Alert 데이터 ===');
-    console.log(alertMessage);
-    console.log('=== Alert 데이터 끝 ===');
     
     try {
       // api.ts의 함수 사용
-      const response = await postLoginPayload(payload);
+      const response = await postLoginPayload(form);
       console.log('Login successful:', response.data);
-    } catch (err) {
-      console.error('login log post failed', err);
+      
+      // 로그인 성공 시 사용자 정보와 토큰 저장
+      if (response.data) {
+        // 토큰이 있다면 저장
+        if (response.data.access_token) {
+          localStorage.setItem('token', response.data.access_token);
+        }
+        
+        // 사용자 정보 저장
+        const userInfo = {
+          auth_id: form.auth_id,
+          name: response.data.name || form.auth_id,
+          email: response.data.email,
+          company_id: response.data.company_id,
+          industry: response.data.industry,
+          age: response.data.age
+        };
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        
+        // 성공 메시지 표시
+        alert('로그인 성공! 홈페이지로 이동합니다.');
+        
+        // 홈페이지로 리다이렉트
+        router.push('/');
+      }
+    } catch (err: any) {
+      console.error('login failed', err);
+      
+      // 에러 메시지 처리
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('로그인 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,6 +105,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="아이디"
+                disabled={loading}
               />
             </div>
             <div>
@@ -87,6 +117,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
+                disabled={loading}
               />
             </div>
 
@@ -97,9 +128,10 @@ export default function LoginPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                disabled={loading}
+                className="w-full px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium"
               >
-                로그인
+                {loading ? '로그인 중...' : '로그인'}
               </button>
             </div>
           </form>
