@@ -34,7 +34,7 @@ class SignupIn(BaseModel):
     industry: Optional[str] = None
     email: Optional[str] = None
     name: Optional[str] = None
-    age: Optional[int] = None
+    age: Optional[str] = None  # int에서 str로 변경
     auth_id: str = Field(..., min_length=3, max_length=64)
     auth_pw: str = Field(..., min_length=4, max_length=128)
 

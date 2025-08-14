@@ -31,6 +31,7 @@ export default function DebugPage() {
   });
   const [testResult, setTestResult] = useState<string>('');
   const [signupResult, setSignupResult] = useState<string>('');
+  const [gatewayStatus, setGatewayStatus] = useState<string>('');
 
   useEffect(() => {
     // 환경 정보 수집
@@ -45,6 +46,44 @@ export default function DebugPage() {
     };
     setDebugInfo(info);
   }, []);
+
+  const testGateway = async () => {
+    try {
+      setGatewayStatus('Gateway 상태 확인 중...');
+      
+      // 1. Health Check
+      const healthResponse = await fetch('https://taeheonai-production-2130.up.railway.app/api/health');
+      const healthData = await healthResponse.json();
+      
+      // 2. Auth 서비스 상태 확인
+      const authResponse = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/auth/health', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      let authStatus = '알 수 없음';
+      if (authResponse.ok) {
+        const authData = await authResponse.json();
+        authStatus = `정상 (${JSON.stringify(authData)})`;
+      } else {
+        authStatus = `오류: ${authResponse.status} ${authResponse.statusText}`;
+      }
+      
+      setGatewayStatus(`
+✅ Gateway Health: ${JSON.stringify(healthData, null, 2)}
+🔐 Auth Service: ${authStatus}
+      `.trim());
+      
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setGatewayStatus(`❌ Gateway 테스트 실패: ${error.message}`);
+      } else {
+        setGatewayStatus(`❌ Gateway 테스트 실패: ${String(error)}`);
+      }
+    }
+  };
 
   const testAPI = async () => {
     try {
@@ -79,12 +118,24 @@ export default function DebugPage() {
         age: '25'
       };
       
+      console.log('🔍 회원가입 테스트 페이로드:', testPayload);
+      console.log('🔍 API URL:', 'https://taeheonai-production-2130.up.railway.app/api/v1/auth/signup');
+      
       const response = await postSignupPayload(testPayload);
       setSignupResult(`✅ 회원가입 성공: ${JSON.stringify(response.data, null, 2)}`);
     } catch (error: unknown) {
+      console.error('❌ 회원가입 테스트 오류:', error);
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as AxiosErrorResponse;
-        setSignupResult(`❌ 회원가입 실패: HTTP ${axiosError.response?.status} - ${JSON.stringify(axiosError.response?.data, null, 2)}`);
+        const errorDetails = {
+          status: axiosError.response?.status,
+          data: axiosError.response?.data,
+          message: `HTTP ${axiosError.response?.status} - ${JSON.stringify(axiosError.response?.data, null, 2)}`
+        };
+        
+        setSignupResult(`❌ 회원가입 실패: ${errorDetails.message}`);
+        console.error('❌ 에러 상세 정보:', errorDetails);
       } else if (error instanceof Error) {
         setSignupResult(`❌ 회원가입 실패: ${error.message}`);
       } else {
@@ -109,6 +160,22 @@ export default function DebugPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Gateway 상태 확인 */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Gateway 상태 확인</h2>
+          <button
+            onClick={testGateway}
+            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 mb-4"
+          >
+            Gateway 상태 확인
+          </button>
+          {gatewayStatus && (
+            <div className="p-3 bg-gray-50 rounded">
+              <pre className="text-sm whitespace-pre-wrap">{gatewayStatus}</pre>
+            </div>
+          )}
         </div>
 
         {/* API 테스트 */}
