@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column, String, DateTime, BigInteger, func, text
 )
-from app.database import Base
+from app.common.database import Base
 
 class UserEntity(Base):
     __tablename__ = "users"  # 테이블명을 "users"로 수정 (복수형)
