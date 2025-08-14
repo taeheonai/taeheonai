@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postLoginPayload } from '@/lib/api';
+import { LoginResponse } from '@/types/user';
 
 type LoginFormState = {
   auth_id: string;
@@ -69,13 +70,18 @@ export default function LoginPage() {
         // 홈페이지로 리다이렉트
         router.push('/');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('login failed', err);
       
       // 에러 메시지 처리
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else if (err.message) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        if (axiosError.response?.data?.detail) {
+          setError(axiosError.response.data.detail);
+        } else {
+          setError('로그인 중 오류가 발생했습니다.');
+        }
+      } else if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('로그인 중 오류가 발생했습니다.');
