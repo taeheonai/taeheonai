@@ -2,7 +2,6 @@
 gateway-router 메인 파일 (정리본)
 """
 from typing import Optional, List
-from enum import Enum
 import os
 import sys
 import json
@@ -18,6 +17,8 @@ from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from dotenv import load_dotenv
+from domain.model.service_factory import ServiceProxyFactory, ServiceType
+
 load_dotenv()
 
 logging.basicConfig(
@@ -87,126 +88,7 @@ gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 FILE_REQUIRED_SERVICES: set[str] = set()
 
 
-class ServiceType(str, Enum):
-    chatbot = "chatbot"
-    gri = "gri"
-    materiality = "materiality"
-    tcfd = "tcfd"
-    grireport = "grireport"
-    tcfdreport = "tcfdreport"
-    auth = "auth"
-
-
-class ServiceDiscovery:
-    def __init__(self, service_type: ServiceType):
-        self.service_type = service_type  # ✅ 보관
-        # 환경변수에서 서비스 URL 가져오기 (기본값은 로컬 개발용)
-        self.base_urls = {
-            ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "http://localhost:8001"),
-            ServiceType.gri: os.getenv("GRI_SERVICE_URL", "http://localhost:8003"),
-            ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "http://localhost:8002"),
-            ServiceType.tcfd: os.getenv("TCFD_SERVICE_URL", "http://localhost:8005"),
-            ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "http://localhost:8004"),
-            ServiceType.tcfdreport: os.getenv("TCFDREPORT_SERVICE_URL", "http://localhost:8006"),
-            ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "http://localhost:8008"),
-        }
-        
-        # Railway 환경에서 프로토콜 자동 추가
-        if self.is_railway:
-            for service_type, url in self.base_urls.items():
-                if url and not url.startswith(('http://', 'https://')):
-                    self.base_urls[service_type] = f"https://{url}"
-                    logger.info(f"🔗 {service_type} URL에 https:// 추가: {self.base_urls[service_type]}")
-        
-        # Railway 환경 감지
-        self.is_railway = os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]
-        if self.is_railway:
-            logger.info(f"🌐 Railway 환경에서 {service_type} 서비스 연결 시도")
-        else:
-            logger.info(f"💻 로컬 환경에서 {service_type} 서비스 연결 시도")
-
-    def upstream_path(self, path: str) -> str:
-        """서비스별 업스트림 접두사(/v1/{service}) 자동 부착"""
-        path = "/" + path.lstrip("/")
-        prefixes = {
-            ServiceType.auth: "/v1/auth",
-            ServiceType.chatbot: "/v1/chatbot",
-            ServiceType.gri: "/v1/gri",
-            ServiceType.materiality: "/v1/materiality",
-            ServiceType.tcfd: "/v1/tcfd",
-            ServiceType.grireport: "/v1/grireport",
-            ServiceType.tcfdreport: "/v1/tcfdreport",
-        }
-        prefix = prefixes.get(self.service_type, "")
-        if not prefix:
-            return path
-        
-        # 이미 접두사가 포함된 경우(예: /v1/auth/...)는 중복 방지
-        if path == prefix or path.startswith(prefix + "/"):
-            return path
-        
-        # /api/v1/auth/login → /v1/auth/login으로 변환
-        if path.startswith("/api/v1/"):
-            return path[4:]  # /api 제거
-        
-        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
-        if self.service_type == ServiceType.auth and path == "/login":
-            return "/v1/auth/login"
-        
-        return f"{prefix}{path}"
-
-    async def request(
-        self,
-        method: str,
-        path: str,
-        headers: dict | None = None,
-        body: bytes | None = None,
-        files: dict | None = None,
-        params: dict | None = None,
-        data: dict | None = None,
-    ):
-        import httpx
-
-        base_url = self.base_urls.get(self.service_type)
-        if not base_url:
-            raise HTTPException(status_code=404, detail=f"Service {self.service_type} not found")
-
-        full_path = self.upstream_path(path)  # ✅ 접두사 포함 경로
-        url = f"{base_url}{full_path}"
-
-        # 업스트림에 보낼 헤더 정리
-        fwd_headers = dict(headers or {})
-        fwd_headers.pop("host", None)  # ✅ Host 제거
-
-        async with httpx.AsyncClient() as client:
-            try:
-                m = method.upper()
-                if m == "GET":
-                    response = await client.get(url, headers=fwd_headers, params=params)
-                elif m == "POST":
-                    if files:
-                        response = await client.post(url, headers=fwd_headers, files=files, params=params)
-                    elif data is not None:
-                        response = await client.post(url, headers=fwd_headers, json=data, params=params)
-                    else:
-                        # body가 bytes인 경우 json으로 변환 시도
-                        try:
-                            body_json = json.loads(body.decode("utf-8")) if body else {}
-                            response = await client.post(url, headers=fwd_headers, json=body_json, params=params)
-                        except (json.JSONDecodeError, AttributeError, UnicodeDecodeError):
-                            response = await client.post(url, headers=fwd_headers, content=body, params=params)
-                elif m == "PUT":
-                    response = await client.put(url, headers=fwd_headers, content=body, params=params)
-                elif m == "DELETE":
-                    response = await client.delete(url, headers=fwd_headers, params=params)
-                elif m == "PATCH":
-                    response = await client.patch(url, headers=fwd_headers, content=body, params=params)
-                else:
-                    raise HTTPException(status_code=405, detail=f"Method {method} not allowed")
-                return response
-            except httpx.RequestError as e:
-                logger.error(f"Request error: {e}")
-                raise HTTPException(status_code=503, detail=f"Service {self.service_type} unavailable")
+# ServiceType과 ServiceDiscovery 클래스는 service_factory.py로 이동됨
 
 
 class ResponseFactory:
@@ -258,7 +140,7 @@ async def health_check():
 @gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
 async def proxy_get(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
         params = dict(request.query_params)
         resp = await factory.request(
@@ -294,7 +176,7 @@ async def proxy_post(
         if file:
             logger.info(f"📁 파일명: {file.filename}, 시트 이름: {sheet_names if sheet_names else '없음'}")
 
-        factory = ServiceDiscovery(service_type=service)
+        factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
 
         files = None
@@ -372,7 +254,7 @@ async def proxy_post(
 @gateway_router.put("/{service}/{path:path}", summary="PUT 프록시")
 async def proxy_put(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
         body = await request.body()
         params = dict(request.query_params)
@@ -394,7 +276,7 @@ async def proxy_put(service: ServiceType, path: str, request: Request):
 @gateway_router.delete("/{service}/{path:path}", summary="DELETE 프록시")
 async def proxy_delete(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
         params = dict(request.query_params)
         resp = await factory.request(
@@ -414,7 +296,7 @@ async def proxy_delete(service: ServiceType, path: str, request: Request):
 @gateway_router.patch("/{service}/{path:path}", summary="PATCH 프록시")
 async def proxy_patch(service: ServiceType, path: str, request: Request):
     try:
-        factory = ServiceDiscovery(service_type=service)
+        factory = ServiceProxyFactory(service_type=service)
         headers = dict(request.headers)
         body = await request.body()
         params = dict(request.query_params)
