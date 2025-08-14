@@ -164,6 +164,7 @@ async def proxy_post(
     request: Request,
     file: Optional[UploadFile] = None,
     sheet_names: Optional[List[str]] = Query(None, alias="sheet_name"),
+    body_data: Optional[dict] = None,  # Swagger에서 JSON 입력을 위한 파라미터
 ):
     try:
         logger.info("🚀 === Gateway POST 요청 시작 ===")
@@ -197,7 +198,14 @@ async def proxy_post(
                 params = params or {}
                 params["sheet_name"] = sheet_names
         else:
-            body = await request.body()
+            # Swagger에서 전달된 body_data가 있으면 우선 사용, 없으면 request.body() 사용
+            if body_data is not None:
+                logger.info(f"🔍 === Swagger에서 전달된 body_data 사용 ===")
+                body_json = body_data
+                body = json.dumps(body_data).encode('utf-8')
+            else:
+                body = await request.body()
+                body_json = None
             
             # Auth 서비스 요청에 대한 상세 로깅(민감정보 마스킹)
             if service == ServiceType.auth:
@@ -207,12 +215,22 @@ async def proxy_post(
                 logger.info(f"🔍 Body 내용 (raw): {body}")
                 
                 try:
-                    if body:
+                    if body_data is not None:
+                        # Swagger에서 전달된 데이터 사용
+                        body_json = body_data
+                        logger.info(f"🔍 Swagger body_data: {body_json}")
+                    elif body:
+                        # request.body()에서 파싱
                         body_str = body.decode("utf-8")
                         logger.info(f"🔍 Decoded body: {body_str}")
                         body_json = json.loads(body_str)
                         logger.info(f"🔍 Parsed JSON: {body_json}")
-                        
+                    else:
+                        body_json = {}
+                        logger.warning("⚠️ Body가 비어있음")
+                    
+                    # 로깅 처리
+                    if body_json:
                         if path == "login":
                             logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
                             logger.info(f"Auth ID: {body_json.get('auth_id')}")
@@ -233,8 +251,6 @@ async def proxy_post(
                             masked_pw = "*" * len(pw) if isinstance(pw, str) else None
                             logger.info(f"Auth PW: {masked_pw}")
                             logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
-                    else:
-                        logger.warning("⚠️ Body가 비어있음")
                         
                 except json.JSONDecodeError as e:
                     logger.error(f"❌ JSON 파싱 실패: {e}")
