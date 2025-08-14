@@ -5,9 +5,9 @@ import { postSignupPayload } from '@/lib/api';
 
 interface DebugInfo {
   NODE_ENV?: string;
-  VERCEL?: string;
-  RAILWAY?: string;
-  NEXT_PUBLIC_API_URL?: string;
+  VERCEL?: string | undefined;
+  RAILWAY?: string | undefined;
+  NEXT_PUBLIC_API_URL?: string | undefined;
   hostname: string;
   userAgent: string;
   timestamp: string;
