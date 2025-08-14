@@ -9,7 +9,7 @@ import traceback
 import os
 import tempfile
 
-from .database import get_db, engine, check_database_connection, test_database_connection
+from .database import get_db, engine, check_database_connection, test_database_connection, init_database, check_tables_status
 from .router.auth_router import auth_router
 
 # ---------- 로깅 설정 ----------
@@ -69,6 +69,26 @@ app.add_middleware(
 
 # ---------- 라우터 ----------
 app.include_router(auth_router)  # prefix 제거 (auth_router에 이미 있음)
+
+# ---------- 애플리케이션 시작 시 데이터베이스 초기화 ----------
+@app.on_event("startup")
+async def startup_event():
+    """애플리케이션 시작 시 데이터베이스를 초기화합니다."""
+    try:
+        logger.info("🚀 Auth Service 시작 - 데이터베이스 초기화 중...")
+        
+        # 데이터베이스 초기화 (테이블 생성 포함)
+        if await init_database():
+            logger.info("✅ 데이터베이스 초기화 완료!")
+            
+            # 테이블 상태 확인
+            await check_tables_status()
+        else:
+            logger.error("❌ 데이터베이스 초기화 실패!")
+            
+    except Exception as e:
+        logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
+        logger.error(traceback.format_exc())
 
 # ---------- 헬스/DB ----------
 @app.get("/health")
