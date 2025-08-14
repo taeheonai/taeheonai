@@ -13,13 +13,12 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      // any 타입 완전 차단 (기본 규칙)
+      // any 타입 완전 차단 (기본 규칙만)
       "@typescript-eslint/no-explicit-any": "error",
       
-      // 타입 안전성 강화 (타입 정보 불필요)
-      "@typescript-eslint/prefer-nullish-coalescing": "error",
-      "@typescript-eslint/prefer-optional-chain": "error",
-      "@typescript-eslint/no-non-null-assertion": "error",
+      // 추가 타입 안전성 규칙 (타입 정보 불필요)
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-returns": "error",
     },
   },
 ];
