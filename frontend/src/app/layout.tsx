@@ -17,12 +17,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TaeheonAI",
-  description: "A Next.js PWA application with TypeScript, React, Zustand, and Axios",
-  manifest: "/manifest.webmanifest",  // .json → .webmanifest로 수정
+  description: "지속가능 경영을 위한 AI 기반 솔루션",
+  manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", sizes: "any", type: "image/svg+xml" },
     ],
   },
   appleWebApp: {
@@ -36,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#3B82F6",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -48,9 +50,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <head>
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#3B82F6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="TaeheonAI" />
