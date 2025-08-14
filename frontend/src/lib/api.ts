@@ -6,12 +6,23 @@ const getApiBaseUrl = () => {
   console.log('🔍 process.env.NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
   console.log('🔍 process.env.VERCEL:', process.env.VERCEL);
   console.log('🔍 process.env.NODE_ENV:', process.env.NODE_ENV);
+  console.log('🔍 window.location.hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
   
   // 🚨 Vercel 환경에서는 무조건 Gateway URL 사용 (환경변수 무시)
-  if (process.env.VERCEL === '1') {
+  if (process.env.VERCEL === '1' || process.env.VERCEL === 'true') {
     console.log('🔍 Vercel 환경 감지, Gateway URL 강제 사용');
     console.log('🔍 환경변수 무시하고 Gateway로 요청');
     return 'https://taeheonai-production-2130.up.railway.app/api';
+  }
+  
+  // 🚨 도메인 기반 환경 감지 (Vercel 환경변수가 제대로 설정되지 않은 경우)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'taeheonai.com' || hostname === 'www.taeheonai.com' || hostname.endsWith('.vercel.app')) {
+      console.log('🔍 도메인 기반 Vercel 환경 감지:', hostname);
+      console.log('🔍 Gateway URL 강제 사용');
+      return 'https://taeheonai-production-2130.up.railway.app/api';
+    }
   }
   
   // 1. 환경변수가 설정된 경우 (Vercel이 아닌 환경에서만)
@@ -35,6 +46,7 @@ const getApiBaseUrl = () => {
   }
   
   // 3. 로컬 개발 환경
+  console.log('🔍 로컬 개발 환경으로 판단, localhost:8080 사용');
   return 'http://localhost:8080/api';
 };
 
