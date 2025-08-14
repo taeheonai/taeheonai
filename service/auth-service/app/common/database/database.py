@@ -144,7 +144,7 @@ async def check_database_connection():
             
         async with engine.begin() as connection:
             result = await connection.execute(text("SELECT 1"))
-            await result.fetchone()
+            result.fetchone()
             logger.info("✅ Async Database connection check: SUCCESS")
             return True
     except Exception as e:
@@ -160,12 +160,12 @@ async def test_database_connection():
         async with engine.begin() as connection:
             # PostgreSQL 버전 확인
             result = await connection.execute(text("SELECT version()"))
-            version = (await result.fetchone())[0]
+            version = result.fetchone()[0]
             logger.info(f"✅ Railway PostgreSQL Async 연결 성공! 버전: {version}")
             
             # 데이터베이스 정보 확인
             result = await connection.execute(text("SELECT current_database(), current_user, inet_server_addr(), inet_server_port()"))
-            db_info = await result.fetchone()
+            db_info = result.fetchone()
             logger.info(f"📊 데이터베이스 정보: DB={db_info[0]}, User={db_info[1]}, Host={db_info[2]}, Port={db_info[3]}")
             
         return True
