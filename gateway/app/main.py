@@ -198,33 +198,57 @@ async def proxy_post(
                 params["sheet_name"] = sheet_names
         else:
             body = await request.body()
-
+            
             # Auth 서비스 요청에 대한 상세 로깅(민감정보 마스킹)
             if service == ServiceType.auth:
+                logger.info(f"🔍 === Auth 서비스 요청 로깅 시작 ===")
+                logger.info(f"🔍 Body 타입: {type(body)}")
+                logger.info(f"🔍 Body 길이: {len(body) if body else 0}")
+                logger.info(f"🔍 Body 내용 (raw): {body}")
+                
                 try:
-                    body_json = json.loads(body.decode("utf-8")) if body else {}
-                    if path == "login":
-                        logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
-                        logger.info(f"Auth ID: {body_json.get('auth_id')}")
-                        pw = body_json.get("auth_pw")
-                        masked_pw = "*" * len(pw) if isinstance(pw, str) else None
-                        logger.info(f"Auth PW: {masked_pw}")
-                        logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
-                    elif path == "signup":
-                        logger.info("=== 회원가입 Alert 데이터 (Gateway Generic Proxy) ===")
-                        logger.info(f"ID: {body_json.get('id')}")
-                        logger.info(f"Company ID: {body_json.get('company_id')}")
-                        logger.info(f"Industry: {body_json.get('industry')}")
-                        logger.info(f"Email: {body_json.get('email')}")
-                        logger.info(f"Name: {body_json.get('name')}")
-                        logger.info(f"Age: {body_json.get('age')}")
-                        logger.info(f"Auth ID: {body_json.get('auth_id')}")
-                        pw = body_json.get("auth_pw")
-                        masked_pw = "*" * len(pw) if isinstance(pw, str) else None
-                        logger.info(f"Auth PW: {masked_pw}")
-                        logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                    if body:
+                        body_str = body.decode("utf-8")
+                        logger.info(f"🔍 Decoded body: {body_str}")
+                        body_json = json.loads(body_str)
+                        logger.info(f"🔍 Parsed JSON: {body_json}")
+                        
+                        if path == "login":
+                            logger.info("=== 로그인 Alert 데이터 (Gateway Generic Proxy) ===")
+                            logger.info(f"Auth ID: {body_json.get('auth_id')}")
+                            pw = body_json.get("auth_pw")
+                            masked_pw = "*" * len(pw) if isinstance(pw, str) else None
+                            logger.info(f"Auth PW: {masked_pw}")
+                            logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                        elif path == "signup":
+                            logger.info("=== 회원가입 Alert 데이터 (Gateway Generic Proxy) ===")
+                            logger.info(f"ID: {body_json.get('id')}")
+                            logger.info(f"Company ID: {body_json.get('company_id')}")
+                            logger.info(f"Industry: {body_json.get('industry')}")
+                            logger.info(f"Email: {body_json.get('email')}")
+                            logger.info(f"Name: {body_json.get('name')}")
+                            logger.info(f"Age: {body_json.get('age')}")
+                            logger.info(f"Auth ID: {body_json.get('auth_id')}")
+                            pw = body_json.get("auth_pw")
+                            masked_pw = "*" * len(pw) if isinstance(pw, str) else None
+                            logger.info(f"Auth PW: {masked_pw}")
+                            logger.info("=== Alert 데이터 끝 (Gateway Generic Proxy) ===")
+                    else:
+                        logger.warning("⚠️ Body가 비어있음")
+                        
+                except json.JSONDecodeError as e:
+                    logger.error(f"❌ JSON 파싱 실패: {e}")
+                    logger.error(f"❌ Raw body: {body}")
+                except UnicodeDecodeError as e:
+                    logger.error(f"❌ UTF-8 디코딩 실패: {e}")
+                    logger.error(f"❌ Raw body: {body}")
                 except Exception as e:
-                    logger.warning(f"Auth 서비스 요청 로깅 중 오류: {e}")
+                    logger.error(f"❌ Auth 서비스 요청 로깅 중 예외 발생: {e}")
+                    logger.error(f"❌ Exception type: {type(e)}")
+                    import traceback
+                    logger.error(f"❌ Traceback: {traceback.format_exc()}")
+                
+                logger.info(f"🔍 === Auth 서비스 요청 로깅 끝 ===")
 
         logger.info(f"🔗 {service} 서비스로 요청 전달 중...")
         logger.info(f"🔍 요청 경로: {path}")
