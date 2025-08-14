@@ -1,45 +1,39 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel
-
-class SignupRequest(BaseModel):
-    id: Optional[str] = None
-    company_id: str
-    industry: str
-    email: str
-    name: str
-    age: str
-    auth_id: str
-    auth_pw: str
+from fastapi import HTTPException
+from typing import Dict, Any
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.domain.user.user_schema import SignupIn, LoginIn
+from app.domain.user.user_service import UserService
 
 class UserController:
+    """
+    교차 NTT 역할: 요청을 받아서 적절한 서비스로 전달만 담당
+    """
+    
     def __init__(self):
         pass
 
-    async def signup(self, request: SignupRequest) -> Dict[str, Any]:
+    async def signup(self, request: SignupIn, db: AsyncSession) -> Dict[str, Any]:
         """
-        사용자 회원가입을 처리합니다.
+        회원가입 요청을 UserService로 전달 (교차 NTT 역할)
         """
         try:
-            # 실제로는 데이터베이스에 저장하는 로직이 들어가야 합니다
-            # 현재는 요청 데이터를 그대로 반환하는 형태로 구현
-            user_data = {
-                "id": request.id or "auto_generated_id",
-                "company_id": request.company_id,
-                "industry": request.industry,
-                "email": request.email,
-                "name": request.name,
-                "age": request.age,
-                "auth_id": request.auth_id,
-                "auth_pw": "***"  # 보안상 비밀번호는 숨김
-            }
+            # 단순 전달: UserService 인스턴스 생성 및 요청 전달
+            user_service = UserService(db)
+            return await user_service.signup(request)
             
-            return {
-                "success": True,
-                "message": "회원가입이 완료되었습니다.",
-                "user": user_data
-            }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"회원가입 중 오류가 발생했습니다: {str(e)}")
+            # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
+            raise
 
-    
+    async def login(self, request: LoginIn, db: AsyncSession) -> Dict[str, Any]:
+        """
+        로그인 요청을 UserService로 전달 (교차 NTT 역할)
+        """
+        try:
+            # 단순 전달: UserService 인스턴스 생성 및 요청 전달
+            user_service = UserService(db)
+            return await user_service.login(request)
+            
+        except Exception as e:
+            # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
+            raise
