@@ -63,11 +63,11 @@ class AnswerController:
             answer_service = AnswerService(db)
             result = await answer_service.get_answers_by_company(company_id, page, size)
             
-                    return {
-            "success": True,
-            "message": "회사별 GRI 답변 목록을 성공적으로 조회했습니다.",
-            "data": [answer.model_dump() for answer in result]
-        }
+            return {
+                "success": True,
+                "message": "회사별 GRI 답변 목록을 성공적으로 조회했습니다.",
+                "data": [answer.model_dump() for answer in result]
+            }
             
         except Exception as e:
             # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
@@ -82,11 +82,11 @@ class AnswerController:
             answer_service = AnswerService(db)
             result = await answer_service.get_all_answers(page, size)
             
-                    return {
-            "success": True,
-            "message": "모든 GRI 답변 목록을 성공적으로 조회했습니다.",
-            "data": [answer.model_dump() for answer in result]
-        }
+            return {
+                "success": True,
+                "message": "모든 GRI 답변 목록을 성공적으로 조회했습니다.",
+                "data": [answer.model_dump() for answer in result]
+            }
             
         except Exception as e:
             # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
@@ -158,5 +158,3 @@ class AnswerController:
         except Exception as e:
             # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
             raise
-
-
