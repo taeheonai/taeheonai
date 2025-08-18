@@ -25,7 +25,7 @@ class AnswerService:
             # 답변 생성
             created_entity = await self.answer_repository.save_entity(answer_entity)
             
-            # 응답 스키마로 변환
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return AnswerResponse.model_validate(created_entity)
             
         except Exception as e:
@@ -43,6 +43,7 @@ class AnswerService:
                 logger.warning(f"GRI answer not found with ID: {answer_id}")
                 return None
             
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return AnswerResponse.model_validate(answer_entity)
             
         except Exception as e:
@@ -59,7 +60,7 @@ class AnswerService:
             # 답변 목록 조회
             answers = await self.answer_repository.find_by_company_id(company_id, skip, size)
             
-            # 응답 스키마로 변환
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return [AnswerResponse.model_validate(answer) for answer in answers]
             
         except Exception as e:
@@ -76,7 +77,7 @@ class AnswerService:
             # 답변 목록 조회
             answers = await self.answer_repository.find_all(skip, size)
             
-            # 응답 스키마로 변환
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return [AnswerResponse.model_validate(answer) for answer in answers]
             
         except Exception as e:
@@ -108,6 +109,7 @@ class AnswerService:
                 logger.warning(f"GRI answer not found with ID: {answer_id}")
                 return None
             
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return AnswerResponse.model_validate(updated_entity)
             
         except Exception as e:
@@ -139,6 +141,7 @@ class AnswerService:
             
             answers = await self.answer_repository.find_by_gri_index(gri_index, company_id)
             
+            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
             return [AnswerResponse.model_validate(answer) for answer in answers]
             
         except Exception as e:
