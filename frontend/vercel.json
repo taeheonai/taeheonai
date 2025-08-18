@@ -1,4 +1,34 @@
 {
+  "rewrites": [
+    {
+      "source": "/login",
+      "destination": "/auth/login"
+    },
+    {
+      "source": "/signup",
+      "destination": "/auth/signup"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard"
+    },
+    {
+      "source": "/chatbot",
+      "destination": "/chatbot"
+    },
+    {
+      "source": "/esrs",
+      "destination": "/esrs"
+    },
+    {
+      "source": "/gri",
+      "destination": "/gri"
+    },
+    {
+      "source": "/materiality",
+      "destination": "/materiality"
+    }
+  ],
   "headers": [
     {
       "source": "/manifest.json",
