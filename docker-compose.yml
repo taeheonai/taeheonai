@@ -20,9 +20,7 @@ services:
       - chatbot-service
       - gri-service
       - materiality-service
-      - tcfd-service
       - grireport-service
-      - tcfdreport-service
       - survey-service
       - redis
     dns:
@@ -153,51 +151,7 @@ services:
       retries: 3
       start_period: 40s
 
-  tcfd-service:
-    build:
-      context: ./service/tcfd-service
-      dockerfile: Dockerfile
-    ports:
-      - "8005:8005"
-    volumes:
-      - ./service/tcfd-service/app:/app/app
-      - ./service/tcfd-service/requirements.txt:/app/requirements.txt
-    environment:
-      - ENVIRONMENT=development
-      - PORT=8005
-      - PYTHONUNBUFFERED=1
-    restart: always
-    networks:
-      - taeheonai-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-  tcfdreport-service:
-    build:
-      context: ./service/tcfdreport-service
-      dockerfile: Dockerfile
-    ports:
-      - "8006:8006"
-    volumes:
-      - ./service/tcfdreport-service/app:/app/app
-      - ./service/tcfdreport-service/requirements.txt:/app/requirements.txt
-    environment:
-      - ENVIRONMENT=development
-      - PORT=8006
-      - PYTHONUNBUFFERED=1
-    restart: always
-    networks:
-      - taeheonai-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   survey-service:
     build:

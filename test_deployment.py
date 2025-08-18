@@ -49,7 +49,7 @@ def main():
     gri_service_url = os.getenv('GRI_SERVICE_URL', 'http://localhost:8003')
     materiality_service_url = os.getenv('MATERIALITY_SERVICE_URL', 'http://localhost:8002')
     report_service_url = os.getenv('REPORT_SERVICE_URL', 'http://localhost:8004')
-    tcfd_service_url = os.getenv('TCFD_SERVICE_URL', 'http://localhost:8005')
+
     
     # 테스트할 서비스들
     services = {
@@ -59,7 +59,7 @@ def main():
         "gri-service": gri_service_url,
         "materiality-service": materiality_service_url,
         "report-service": report_service_url,
-        "tcfd-service": tcfd_service_url
+
     }
     
     print(f"🔗 Gateway URL: {gateway_url}")
@@ -68,7 +68,7 @@ def main():
     print(f"🔗 GRI Service URL: {gri_service_url}")
     print(f"🔗 Materiality Service URL: {materiality_service_url}")
     print(f"🔗 Report Service URL: {report_service_url}")
-    print(f"🔗 TCFD Service URL: {tcfd_service_url}")
+
     
     print("\n📋 서비스 헬스체크 테스트:")
     health_results = {}

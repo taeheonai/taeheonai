@@ -4,6 +4,7 @@ import "./globals.css";
 import ManifestDebug from "./ManifestDebug";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAStatus from "@/components/PWAStatus";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,10 +62,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ManifestDebug />
-        <PWAStatus />
-        {children}
-        <PWAInstallPrompt />
+        <AuthProvider>
+          <ManifestDebug />
+          <PWAStatus />
+          {children}
+          <PWAInstallPrompt />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 import logging
+import os
+
+# 데이터베이스 관련 import
+from app.common.database import init_database, check_database_connection
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -23,83 +27,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 애플리케이션 시작 시 데이터베이스 초기화
+@app.on_event("startup")
+async def startup_event():
+    """애플리케이션 시작 시 데이터베이스를 초기화합니다."""
+    try:
+        logger.info("🚀 GRI Service 시작 - 데이터베이스 초기화 중...")
+        
+        # 데이터베이스 초기화 (테이블 생성 포함)
+        if await init_database():
+            logger.info("✅ 데이터베이스 초기화 완료!")
+        else:
+            logger.error("❌ 데이터베이스 초기화 실패!")
+            
+    except Exception as e:
+        logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
+
 # APIRouter 정의
-gri_router = APIRouter()
+from app.router import gri_router
 
-# 요청 모델
-class GRIRequest(BaseModel):
-    standard: str
-    indicator: str
-    data: dict
-
-class GRIResponse(BaseModel):
-    result: dict
-    timestamp: datetime
-    standard: str
-
-@gri_router.get("/health")
-async def health_check():
-    """헬스체크 엔드포인트"""
-    return {
-        "status": "healthy",
-        "service": "gri-service",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0"
-    }
-
-@gri_router.get("/")
-async def root():
-    """루트 엔드포인트"""
-    return {
-        "message": "GRI Service",
-        "version": "1.0.0",
-        "endpoints": {
-            "health": "/health",
-            "analyze": "/analyze",
-            "standards": "/standards"
-        }
-    }
-
-@gri_router.post("/analyze")
-async def analyze_gri(request: GRIRequest):
-    """GRI 표준 분석"""
+# 데이터베이스 상태 확인 엔드포인트 (gri_router에 포함됨)
+async def check_db_status():
+    """데이터베이스 상태 확인"""
     try:
-        logger.info(f"GRI analysis request for standard {request.standard}")
-        
-        # GRI 분석 로직 (실제로는 AI 모델 연동)
-        result = {
-            "standard": request.standard,
-            "indicator": request.indicator,
-            "score": 85.5,
-            "recommendations": ["데이터 수집 개선 필요", "보고서 구조화 권장"]
-        }
-        
-        return GRIResponse(
-            result=result,
-            timestamp=datetime.now(),
-            standard=request.standard
-        )
-    except Exception as e:
-        logger.error(f"GRI analysis error: {e}")
-        raise HTTPException(status_code=500, detail="GRI analysis error")
-
-@gri_router.get("/standards")
-async def get_gri_standards():
-    """GRI 표준 목록 조회"""
-    try:
+        connection_ok = await check_database_connection()
         return {
-            "standards": [
-                {"code": "GRI-101", "name": "Foundation", "version": "2016"},
-                {"code": "GRI-102", "name": "General Disclosures", "version": "2016"},
-                {"code": "GRI-200", "name": "Economic", "version": "2016"},
-                {"code": "GRI-300", "name": "Environmental", "version": "2016"},
-                {"code": "GRI-400", "name": "Social", "version": "2016"}
-            ],
-            "timestamp": datetime.now().isoformat()
+            "status": "success" if connection_ok else "failed",
+            "service": "gri-service",
+            "database": "Railway PostgreSQL",
+            "connection": "connected" if connection_ok else "disconnected",
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
-        logger.error(f"Standards error: {e}")
-        raise HTTPException(status_code=500, detail="Standards retrieval error")
+        logger.error(f"Database status check failed: {e}")
+        return {
+            "status": "error",
+            "service": "gri-service",
+            "database": "Railway PostgreSQL",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat(),
+        }
 
 # 라우터를 앱에 포함
 app.include_router(gri_router)
