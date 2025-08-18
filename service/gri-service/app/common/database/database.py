@@ -76,8 +76,8 @@ async def create_tables():
             
         logger.info("🔨 Railway PostgreSQL 테이블 생성 시작...")
         
-        # UserEntity 모델 import (순환 참조 방지)
-        from app.domain.user.user_entity import UserEntity
+        # AnswerEntity 모델 import (순환 참조 방지)
+        from app.domain.entity.answer_entity import AnswerEntity
         
         async with engine.begin() as connection:
             # 테이블 생성

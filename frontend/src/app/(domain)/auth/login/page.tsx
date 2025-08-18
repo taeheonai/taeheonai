@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postLoginPayload } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 type LoginFormState = {
   auth_id: string;
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -45,29 +47,17 @@ export default function LoginPage() {
       const response = await postLoginPayload(form);
       console.log('Login successful:', response.data);
       
-      // 로그인 성공 시 사용자 정보와 토큰 저장
+      // 로그인 성공 시 AuthContext 사용
       if (response.data) {
-        // 토큰이 있다면 저장
-        if (response.data.access_token) {
-          localStorage.setItem('token', response.data.access_token);
-        }
-        
-        // 사용자 정보 저장
-        const userInfo = {
-          auth_id: form.auth_id,
+        const userData = {
+          id: response.data.id || form.auth_id,
           name: response.data.name || form.auth_id,
-          email: response.data.email,
-          company_id: response.data.company_id,
-          industry: response.data.industry,
-          age: response.data.age
+          company_id: response.data.company_id || 'COMPANY-001',
+          email: response.data.email || `${form.auth_id}@company.com`
         };
-        localStorage.setItem('user', JSON.stringify(userInfo));
         
-        // 성공 메시지 표시
-        alert('로그인 성공! 홈페이지로 이동합니다.');
-        
-        // 홈페이지로 리다이렉트
-        router.push('/');
+        // AuthContext의 login 함수 사용
+        login(response.data.access_token || 'dummy-token', userData);
       }
     } catch (err: unknown) {
       console.error('login failed', err);

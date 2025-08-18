@@ -25,8 +25,7 @@ CHATBOT_SERVICE_URL=https://chatbot-service-xxx.up.railway.app
 MATERIALITY_SERVICE_URL=https://materiality-service-xxx.up.railway.app
 GRI_SERVICE_URL=https://gri-service-xxx.up.railway.app
 GRIREPORT_SERVICE_URL=https://grireport-service-xxx.up.railway.app
-TCFD_SERVICE_URL=https://tcfd-service-xxx.up.railway.app
-TCFDREPORT_SERVICE_URL=https://tcfdreport-service-xxx.up.railway.app
+
 SURVEY_SERVICE_URL=https://survey-service-xxx.up.railway.app
 ```
 

@@ -15,13 +15,13 @@ CREATE TABLE corporation (
 -- 2. user 테이블 (기존 users에서 변경)
 CREATE TABLE "user" (
     id SERIAL PRIMARY KEY,
-    industry TEXT,
-    company_id INTEGER REFERENCES corporation(id),
-    email TEXT,
-    name TEXT,
-    birth TEXT,
-    auth_id TEXT,
-    auth_pw TEXT
+    industry VARCHAR(255),
+    company_id VARCHAR(50),
+    email VARCHAR(255),
+    name VARCHAR(100),
+    birth VARCHAR(20),
+    auth_id VARCHAR(100),
+    auth_pw VARCHAR(255)
 );
 
 -- 3. media 테이블
@@ -29,7 +29,7 @@ CREATE TABLE media (
     id SERIAL PRIMARY KEY,
     date DATE,
     keyword VARCHAR(255),
-    company_id INTEGER REFERENCES corporation(id),
+    company_id VARCHAR(50),
     industry VARCHAR(100),
     category VARCHAR(100)
 );
@@ -38,29 +38,29 @@ CREATE TABLE media (
 CREATE TABLE company_report (
     id SERIAL PRIMARY KEY,
     award VARCHAR(255),
-    esg_targetguideline TEXT,
-    esg_action TEXT,
-    company_id INTEGER REFERENCES corporation(id)
+    esg_targetguideline VARCHAR(1000),
+    esg_action VARCHAR(1000),
+    company_id VARCHAR(50)
 );
 
 -- 5. issue_pool 테이블
 CREATE TABLE issue_pool (
     id SERIAL PRIMARY KEY,
-    company_id INTEGER REFERENCES corporation(id),
-    year INTEGER,
-    topic1 TEXT,
-    topic2 TEXT,
-    topic3 TEXT,
-    topic4 TEXT,
-    topic5 TEXT,
-    topic6 TEXT,
-    topic7 TEXT,
-    topic8 TEXT,
-    topic9 TEXT,
-    topic10 TEXT,
+    company_id VARCHAR(50),
+    year VARCHAR(10),
+    topic1 VARCHAR(500),
+    topic2 VARCHAR(500),
+    topic3 VARCHAR(500),
+    topic4 VARCHAR(500),
+    topic5 VARCHAR(500),
+    topic6 VARCHAR(500),
+    topic7 VARCHAR(500),
+    topic8 VARCHAR(500),
+    topic9 VARCHAR(500),
+    topic10 VARCHAR(500),
     standard VARCHAR(100),
     industry VARCHAR(100),
-    score NUMERIC(10,2)
+    score VARCHAR(20)
 );
 
 -- 6. profit 테이블
@@ -68,9 +68,9 @@ CREATE TABLE profit (
     id SERIAL PRIMARY KEY,
     companyname VARCHAR(255),
     metric_name VARCHAR(100),
-    fiscal_year_current NUMERIC(15,2),
-    fiscal_year_previous NUMERIC(15,2),
-    fiscal_year_before_last NUMERIC(15,2)
+    fiscal_year_current VARCHAR(50),
+    fiscal_year_previous VARCHAR(50),
+    fiscal_year_before_last VARCHAR(50)
 );
 
 -- 7. executive 테이블
@@ -91,92 +91,77 @@ CREATE TABLE executive (
     tenure_end_on DATE
 );
 
--- 8. tcfd_sr 테이블
-CREATE TABLE tcfd_sr (
-    id SERIAL PRIMARY KEY,
-    companyname VARCHAR(255),
-    year INTEGER
-);
 
--- 9. tcfd 테이블
-CREATE TABLE tcfd (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER REFERENCES corporation(id),
-    date DATE,
-    question TEXT,
-    answer TEXT,
-    tcfd_index NUMERIC(10,2)
-);
 
--- 10. finance 테이블
+-- 8. finance 테이블
 CREATE TABLE finance (
     id SERIAL PRIMARY KEY,
     companyname VARCHAR(255),
-    debt NUMERIC(15,2),
-    debt_ratio NUMERIC(10,2),
-    liability NUMERIC(15,2),
-    netdebt NUMERIC(15,2),
-    netdebt_ratio NUMERIC(10,2),
-    capital_stock NUMERIC(15,2),
-    equity NUMERIC(15,2),
-    asset NUMERIC(15,2),
-    long_term_debt NUMERIC(15,2),
-    total_debt NUMERIC(15,2),
-    cash NUMERIC(15,2),
-    year INTEGER
+    debt VARCHAR(50),
+    debt_ratio VARCHAR(20),
+    liability VARCHAR(50),
+    netdebt VARCHAR(50),
+    netdebt_ratio VARCHAR(20),
+    capital_stock VARCHAR(50),
+    equity VARCHAR(50),
+    asset VARCHAR(50),
+    long_term_debt VARCHAR(50),
+    total_debt VARCHAR(50),
+    cash VARCHAR(50),
+    year VARCHAR(10)
 );
 
--- 11. employee 테이블 (기존 존재)
--- CREATE TABLE employee (
---     id SERIAL PRIMARY KEY,
---     corp_code VARCHAR(50),
---     companyname VARCHAR(255),
---     sexdstn VARCHAR(10),
---     fo_bbm VARCHAR(100),
---     rgllbr_co VARCHAR(100),
---     rgllbr_abacpt_labrr_co VARCHAR(100),
---     cnttk_co VARCHAR(100),
---     cnttk_abacpt_labrr_co VARCHAR(100),
---     sm VARCHAR(100),
---     avrg_cnwk_sdytrn VARCHAR(100),
---     fyer_salary_totamt NUMERIC(15,2),
---     jan_salary_am NUMERIC(15,2)
--- );
+-- 9. employee 테이블 (기존 존재)
+CREATE TABLE employee (
+    id SERIAL PRIMARY KEY,
+    corp_code VARCHAR(50),
+    companyname VARCHAR(255),
+    sexdstn VARCHAR(10),
+    fo_bbm VARCHAR(100),
+    rgllbr_co VARCHAR(100),
+    rgllbr_abacpt_labrr_co VARCHAR(100),
+    cnttk_co VARCHAR(100),
+    cnttk_abacpt_labrr_co VARCHAR(100),
+    sm VARCHAR(100),
+    avrg_cnwk_sdytrn VARCHAR(100),
+    fyer_salary_totamt VARCHAR(50),
+    jan_salary_am VARCHAR(50)
+);
 
--- 12. survey_subject 테이블
+-- 10. survey_subject 테이블
 CREATE TABLE survey_subject (
     id SERIAL PRIMARY KEY,
     position VARCHAR(100),
     name VARCHAR(100),
     email VARCHAR(255),
-    company_id INTEGER REFERENCES corporation(id),
+    company_id VARCHAR(50),
     pw VARCHAR(255)
 );
 
--- 13. survey_result 테이블
+-- 11. survey_result 테이블
 CREATE TABLE survey_result (
     id SERIAL PRIMARY KEY,
-    question TEXT,
-    answer TEXT,
-    weight NUMERIC(5,2),
-    company_id INTEGER REFERENCES corporation(id)
+    question VARCHAR(1000),
+    answer VARCHAR(1000),
+    weight VARCHAR(20),
+    company_id VARCHAR(50)
 );
 
--- 14. gri 테이블
+-- 12. gri 테이블
 CREATE TABLE gri (
     id SERIAL PRIMARY KEY,
-    company_id INTEGER REFERENCES corporation(id),
+    company_id VARCHAR(50),
     date DATE,
-    question TEXT,
-    answer TEXT,
-    gri_index NUMERIC(10,2)
+    question VARCHAR(1000),
+    answer VARCHAR(3000),
+    gri_index VARCHAR(20)
 );
 
--- 15. gri_sr 테이블
+-- 13. gri_sr 테이블
 CREATE TABLE gri_sr (
     id SERIAL PRIMARY KEY,
-    company_id INTEGER REFERENCES corporation(id),
-    year INTEGER
+    company_id VARCHAR(50),
+    year VARCHAR(10)
 );
 
 -- =====================================================
@@ -186,7 +171,6 @@ CREATE TABLE gri_sr (
 -- 외래키 인덱스
 CREATE INDEX idx_media_company_id ON media(company_id);
 CREATE INDEX idx_issue_pool_company_id ON issue_pool(company_id);
-CREATE INDEX idx_tcfd_company_id ON tcfd(company_id);
 CREATE INDEX idx_gri_company_id ON gri(company_id);
 CREATE INDEX idx_survey_subject_company_id ON survey_subject(company_id);
 CREATE INDEX idx_survey_result_company_id ON survey_result(company_id);
@@ -200,7 +184,6 @@ CREATE INDEX idx_gri_sr_company_id ON gri_sr(company_id);
 -- ├── media (company_id 참조)
 -- ├── company_report (company_id 참조)
 -- ├── issue_pool (company_id 참조)
--- ├── tcfd (company_id 참조)
 -- ├── gri (company_id 참조)
 -- ├── survey_subject (company_id 참조)
 -- └── survey_result (company_id 참조)
@@ -208,7 +191,6 @@ CREATE INDEX idx_gri_sr_company_id ON gri_sr(company_id);
 -- corporation.companyname 참조
 -- ├── profit
 -- ├── executive
--- ├── tcfd_sr
 -- ├── finance
 -- └── employee
 -- =====================================================

@@ -12,9 +12,7 @@ class ServiceType(str, Enum):
     chatbot = "chatbot"
     gri = "gri"
     materiality = "materiality"
-    tcfd = "tcfd"
     grireport = "grireport"
-    tcfdreport = "tcfdreport"
     auth = "auth"
 
 
@@ -27,9 +25,9 @@ class ServiceProxyFactory:
             ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.tcfd: os.getenv("TCFD_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.tcfdreport: os.getenv("TCFDREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
         }
         
@@ -50,9 +48,9 @@ class ServiceProxyFactory:
             ServiceType.chatbot: "/v1/chatbot",
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
-            ServiceType.tcfd: "/v1/tcfd",
+
             ServiceType.grireport: "/v1/grireport",
-            ServiceType.tcfdreport: "/v1/tcfdreport",
+
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:
