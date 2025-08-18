@@ -7,7 +7,6 @@ class AnswerCreate(BaseModel):
     question: str = Field(..., max_length=1000, description="GRI 질문")
     answer: str = Field(..., max_length=3000, description="사용자 답변")
     company_id: Optional[str] = Field(None, max_length=50, description="회사 ID")
-    date: Optional[date] = Field(None, description="답변 날짜")
     gri_index: Optional[str] = Field(None, max_length=20, description="GRI 지수/점수")
 
 class AnswerResponse(BaseModel):

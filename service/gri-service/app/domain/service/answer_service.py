@@ -91,11 +91,9 @@ class AnswerService:
             # BaseModel의 데이터를 추출하여 업데이트용 딕셔너리 생성
             update_data = {}
             
-            # None이 아닌 값만 업데이트 대상으로 포함
+            # None이 아닌 값만 업데이트 대상으로 포함 (date는 자동 설정되므로 제외)
             if answer_data.company_id is not None:
                 update_data['company_id'] = answer_data.company_id
-            if answer_data.date is not None:
-                update_data['date'] = answer_data.date
             if answer_data.question is not None:
                 update_data['question'] = answer_data.question
             if answer_data.answer is not None:
