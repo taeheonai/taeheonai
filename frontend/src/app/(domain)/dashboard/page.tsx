@@ -2,17 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface User {
-  id: string;
-  name: string;
-  company_id: string;
-  email: string;
-}
 
 interface MaterialityResult {
   id: string;
