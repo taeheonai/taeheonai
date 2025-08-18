@@ -28,7 +28,48 @@ const nextConfig: NextConfig = {
       { 
         source: '/backend/:path*', 
         destination: 'https://taeheonai-production-2130.up.railway.app/:path*' 
+      }
+    ];
+  },
+  
+  // (domain) 그룹 폴더를 위한 리다이렉트
+  async redirects() {
+    return [
+      {
+        source: '/login',
+        destination: '/auth/login',
+        permanent: false,
       },
+      {
+        source: '/signup',
+        destination: '/auth/signup',
+        permanent: false,
+      },
+      {
+        source: '/dashboard',
+        destination: '/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/chatbot',
+        destination: '/chatbot',
+        permanent: false,
+      },
+      {
+        source: '/esrs',
+        destination: '/esrs',
+        permanent: false,
+      },
+      {
+        source: '/gri',
+        destination: '/gri',
+        permanent: false,
+      },
+      {
+        source: '/materiality',
+        destination: '/materiality',
+        permanent: false,
+      }
     ];
   },
 };
