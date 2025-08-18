@@ -36,7 +36,7 @@ class UserRepository:
             industry=signup_data.industry,
             email=signup_data.email,
             name=signup_data.name,
-            birth=signup_data.birth,
+            birth=signup_data.birth,  # birth 필드 사용
             auth_id=signup_data.auth_id,
             auth_pw=hashed_password,
         )
@@ -121,7 +121,6 @@ class UserRepository:
             "industry": user_entity.industry,
             "email": user_entity.email,
             "name": user_entity.name,
-            "birth": user_entity.birth,
+            "birth": user_entity.birth,  # birth 필드 사용
             "auth_id": user_entity.auth_id,
-
         }
