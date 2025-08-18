@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
   // 로컬에서는 standalone 비활성화, Vercel 배포일 때만 활성화
   ...(isVercel ? { output: 'standalone' as const } : {}),
   
+  // SPA 라우팅을 위한 설정
+  trailingSlash: false,
+  
   // API 프록시 설정 - Railway 게이트웨이로 연결
   async rewrites() {
     return [
@@ -28,9 +31,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
-  // trailingSlash 설정
-  trailingSlash: false,
 };
 
 export default withPWAConfig(nextConfig);
