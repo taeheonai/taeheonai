@@ -15,10 +15,10 @@ class AnswerRepository:
     def _convert_base_model_to_base(self, answer_data: AnswerCreate) -> AnswerEntity:
         """BaseModel을 Base(Entity)로 변환합니다."""
         try:
-            # BaseModel의 데이터를 추출하여 Base(Entity) 생성 (date는 자동으로 현재 날짜)
+            # BaseModel의 데이터를 추출하여 Base(Entity) 생성 (date는 자동으로 현재 날짜 문자열)
             answer_entity = AnswerEntity(
                 company_id=answer_data.company_id,
-                date=date.today(),  # 자동으로 현재 날짜 설정
+                date=date.today().strftime("%Y-%m-%d"),  # 자동으로 현재 날짜 문자열 설정
                 question=answer_data.question,
                 answer=answer_data.answer,
                 gri_index=answer_data.gri_index

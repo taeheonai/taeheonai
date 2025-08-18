@@ -1,9 +1,27 @@
 -- =====================================================
--- Railway PostgreSQL Database Schema
--- 생성일: 2025-08-14
+-- Railway PostgreSQL Database Schema (UTF-8 Clean)
 -- =====================================================
 
--- 1. corporation 테이블 (중앙 테이블)
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS gri_sr CASCADE;
+DROP TABLE IF EXISTS gri CASCADE;
+DROP TABLE IF EXISTS survey_result CASCADE;
+DROP TABLE IF EXISTS survey_subject CASCADE;
+DROP TABLE IF EXISTS employee CASCADE;
+DROP TABLE IF EXISTS finance CASCADE;
+DROP TABLE IF EXISTS executive CASCADE;
+DROP TABLE IF EXISTS profit CASCADE;
+DROP TABLE IF EXISTS issue_pool CASCADE;
+DROP TABLE IF EXISTS company_report CASCADE;
+DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS "user" CASCADE;
+DROP TABLE IF EXISTS corporation CASCADE;
+
+-- =====================================================
+-- Create tables with VARCHAR date types
+-- =====================================================
+
+-- 1. corporation table (central table)
 CREATE TABLE corporation (
     id SERIAL PRIMARY KEY,
     stock_code VARCHAR(50),
@@ -12,7 +30,7 @@ CREATE TABLE corporation (
     dart_code VARCHAR(50)
 );
 
--- 2. user 테이블 (기존 users에서 변경)
+-- 2. user table
 CREATE TABLE "user" (
     id SERIAL PRIMARY KEY,
     industry VARCHAR(255),
@@ -24,17 +42,17 @@ CREATE TABLE "user" (
     auth_pw VARCHAR(255)
 );
 
--- 3. media 테이블
+-- 3. media table (VARCHAR date)
 CREATE TABLE media (
     id SERIAL PRIMARY KEY,
-    date VARCHAR(10),  -- YYYY-MM-DD 형식
+    date VARCHAR(10),  -- YYYY-MM-DD format
     keyword VARCHAR(255),
     company_id VARCHAR(50),
     industry VARCHAR(100),
     category VARCHAR(100)
 );
 
--- 4. company_report 테이블
+-- 4. company_report table
 CREATE TABLE company_report (
     id SERIAL PRIMARY KEY,
     award VARCHAR(255),
@@ -43,7 +61,7 @@ CREATE TABLE company_report (
     company_id VARCHAR(50)
 );
 
--- 5. issue_pool 테이블
+-- 5. issue_pool table
 CREATE TABLE issue_pool (
     id SERIAL PRIMARY KEY,
     company_id VARCHAR(50),
@@ -63,7 +81,7 @@ CREATE TABLE issue_pool (
     score VARCHAR(20)
 );
 
--- 6. profit 테이블
+-- 6. profit table
 CREATE TABLE profit (
     id SERIAL PRIMARY KEY,
     companyname VARCHAR(255),
@@ -73,7 +91,7 @@ CREATE TABLE profit (
     fiscal_year_before_last VARCHAR(50)
 );
 
--- 7. executive 테이블
+-- 7. executive table (VARCHAR date)
 CREATE TABLE executive (
     id SERIAL PRIMARY KEY,
     corp_code VARCHAR(50),
@@ -88,12 +106,10 @@ CREATE TABLE executive (
     main_career TEXT,
     mxmm_shrholdr_relate VARCHAR(100),
     hffc_pd VARCHAR(100),
-    tenure_end_on VARCHAR(10)  -- YYYY-MM-DD 형식
+    tenure_end_on VARCHAR(10)  -- YYYY-MM-DD format
 );
 
-
-
--- 8. finance 테이블
+-- 8. finance table
 CREATE TABLE finance (
     id SERIAL PRIMARY KEY,
     companyname VARCHAR(255),
@@ -111,7 +127,7 @@ CREATE TABLE finance (
     year VARCHAR(10)
 );
 
--- 9. employee 테이블 (기존 존재)
+-- 9. employee table
 CREATE TABLE employee (
     id SERIAL PRIMARY KEY,
     corp_code VARCHAR(50),
@@ -128,7 +144,7 @@ CREATE TABLE employee (
     jan_salary_am VARCHAR(50)
 );
 
--- 10. survey_subject 테이블
+-- 10. survey_subject table
 CREATE TABLE survey_subject (
     id SERIAL PRIMARY KEY,
     position VARCHAR(100),
@@ -138,7 +154,7 @@ CREATE TABLE survey_subject (
     pw VARCHAR(255)
 );
 
--- 11. survey_result 테이블
+-- 11. survey_result table
 CREATE TABLE survey_result (
     id SERIAL PRIMARY KEY,
     question VARCHAR(1000),
@@ -147,17 +163,17 @@ CREATE TABLE survey_result (
     company_id VARCHAR(50)
 );
 
--- 12. gri 테이블
+-- 12. gri table (VARCHAR date)
 CREATE TABLE gri (
     id SERIAL PRIMARY KEY,
     company_id VARCHAR(50),
-    date VARCHAR(10),  -- YYYY-MM-DD 형식
+    date VARCHAR(10),  -- YYYY-MM-DD format
     question VARCHAR(1000),
     answer VARCHAR(3000),
     gri_index VARCHAR(20)
 );
 
--- 13. gri_sr 테이블
+-- 13. gri_sr table
 CREATE TABLE gri_sr (
     id SERIAL PRIMARY KEY,
     company_id VARCHAR(50),
@@ -165,10 +181,10 @@ CREATE TABLE gri_sr (
 );
 
 -- =====================================================
--- 인덱스 생성 (성능 향상)
+-- Create indexes for performance
 -- =====================================================
 
--- 외래키 인덱스
+-- Foreign key indexes
 CREATE INDEX idx_media_company_id ON media(company_id);
 CREATE INDEX idx_issue_pool_company_id ON issue_pool(company_id);
 CREATE INDEX idx_gri_company_id ON gri(company_id);
@@ -177,20 +193,21 @@ CREATE INDEX idx_survey_result_company_id ON survey_result(company_id);
 CREATE INDEX idx_gri_sr_company_id ON gri_sr(company_id);
 
 -- =====================================================
--- 테이블 관계도
+-- Verify table creation
 -- =====================================================
--- corporation (중앙 테이블)
--- ├── user (company_id 참조)
--- ├── media (company_id 참조)
--- ├── company_report (company_id 참조)
--- ├── issue_pool (company_id 참조)
--- ├── gri (company_id 참조)
--- ├── survey_subject (company_id 참조)
--- └── survey_result (company_id 참조)
---
--- corporation.companyname 참조
--- ├── profit
--- ├── executive
--- ├── finance
--- └── employee
--- =====================================================
+
+-- Check created table list
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+
+-- Check date column data types
+SELECT 
+    table_name,
+    column_name,
+    data_type
+FROM information_schema.columns 
+WHERE table_name IN ('media', 'executive', 'gri')
+    AND column_name IN ('date', 'tenure_end_on')
+ORDER BY table_name, column_name;
