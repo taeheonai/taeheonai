@@ -31,47 +31,6 @@ const nextConfig: NextConfig = {
       }
     ];
   },
-  
-  // (domain) 그룹 폴더를 위한 리다이렉트
-  async redirects() {
-    return [
-      {
-        source: '/login',
-        destination: '/auth/login',
-        permanent: false,
-      },
-      {
-        source: '/signup',
-        destination: '/auth/signup',
-        permanent: false,
-      },
-      {
-        source: '/dashboard',
-        destination: '/dashboard',
-        permanent: false,
-      },
-      {
-        source: '/chatbot',
-        destination: '/chatbot',
-        permanent: false,
-      },
-      {
-        source: '/esrs',
-        destination: '/esrs',
-        permanent: false,
-      },
-      {
-        source: '/gri',
-        destination: '/gri',
-        permanent: false,
-      },
-      {
-        source: '/materiality',
-        destination: '/materiality',
-        permanent: false,
-      }
-    ];
-  },
 };
 
 export default withPWAConfig(nextConfig);

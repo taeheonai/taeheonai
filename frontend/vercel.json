@@ -1,41 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/login",
-      "destination": "/auth/login",
-      "permanent": false
-    },
-    {
-      "source": "/signup", 
-      "destination": "/auth/signup",
-      "permanent": false
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/dashboard",
-      "permanent": false
-    },
-    {
-      "source": "/chatbot",
-      "destination": "/chatbot",
-      "permanent": false
-    },
-    {
-      "source": "/esrs",
-      "destination": "/esrs",
-      "permanent": false
-    },
-    {
-      "source": "/gri",
-      "destination": "/gri",
-      "permanent": false
-    },
-    {
-      "source": "/materiality",
-      "destination": "/materiality",
-      "permanent": false
-    }
-  ],
   "headers": [
     {
       "source": "/manifest.json",
