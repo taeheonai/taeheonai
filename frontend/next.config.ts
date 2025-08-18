@@ -28,6 +28,35 @@ const nextConfig: NextConfig = {
       { 
         source: '/backend/:path*', 
         destination: 'https://taeheonai-production-2130.up.railway.app/:path*' 
+      },
+      // (domain) 그룹 폴더를 위한 rewrites
+      {
+        source: '/login',
+        destination: '/auth/login'
+      },
+      {
+        source: '/signup',
+        destination: '/auth/signup'
+      },
+      {
+        source: '/dashboard',
+        destination: '/dashboard'
+      },
+      {
+        source: '/chatbot',
+        destination: '/chatbot'
+      },
+      {
+        source: '/esrs',
+        destination: '/esrs'
+      },
+      {
+        source: '/gri',
+        destination: '/gri'
+      },
+      {
+        source: '/materiality',
+        destination: '/materiality'
       }
     ];
   },
