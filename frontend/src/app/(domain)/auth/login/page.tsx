@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { postLoginPayload } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,7 +14,6 @@ export default function LoginPage() {
   const [form, setForm] = useState<LoginFormState>({ auth_id: '', auth_pw: '' });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { login } = useAuth();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
