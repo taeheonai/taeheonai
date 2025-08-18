@@ -157,251 +157,252 @@ export default function GRIIntakePage() {
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
         <div className="p-4">
-        <div className="max-w-7xl mx-auto">
-          {/* 헤더 */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">GRI 보고서 작성</h1>
-            <p className="text-gray-600 mt-2">Global Reporting Initiative 표준에 따른 지속가능성 보고서 작성</p>
-          </div>
-
-        {/* 메시지 표시 */}
-        {message && (
-          <div className={`mb-4 p-4 rounded-lg ${
-            message.includes('성공') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
-            {message}
-          </div>
-        )}
-
-        <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-          {/* 카테고리 선택 패널 */}
-          <div className={`col-span-3 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
-            <div className="bg-white rounded-lg shadow-md h-full">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
-                  <button
-                    onClick={() => setShowCategoryList(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
-                {griCategories.map((category) => (
-                  <div
-                    key={category.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedCategory === category.id
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">{category.id}</div>
-                        <div className="text-sm text-gray-600">{category.name}</div>
-                      </div>
-                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
-                        {category.year}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 공시 항목 패널 */}
-          <div className={`col-span-3 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
-            <div className="bg-white rounded-lg shadow-md h-full">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">GRI {selectedCategory} 공시 항목</h2>
-                  <button
-                    onClick={() => setShowDisclosureList(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
-                {disclosureItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedDisclosure === item.id
-                        ? 'bg-green-50 border border-green-200'
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => setSelectedDisclosure(item.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">{item.id}</div>
-                        <div className="text-sm text-gray-600">{item.name}</div>
-                      </div>
-                      <span className="px-2 py-1 text-xs border border-gray-300 text-gray-600 rounded">
-                        {item.tag}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 메인 콘텐츠 영역 */}
-          <div className="col-span-6 space-y-4">
-            {/* 요구사항 헤더 */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">?</span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-purple-900">Requirements</h2>
-                    <p className="text-purple-700">요구사항 질문 목록</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowRequirements(false)}
-                  className="text-purple-400 hover:text-purple-600"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-purple-700">총 {totalQuestions}개 세부 질문</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-purple-700">
-                    답변 완료: {answeredQuestions}개 ({completionRate.toFixed(0)}%)
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${completionRate}%` }}
-                  ></div>
-                </div>
-              </div>
+          <div className="max-w-7xl mx-auto">
+            {/* 헤더 */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">GRI 보고서 작성</h1>
+              <p className="text-gray-600 mt-2">Global Reporting Initiative 표준에 따른 지속가능성 보고서 작성</p>
             </div>
 
-            {/* 답변 입력 폼 */}
-            {currentRequirement && (
-              <div className="bg-white rounded-lg shadow-md">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                    <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs">?</span>
-                    </div>
-                    <span>{currentRequirement.id} 요구사항</span>
-                  </h3>
-                </div>
-                <div className="p-6 space-y-6">
-                  {currentRequirement.questions.map((question, index) => (
-                    <div key={question.id} className="space-y-3">
-                      <div className="flex items-start space-x-2">
-                        <span className="text-sm font-medium text-gray-700 mt-1">
-                          {String.fromCharCode(97 + index)}.
-                        </span>
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {question.question}
-                            {question.required && (
-                              <span className="text-red-500 ml-1">*</span>
-                            )}
-                          </label>
-                          <textarea
-                            placeholder="답변을 입력해주세요..."
-                            value={answers[question.id] || ''}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateAnswer(question.id, e.target.value)}
-                            className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                          {answers[question.id] && answers[question.id].trim() !== '' && (
-                            <div className="flex items-center space-x-1 mt-2 text-green-600">
-                              <span className="text-sm">✓</span>
-                              <span className="text-sm">답변 완료</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* 저장 버튼 */}
-                  <div className="flex justify-end pt-4 border-t">
-                    <button
-                      onClick={saveAnswers}
-                      disabled={isLoading || answeredQuestions === 0}
-                      className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                        isLoading || answeredQuestions === 0
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-purple-600 text-white hover:bg-purple-700'
-                      }`}
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>저장 중...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <span>💾</span>
-                          <span>답변 저장하기 (AI 윤문 포함)</span>
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                </div>
+            {/* 메시지 표시 */}
+            {message && (
+              <div className={`mb-4 p-4 rounded-lg ${
+                message.includes('성공') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {message}
               </div>
             )}
+
+            <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
+              {/* 카테고리 선택 패널 */}
+              <div className={`col-span-3 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
+                <div className="bg-white rounded-lg shadow-md h-full">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
+                      <button
+                        onClick={() => setShowCategoryList(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                    {griCategories.map((category) => (
+                      <div
+                        key={category.id}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          selectedCategory === category.id
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => setSelectedCategory(category.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">{category.id}</div>
+                            <div className="text-sm text-gray-600">{category.name}</div>
+                          </div>
+                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                            {category.year}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 공시 항목 패널 */}
+              <div className={`col-span-3 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
+                <div className="bg-white rounded-lg shadow-md h-full">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-gray-900">GRI {selectedCategory} 공시 항목</h2>
+                      <button
+                        onClick={() => setShowDisclosureList(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                    {disclosureItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          selectedDisclosure === item.id
+                            ? 'bg-green-50 border border-green-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => setSelectedDisclosure(item.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">{item.id}</div>
+                            <div className="text-sm text-gray-600">{item.name}</div>
+                          </div>
+                          <span className="px-2 py-1 text-xs border border-gray-300 text-gray-600 rounded">
+                            {item.tag}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 메인 콘텐츠 영역 */}
+              <div className="col-span-6 space-y-4">
+                {/* 요구사항 헤더 */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm">?</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-purple-900">Requirements</h2>
+                        <p className="text-purple-700">요구사항 질문 목록</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowRequirements(false)}
+                      className="text-purple-400 hover:text-purple-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-purple-700">총 {totalQuestions}개 세부 질문</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-purple-700">
+                        답변 완료: {answeredQuestions}개 ({completionRate.toFixed(0)}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${completionRate}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 답변 입력 폼 */}
+                {currentRequirement && (
+                  <div className="bg-white rounded-lg shadow-md">
+                    <div className="p-4 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                        <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">?</span>
+                        </div>
+                        <span>{currentRequirement.id} 요구사항</span>
+                      </h3>
+                    </div>
+                    <div className="p-6 space-y-6">
+                      {currentRequirement.questions.map((question, index) => (
+                        <div key={question.id} className="space-y-3">
+                          <div className="flex items-start space-x-2">
+                            <span className="text-sm font-medium text-gray-700 mt-1">
+                              {String.fromCharCode(97 + index)}.
+                            </span>
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {question.question}
+                                {question.required && (
+                                  <span className="text-red-500 ml-1">*</span>
+                                )}
+                              </label>
+                              <textarea
+                                placeholder="답변을 입력해주세요..."
+                                value={answers[question.id] || ''}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateAnswer(question.id, e.target.value)}
+                                className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              {answers[question.id] && answers[question.id].trim() !== '' && (
+                                <div className="flex items-center space-x-1 mt-2 text-green-600">
+                                  <span className="text-sm">✓</span>
+                                  <span className="text-sm">답변 완료</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* 저장 버튼 */}
+                      <div className="flex justify-end pt-4 border-t">
+                        <button
+                          onClick={saveAnswers}
+                          disabled={isLoading || answeredQuestions === 0}
+                          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                            isLoading || answeredQuestions === 0
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                          }`}
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>저장 중...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <span>💾</span>
+                              <span>답변 저장하기 (AI 윤문 포함)</span>
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 패널 토글 버튼들 */}
+            <div className="fixed bottom-4 left-4 space-y-2">
+              {!showCategoryList && (
+                <button
+                  onClick={() => setShowCategoryList(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>카테고리 목록 열기</span>
+                  </span>
+                </button>
+              )}
+              {!showDisclosureList && (
+                <button
+                  onClick={() => setShowDisclosureList(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>공시 목록 열기</span>
+                  </span>
+                </button>
+              )}
+              {!showRequirements && (
+                <button
+                  onClick={() => setShowRequirements(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>요구사항 목록 열기</span>
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* 패널 토글 버튼들 */}
-        <div className="fixed bottom-4 left-4 space-y-2">
-          {!showCategoryList && (
-            <button
-              onClick={() => setShowCategoryList(true)}
-              className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <span className="flex items-center space-x-2">
-                <span>→</span>
-                <span>카테고리 목록 열기</span>
-              </span>
-            </button>
-          )}
-          {!showDisclosureList && (
-            <button
-              onClick={() => setShowDisclosureList(true)}
-              className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <span className="flex items-center space-x-2">
-                <span>→</span>
-                <span>공시 목록 열기</span>
-              </span>
-            </button>
-          )}
-          {!showRequirements && (
-            <button
-              onClick={() => setShowRequirements(true)}
-              className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <span className="flex items-center space-x-2">
-                <span>→</span>
-                <span>요구사항 목록 열기</span>
-              </span>
-            </button>
-          )}
-        </div>
-      </div>
       </div>
     </ProtectedRoute>
   );
