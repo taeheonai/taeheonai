@@ -36,7 +36,7 @@ class UserRepository:
             industry=signup_data.industry,
             email=signup_data.email,
             name=signup_data.name,
-            age=signup_data.age,
+            birth=signup_data.birth,
             auth_id=signup_data.auth_id,
             auth_pw=hashed_password,
         )
@@ -121,8 +121,7 @@ class UserRepository:
             "industry": user_entity.industry,
             "email": user_entity.email,
             "name": user_entity.name,
-            "age": user_entity.age,
+            "birth": user_entity.birth,
             "auth_id": user_entity.auth_id,
-            "created_at": user_entity.created_at.isoformat() if user_entity.created_at else None,
-            "updated_at": user_entity.updated_at.isoformat() if user_entity.updated_at else None,
+
         }

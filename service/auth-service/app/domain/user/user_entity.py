@@ -1,19 +1,16 @@
-from datetime import datetime
 from sqlalchemy import (
-    Column, String, DateTime, BigInteger, func, text
+    Column, String, Integer
 )
 from app.common.database import Base
 
 class UserEntity(Base):
-    __tablename__ = "users"  # 테이블명을 "users"로 수정 (복수형)
+    __tablename__ = "user"  # 테이블명을 "user"로 수정 (단수형)
 
-    id = Column(BigInteger, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     company_id = Column(String, nullable=True)
     industry = Column(String, nullable=True)
     email = Column(String, nullable=True)
     name = Column(String, nullable=True)
-    age = Column(String, nullable=True)
+    birth = Column(String, nullable=True)
     auth_id = Column(String, unique=True, index=True, nullable=False)
     auth_pw = Column(String, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
