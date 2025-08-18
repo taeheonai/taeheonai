@@ -16,9 +16,8 @@ const eslintConfig = [
       // any 타입 완전 차단 (기본 규칙만)
       "@typescript-eslint/no-explicit-any": "error",
       
-      // 추가 타입 안전성 규칙 (타입 정보 불필요)
+      // 추가 타입 안전성 규칙
       "@typescript-eslint/no-unused-vars": "error",
-      "@typescript-eslint/no-explicit-returns": "error",
     },
   },
 ];
