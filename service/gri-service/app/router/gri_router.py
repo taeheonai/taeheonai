@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
 import json
@@ -30,6 +30,261 @@ def validate_and_convert_json(request_data: Dict[str, Any], model_class) -> Any:
             status_code=400, 
             detail=f"Invalid data format: {str(e)}"
         )
+
+# ===== GRI 데이터 조회 엔드포인트들 =====
+
+@gri_router.get("/categories", summary="GRI 카테고리 목록 조회")
+async def get_categories():
+    """모든 GRI 카테고리 조회"""
+    try:
+        logger.info("📝 GRI 카테고리 목록 조회 요청")
+        
+        from app.common.database import get_db
+        db = await get_db().__anext__()
+        
+        # 카테고리 조회 쿼리
+        query = """
+            SELECT id, code, title, display_order
+            FROM gri_category
+            ORDER BY display_order, id
+        """
+        
+        result = await db.fetch_all(query)
+        categories = [dict(row) for row in result]
+        
+        logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "categories": categories,
+                "count": len(categories),
+                "source": "gri-service"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ GRI 카테고리 조회 실패: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"카테고리 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@gri_router.get("/categories/{category_id}/items", summary="카테고리별 GRI Index 목록 조회")
+async def get_category_items(category_id: int):
+    """특정 카테고리의 GRI Index 목록 조회"""
+    try:
+        logger.info(f"📝 GRI Index 목록 조회 요청: category_id={category_id}")
+        
+        from app.common.database import get_db
+        db = await get_db().__anext__()
+        
+        # 아이템 조회 쿼리
+        query = """
+            SELECT id, index_no, title, display_order
+            FROM gri_item
+            WHERE category_id = $1
+            ORDER BY display_order, index_no
+        """
+        
+        result = await db.fetch_all(query, category_id)
+        items = [dict(row) for row in result]
+        
+        logger.info(f"✅ GRI Index 조회 성공: {len(items)}개")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "category_id": category_id,
+                "items": items,
+                "count": len(items),
+                "source": "gri-service"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ GRI Index 조회 실패: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"아이템 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@gri_router.get("/items/{item_id}/questions", summary="GRI Index별 질문 목록 조회")
+async def get_item_questions(item_id: int):
+    """특정 GRI Index의 질문 목록 조회"""
+    try:
+        logger.info(f"📝 GRI 질문 목록 조회 요청: item_id={item_id}")
+        
+        from app.common.database import get_db
+        db = await get_db().__anext__()
+        
+        # 질문 조회 쿼리
+        query = """
+            SELECT id, key_alpha, question_text, reference_text, question_type, display_order, required
+            FROM gri_question
+            WHERE item_id = $1
+            ORDER BY display_order, key_alpha
+        """
+        
+        result = await db.fetch_all(query, item_id)
+        questions = [dict(row) for row in result]
+        
+        logger.info(f"✅ GRI 질문 조회 성공: {len(questions)}개")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "item_id": item_id,
+                "questions": questions,
+                "count": len(questions),
+                "source": "gri-service"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ GRI 질문 조회 실패: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"질문 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@gri_router.get("/complete/{category_id}", summary="카테고리별 완전한 GRI 데이터 조회")
+async def get_complete_gri_data(category_id: int):
+    """카테고리별 완전한 GRI 데이터 조회 (카테고리 + 아이템 + 질문)"""
+    try:
+        logger.info(f"📝 완전한 GRI 데이터 조회 요청: category_id={category_id}")
+        
+        from app.common.database import get_db
+        db = await get_db().__anext__()
+        
+        # 카테고리 정보 조회
+        category_query = """
+            SELECT id, code, title
+            FROM gri_category
+            WHERE id = $1
+        """
+        
+        category_result = await db.fetch_one(category_query, category_id)
+        if not category_result:
+            raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다")
+        
+        category = dict(category_result)
+        
+        # 아이템 및 질문 정보 조회
+        items_query = """
+            SELECT 
+                i.id as item_id,
+                i.index_no,
+                i.title as item_title,
+                q.id as question_id,
+                q.key_alpha,
+                q.question_text,
+                q.reference_text,
+                q.question_type,
+                q.required
+            FROM gri_item i
+            LEFT JOIN gri_question q ON i.id = q.item_id
+            WHERE i.category_id = $1
+            ORDER BY i.display_order, i.index_no, q.display_order, q.key_alpha
+        """
+        
+        items_result = await db.fetch_all(items_query, category_id)
+        
+        # 데이터 구조화
+        items = []
+        current_item = None
+        
+        for row in items_result:
+            row_dict = dict(row)
+            
+            if current_item is None or current_item["id"] != row_dict["item_id"]:
+                # 새 아이템 시작
+                current_item = {
+                    "id": row_dict["item_id"],
+                    "index_no": row_dict["index_no"],
+                    "title": row_dict["item_title"],
+                    "questions": []
+                }
+                items.append(current_item)
+            
+            # 질문 추가
+            if row_dict["question_id"]:
+                question = {
+                    "id": row_dict["question_id"],
+                    "key_alpha": row_dict["key_alpha"],
+                    "question_text": row_dict["question_text"],
+                    "reference_text": row_dict["reference_text"],
+                    "question_type": row_dict["question_type"],
+                    "required": row_dict["required"]
+                }
+                current_item["questions"].append(question)
+        
+        logger.info(f"✅ 완전한 GRI 데이터 조회 성공: {len(items)}개 아이템")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "category": category,
+                "items": items,
+                "item_count": len(items),
+                "source": "gri-service"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 완전한 GRI 데이터 조회 실패: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"데이터 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@gri_router.get("/progress/{session_key}", summary="세션별 답변 진행률 조회")
+async def get_progress(session_key: str):
+    """특정 세션의 답변 진행률 조회"""
+    try:
+        logger.info(f"📝 진행률 조회 요청: session_key={session_key}")
+        
+        from app.common.database import get_db
+        db = await get_db().__anext__()
+        
+        # 전체 질문 수
+        total_query = "SELECT COUNT(*) FROM gri_question"
+        total_result = await db.fetch_one(total_query)
+        total_questions = total_result[0] if total_result else 0
+        
+        # 답변 완료된 질문 수
+        completed_query = """
+            SELECT COUNT(*) FROM gri_answer
+            WHERE session_key = $1 AND is_completed = TRUE
+        """
+        completed_result = await db.fetch_one(completed_query, session_key)
+        completed_answers = completed_result[0] if completed_result else 0
+        
+        progress_percentage = (completed_answers / total_questions * 100) if total_questions > 0 else 0
+        
+        logger.info(f"✅ 진행률 조회 성공: {completed_answers}/{total_questions} ({progress_percentage:.1f}%)")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "session_key": session_key,
+                "total_questions": total_questions,
+                "completed_answers": completed_answers,
+                "progress_percentage": round(progress_percentage, 2),
+                "source": "gri-service"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ 진행률 조회 실패: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"진행률 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+# ===== 기존 GRI 답변 관리 엔드포인트들 =====
 
 # GRI 답변 관리 엔드포인트들
 @gri_router.post("/answers", summary="GRI 답변 생성")
