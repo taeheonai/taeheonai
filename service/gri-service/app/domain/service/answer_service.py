@@ -11,22 +11,39 @@ logger = logging.getLogger(__name__)
 class AnswerService:
     """GRI 답변 비즈니스 로직 계층"""
     
-    def __init__(self, answer_repository: AnswerRepository):
-        self.answer_repository = answer_repository
+    def __init__(self, db_session):
+        self.db_session = db_session
     
     async def create_answer(self, answer_data: AnswerCreate) -> AnswerResponse:
         """새로운 GRI 답변을 생성합니다."""
         try:
-            logger.info(f"Creating GRI answer for company: {answer_data.company_id}")
+            logger.info(f"Creating GRI answer for question: {answer_data.question_id}")
             
-            # BaseModel을 Base(Entity)로 변환
-            answer_entity = self.answer_repository._convert_base_model_to_base(answer_data)
+            # 새로운 답변 엔티티 생성
+            answer_entity = AnswerEntity(
+                question_id=answer_data.question_id,
+                session_key=answer_data.session_key,
+                answer_text=answer_data.answer_text,
+                answer_json=answer_data.answer_json,
+                is_completed=True
+            )
             
-            # 답변 생성
-            created_entity = await self.answer_repository.save_entity(answer_entity)
+            # 데이터베이스에 저장
+            self.db_session.add(answer_entity)
+            await self.db_session.commit()
+            await self.db_session.refresh(answer_entity)
             
-            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
-            return AnswerResponse.model_validate(created_entity)
+            # 응답 스키마로 변환
+            return AnswerResponse(
+                id=answer_entity.id,
+                question_id=answer_entity.question_id,
+                session_key=answer_entity.session_key,
+                answer_text=answer_entity.answer_text,
+                answer_json=answer_entity.answer_json,
+                is_completed=answer_entity.is_completed,
+                created_at=answer_entity.created_at.isoformat(),
+                updated_at=answer_entity.updated_at.isoformat()
+            )
             
         except Exception as e:
             logger.error(f"Failed to create GRI answer: {e}")
@@ -37,34 +54,60 @@ class AnswerService:
         try:
             logger.info(f"Fetching GRI answer by ID: {answer_id}")
             
-            answer_entity = await self.answer_repository.find_by_id(answer_id)
+            result = await self.db_session.execute(
+                "SELECT * FROM gri_answer WHERE id = $1",
+                answer_id
+            )
+            answer_data = result.fetchone()
             
-            if not answer_entity:
+            if not answer_data:
                 logger.warning(f"GRI answer not found with ID: {answer_id}")
                 return None
             
-            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
-            return AnswerResponse.model_validate(answer_entity)
+            # 응답 스키마로 변환
+            return AnswerResponse(
+                id=answer_data.id,
+                question_id=answer_data.question_id,
+                session_key=answer_data.session_key,
+                answer_text=answer_data.answer_text,
+                answer_json=answer_data.answer_json,
+                is_completed=answer_data.is_completed,
+                created_at=answer_data.created_at.isoformat(),
+                updated_at=answer_data.updated_at.isoformat()
+            )
             
         except Exception as e:
             logger.error(f"Failed to fetch GRI answer by ID {answer_id}: {e}")
             raise e
     
-    async def get_answers_by_company(self, company_id: str, page: int = 1, size: int = 10) -> list[AnswerResponse]:
-        """회사별 GRI 답변 목록을 조회합니다."""
+    async def get_answers_by_session(self, session_key: str, page: int = 1, size: int = 10) -> list[AnswerResponse]:
+        """세션별 GRI 답변 목록을 조회합니다."""
         try:
-            logger.info(f"Fetching GRI answers for company: {company_id}, page: {page}, size: {size}")
+            logger.info(f"Fetching GRI answers for session: {session_key}, page: {page}, size: {size}")
             
             skip = (page - 1) * size
             
             # 답변 목록 조회
-            answers = await self.answer_repository.find_by_company_id(company_id, skip, size)
+            result = await self.db_session.execute(
+                "SELECT * FROM gri_answer WHERE session_key = $1 ORDER BY created_at LIMIT $2 OFFSET $3",
+                session_key, size, skip
+            )
+            answers = result.fetchall()
             
-            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
-            return [AnswerResponse.model_validate(answer) for answer in answers]
+            # 응답 스키마로 변환
+            return [AnswerResponse(
+                id=answer.id,
+                question_id=answer.question_id,
+                session_key=answer.session_key,
+                answer_text=answer.answer_text,
+                answer_json=answer.answer_json,
+                is_completed=answer.is_completed,
+                created_at=answer.created_at.isoformat(),
+                updated_at=answer.updated_at.isoformat()
+            ) for answer in answers]
             
         except Exception as e:
-            logger.error(f"Failed to fetch GRI answers for company {company_id}: {e}")
+            logger.error(f"Failed to fetch GRI answers for session {session_key}: {e}")
             raise e
     
     async def get_all_answers(self, page: int = 1, size: int = 10) -> list[AnswerResponse]:
@@ -75,10 +118,23 @@ class AnswerService:
             skip = (page - 1) * size
             
             # 답변 목록 조회
-            answers = await self.answer_repository.find_all(skip, size)
+            result = await self.db_session.execute(
+                "SELECT * FROM gri_answer ORDER BY created_at LIMIT $1 OFFSET $2",
+                size, skip
+            )
+            answers = result.fetchall()
             
-            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
-            return [AnswerResponse.model_validate(answer) for answer in answers]
+            # 응답 스키마로 변환
+            return [AnswerResponse(
+                id=answer.id,
+                question_id=answer.question_id,
+                session_key=answer.session_key,
+                answer_text=answer.answer_text,
+                answer_json=answer.answer_json,
+                is_completed=answer.is_completed,
+                created_at=answer.created_at.isoformat(),
+                updated_at=answer.updated_at.isoformat()
+            ) for answer in answers]
             
         except Exception as e:
             logger.error(f"Failed to fetch all GRI answers: {e}")
@@ -89,28 +145,30 @@ class AnswerService:
         try:
             logger.info(f"Updating GRI answer with ID: {answer_id}")
             
-            # BaseModel의 데이터를 추출하여 업데이트용 딕셔너리 생성
-            update_data = {}
+            # 기존 답변 조회
+            result = await self.db_session.execute(
+                "SELECT * FROM gri_answer WHERE id = $1",
+                answer_id
+            )
+            existing_answer = result.fetchone()
             
-            # None이 아닌 값만 업데이트 대상으로 포함 (date는 자동 설정되므로 제외)
-            if answer_data.company_id is not None:
-                update_data['company_id'] = answer_data.company_id
-            if answer_data.question is not None:
-                update_data['question'] = answer_data.question
-            if answer_data.answer is not None:
-                update_data['answer'] = answer_data.answer
-            if answer_data.gri_index is not None:
-                update_data['gri_index'] = answer_data.gri_index
-            
-            # 답변 수정
-            updated_entity = await self.answer_repository.update_entity(answer_id, update_data)
-            
-            if not updated_entity:
+            if not existing_answer:
                 logger.warning(f"GRI answer not found with ID: {answer_id}")
                 return None
             
-            # 응답 스키마로 변환 (이미 문자열이므로 직접 매핑)
-            return AnswerResponse.model_validate(updated_entity)
+            # 답변 업데이트
+            await self.db_session.execute(
+                """
+                UPDATE gri_answer 
+                SET answer_text = $1, answer_json = $2, is_completed = TRUE, updated_at = NOW()
+                WHERE id = $3
+                """,
+                answer_data.answer_text, answer_data.answer_json, answer_id
+            )
+            await self.db_session.commit()
+            
+            # 업데이트된 답변 조회
+            return await self.get_answer_by_id(answer_id)
             
         except Exception as e:
             logger.error(f"Failed to update GRI answer {answer_id}: {e}")
@@ -121,14 +179,13 @@ class AnswerService:
         try:
             logger.info(f"Deleting GRI answer with ID: {answer_id}")
             
-            success = await self.answer_repository.delete_entity(answer_id)
+            result = await self.db_session.execute(
+                "DELETE FROM gri_answer WHERE id = $1",
+                answer_id
+            )
+            await self.db_session.commit()
             
-            if success:
-                logger.info(f"Successfully deleted GRI answer with ID: {answer_id}")
-            else:
-                logger.warning(f"GRI answer not found with ID: {answer_id}")
-            
-            return success
+            return result.rowcount > 0
             
         except Exception as e:
             logger.error(f"Failed to delete GRI answer {answer_id}: {e}")

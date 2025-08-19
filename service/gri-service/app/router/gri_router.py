@@ -39,7 +39,7 @@ async def get_categories():
     try:
         logger.info("📝 GRI 카테고리 목록 조회 요청")
         
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         db = await get_db().__anext__()
         
         # 카테고리 조회 쿼리
@@ -76,7 +76,7 @@ async def get_category_items(category_id: int):
     try:
         logger.info(f"📝 GRI Index 목록 조회 요청: category_id={category_id}")
         
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         db = await get_db().__anext__()
         
         # 아이템 조회 쿼리
@@ -115,7 +115,7 @@ async def get_item_questions(item_id: int):
     try:
         logger.info(f"📝 GRI 질문 목록 조회 요청: item_id={item_id}")
         
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         db = await get_db().__anext__()
         
         # 질문 조회 쿼리
@@ -154,7 +154,7 @@ async def get_complete_gri_data(category_id: int):
     try:
         logger.info(f"📝 완전한 GRI 데이터 조회 요청: category_id={category_id}")
         
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         db = await get_db().__anext__()
         
         # 카테고리 정보 조회
@@ -246,7 +246,7 @@ async def get_progress(session_key: str):
     try:
         logger.info(f"📝 진행률 조회 요청: session_key={session_key}")
         
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         db = await get_db().__anext__()
         
         # 전체 질문 수
@@ -301,7 +301,7 @@ async def create_answer(request: Request):
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         
         # 의존성 주입을 위한 임시 처리
         db = await get_db().__anext__()
@@ -337,7 +337,7 @@ async def get_answer(answer_id: int, request: Request):
         logger.info(f"📝 GRI 답변 조회 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         
         # 의존성 주입을 위한 임시 처리
         db = await get_db().__anext__()
@@ -366,22 +366,22 @@ async def get_answer(answer_id: int, request: Request):
 @gri_router.get("/answers", summary="GRI 답변 목록 조회")
 async def get_answers(
     request: Request,
-    company_id: Optional[str] = None,
+    session_key: Optional[str] = None,
     page: int = 1,
     size: int = 10
 ):
     """GRI 답변 목록 조회 요청을 처리합니다."""
     try:
-        logger.info(f"📝 GRI 답변 목록 조회 요청: company_id={company_id}, page={page}, size={size}")
+        logger.info(f"📝 GRI 답변 목록 조회 요청: session_key={session_key}, page={page}, size={size}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         
         # 의존성 주입을 위한 임시 처리
         db = await get_db().__anext__()
         
-        if company_id:
-            result = await answer_controller.get_answers_by_company(company_id, page, size, db)
+        if session_key:
+            result = await answer_controller.get_answers_by_session(session_key, page, size, db)
         else:
             result = await answer_controller.get_all_answers(page, size, db)
         
@@ -416,7 +416,7 @@ async def update_answer(answer_id: int, request: Request):
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         
         # 의존성 주입을 위한 임시 처리
         db = await get_db().__anext__()
@@ -452,7 +452,7 @@ async def delete_answer(answer_id: int, request: Request):
         logger.info(f"📝 GRI 답변 삭제 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database import get_db
+        from app.common.database.database import get_db
         
         # 의존성 주입을 위한 임시 처리
         db = await get_db().__anext__()
@@ -485,7 +485,7 @@ async def delete_answer(answer_id: int, request: Request):
 async def database_status_check():
     """데이터베이스 상태 확인 엔드포인트"""
     try:
-        from app.common.database import check_database_connection
+        from app.common.database.database import check_database_connection
         connection_ok = await check_database_connection()
         return {
             "status": "success" if connection_ok else "failed",
