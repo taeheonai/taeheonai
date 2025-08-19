@@ -93,6 +93,20 @@ if __name__ == "__main__":
     import uvicorn
     import os
     
+    # Railway 환경변수 처리
     port = int(os.getenv("PORT", 8003))
     logger.info(f"🚀 GRI Service 시작 중... 포트: {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port) 
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+# Railway 배포용 - 직접 실행
+def run_app():
+    import uvicorn
+    import os
+    
+    port = int(os.getenv("PORT", 8003))
+    logger.info(f"🚀 GRI Service Railway 배포 시작 - 포트: {port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+# Railway에서 실행될 때
+if os.getenv("RAILWAY_ENVIRONMENT"):
+    run_app() 

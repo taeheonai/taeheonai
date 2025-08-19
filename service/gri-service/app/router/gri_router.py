@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
@@ -54,21 +55,24 @@ async def get_categories():
         
         logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
         
-        return JSONResponse(
-            status_code=200,
-            content={
-                "categories": categories,
-                "count": len(categories),
-                "source": "gri-service"
-            }
-        )
+        # jsonable_encoder로 안전한 직렬화
+        return jsonable_encoder({
+            "categories": categories,
+            "count": len(categories),
+            "source": "gri-service"
+        })
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ GRI 카테고리 조회 실패: {e}")
-        raise HTTPException(
-            status_code=500, 
-            detail=f"카테고리 조회 중 오류가 발생했습니다: {str(e)}"
-        )
+        # 구체적인 오류 타입에 따른 적절한 응답
+        if "does not exist" in str(e) or "relation" in str(e):
+            raise HTTPException(status_code=503, detail="DB_TABLE_NOT_FOUND")
+        elif "connection" in str(e).lower():
+            raise HTTPException(status_code=503, detail="DB_CONNECTION_FAILED")
+        else:
+            raise HTTPException(status_code=500, detail="CATEGORY_FETCH_FAILED")
 
 @gri_router.get("/categories/{category_id}/items", summary="카테고리별 GRI Index 목록 조회")
 async def get_category_items(category_id: int):
@@ -507,17 +511,34 @@ async def database_status_check():
             "timestamp": datetime.now().isoformat(),
         }
 
-# 헬스체크
-@gri_router.get("/health", summary="헬스체크")
-async def health_check():
-    """헬스체크 엔드포인트"""
-    return {
-        "status": "healthy",
-        "service": "gri-service",
-        "database": "Railway PostgreSQL",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0",
-    }
+# ===== 안전한 헬스체크 엔드포인트들 =====
+
+@gri_router.get("/health", include_in_schema=False)
+async def health():
+    """기본 헬스체크 - DB 연결 없이"""
+    return {"status": "ok", "service": "gri-service", "timestamp": datetime.now().isoformat()}
+
+@gri_router.get("/health/db", include_in_schema=False)
+async def health_db():
+    """DB 연결 상태 진단"""
+    try:
+        from app.common.database.database import get_db
+        db = await get_db().__anext__()
+        
+        # 간단한 쿼리로 DB 연결 테스트
+        result = await db.execute("SELECT 1 as test")
+        test_value = result.fetchone()
+        
+        if test_value and test_value[0] == 1:
+            return {"db": "ok", "service": "gri-service", "timestamp": datetime.now().isoformat()}
+        else:
+            raise HTTPException(status_code=503, detail="DB_QUERY_FAILED")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB health check failed: {e}")
+        raise HTTPException(status_code=503, detail="DB_UNAVAILABLE")
 
 # 메인 GRI 서비스 정보
 @gri_router.get("/", summary="GRI 서비스 정보")
