@@ -23,7 +23,7 @@ class AnswerController:
             return {
                 "success": True,
                 "message": "GRI 답변이 성공적으로 생성되었습니다.",
-                "data": result.model_dump()
+                "data": result
             }
             
         except Exception as e:
@@ -45,7 +45,7 @@ class AnswerController:
             return {
                 "success": True,
                 "message": "GRI 답변을 성공적으로 조회했습니다.",
-                "data": result.model_dump()
+                "data": result
             }
             
         except HTTPException:
@@ -54,19 +54,19 @@ class AnswerController:
             # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
             raise
 
-    async def get_answers_by_company(self, company_id: str, page: int, size: int, db: AsyncSession) -> Dict[str, Any]:
+    async def get_answers_by_session(self, session_key: str, page: int, size: int, db: AsyncSession) -> Dict[str, Any]:
         """
-        회사별 GRI 답변 목록 조회 요청을 AnswerService로 전달 (교차 NTT 역할)
+        세션별 GRI 답변 목록 조회 요청을 AnswerService로 전달 (교차 NTT 역할)
         """
         try:
             # 단순 전달: AnswerService 인스턴스 생성 및 요청 전달
             answer_service = AnswerService(db)
-            result = await answer_service.get_answers_by_company(company_id, page, size)
+            result = await answer_service.get_answers_by_session(session_key, page, size)
             
             return {
                 "success": True,
-                "message": "회사별 GRI 답변 목록을 성공적으로 조회했습니다.",
-                "data": [answer.model_dump() for answer in result]
+                "message": "세션별 GRI 답변 목록을 성공적으로 조회했습니다.",
+                "data": result
             }
             
         except Exception as e:
@@ -85,7 +85,7 @@ class AnswerController:
             return {
                 "success": True,
                 "message": "모든 GRI 답변 목록을 성공적으로 조회했습니다.",
-                "data": [answer.model_dump() for answer in result]
+                "data": result
             }
             
         except Exception as e:
@@ -106,8 +106,8 @@ class AnswerController:
             
             return {
                 "success": True,
-                "message": "GRI 답변이 성공적으로 수정되었습니다.",
-                "data": result.model_dump()
+                "message": "GRI 답변을 성공적으로 수정했습니다.",
+                "data": result
             }
             
         except HTTPException:
@@ -130,31 +130,12 @@ class AnswerController:
             
             return {
                 "success": True,
-                "message": "GRI 답변이 성공적으로 삭제되었습니다.",
-                "deleted_id": answer_id
+                "message": "GRI 답변을 성공적으로 삭제했습니다.",
+                "data": {"deleted_id": answer_id}
             }
             
         except HTTPException:
             raise
-        except Exception as e:
-            # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
-            raise
-
-    async def get_answers_by_gri_index(self, gri_index: str, company_id: Optional[str], db: AsyncSession) -> Dict[str, Any]:
-        """
-        GRI 지수별 답변 조회 요청을 AnswerService로 전달 (교차 NTT 역할)
-        """
-        try:
-            # 단순 전달: AnswerService 인스턴스 생성 및 요청 전달
-            answer_service = AnswerService(db)
-            result = await answer_service.get_answers_by_gri_index(gri_index, company_id)
-            
-            return {
-                "success": True,
-                "message": "GRI 지수별 답변을 성공적으로 조회했습니다.",
-                "data": [answer.model_dump() for answer in result]
-            }
-            
         except Exception as e:
             # 교차 NTT는 단순 전달만, 에러는 상위에서 처리
             raise

@@ -1,15 +1,18 @@
 from sqlalchemy import (
-    Column, String, Integer
+    Column, String, Integer, Boolean, DateTime, Text
 )
-from app.common.database import Base
+from sqlalchemy.sql import func
+from app.common.database.database import Base
 
 class AnswerEntity(Base):
     """GRI 질문에 대한 답변 엔티티"""
-    __tablename__ = "gri"
+    __tablename__ = "gri_answer"
 
     id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(String(50), nullable=True)  # 회사 ID
-    date = Column(String(10), nullable=True)        # 답변 날짜 (YYYY-MM-DD)
-    question = Column(String(1000), nullable=True)  # GRI 질문
-    answer = Column(String(3000), nullable=True)    # 사용자 답변
-    gri_index = Column(String(20), nullable=True)   # GRI 지수/점수
+    question_id = Column(Integer, nullable=False, index=True)  # 질문 ID (gri_question 테이블 참조)
+    session_key = Column(String(100), nullable=False, index=True)  # 세션 키
+    answer_text = Column(Text, nullable=False)  # 사용자 답변
+    answer_json = Column(Text, nullable=True)  # 추가 JSON 데이터
+    is_completed = Column(Boolean, default=False)  # 답변 완료 여부
+    created_at = Column(DateTime(timezone=True), server_default=func.now())  # 생성 시간
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())  # 수정 시간
