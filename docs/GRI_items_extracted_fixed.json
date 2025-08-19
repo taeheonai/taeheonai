@@ -1,0 +1,609 @@
+{
+  "items": [
+    {
+      "index_no": "2-1",
+      "title": "조직 정보",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-2",
+      "title": "조직의 지속가능성 보고에 포함될 법인",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-3",
+      "title": "보고 기간, 빈도 및 문의처",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-4",
+      "title": "정보의 재기술",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-5",
+      "title": "외부 검증",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-6",
+      "title": "활동, 가치 사슬 및 기타 비즈니스 관계",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-7",
+      "title": "직원",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-8",
+      "title": "직원이 아닌 근로자",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-9",
+      "title": "거버넌스 구조 및 구성",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-10",
+      "title": "최상위 거버넌스 기구의 임명 및 선정",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-11",
+      "title": "최상위 거버넌스 기구의 의장",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-12",
+      "title": "영향 관리에 대해 감독하는 최상위 거버넌스 기구의 역할",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-13",
+      "title": "영향 관리에 대한 책임 위임",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-14",
+      "title": "지속가능성보고에서 최상위 거버넌스 기구의 역할",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-15",
+      "title": "이해관계 상충",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-16",
+      "title": "중요 사안에 대한 커뮤니케이션",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-17",
+      "title": "최상위 거버넌스 기구의 집단지식",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-18",
+      "title": "최상위 거버넌스 기구의 성과 평가",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-19",
+      "title": "보수 정책",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-20",
+      "title": "보수 결정 절차",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-21",
+      "title": "연간 총 보상 비율",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-22",
+      "title": "지속가능발전 전략에 관한 설명서",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-23",
+      "title": "정책 선언",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-24",
+      "title": "정책 선언의 내재화",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-25",
+      "title": "부정적인 영향을 해소하기 위한 프로세스",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-26",
+      "title": "고충 제거 및 자문 요청 메커니즘",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-27",
+      "title": "법 및 규정 준수",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-28",
+      "title": "가입 협회",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-29",
+      "title": "이해관계자 참여 방식",
+      "category_id": 1
+    },
+    {
+      "index_no": "2-30",
+      "title": "단체교섭협약",
+      "category_id": 1
+    },
+    {
+      "index_no": "3-1",
+      "title": "중요 토픽 결정 프로세스",
+      "category_id": 2
+    },
+    {
+      "index_no": "3-2",
+      "title": "중요 토픽 목록",
+      "category_id": 2
+    },
+    {
+      "index_no": "3-3",
+      "title": "중요 토픽 관리",
+      "category_id": 2
+    },
+    {
+      "index_no": "201-1",
+      "title": "직접적 경제가치 발생과 분배(EVG&D)",
+      "category_id": 3
+    },
+    {
+      "index_no": "201-2",
+      "title": "기후변화에 따른 재무적 영향 및 기타 리스크와 기회",
+      "category_id": 3
+    },
+    {
+      "index_no": "201-3",
+      "title": "확정급여형 연금 채무 및 기타 퇴직연금안",
+      "category_id": 3
+    },
+    {
+      "index_no": "201-4",
+      "title": "정부 재정지원",
+      "category_id": 3
+    },
+    {
+      "index_no": "202-1",
+      "title": "사업장 소재 지역의 최저 임금 대비 초임 임금의 비율 (성별에 따라 파악)",
+      "category_id": 4
+    },
+    {
+      "index_no": "202-2",
+      "title": "사업장이 소재한 지역사회에서 고용된 고위 임원의 비율",
+      "category_id": 4
+    },
+    {
+      "index_no": "203-1",
+      "title": "사회기반시설 투자 및 서비스 지원",
+      "category_id": 5
+    },
+    {
+      "index_no": "203-2",
+      "title": "중요한 간접 경제 영향",
+      "category_id": 5
+    },
+    {
+      "index_no": "204-1",
+      "title": "지역 공급업체에 지출하는 비용의 비중",
+      "category_id": 6
+    },
+    {
+      "index_no": "205-1",
+      "title": "사업장 부패 리스크 평가",
+      "category_id": 7
+    },
+    {
+      "index_no": "205-2",
+      "title": "반부패 정책과 절차에 관한 커뮤니케이션 및 교육",
+      "category_id": 7
+    },
+    {
+      "index_no": "205-3",
+      "title": "확인된 부패 사례 및 조치",
+      "category_id": 7
+    },
+    {
+      "index_no": "206-1",
+      "title": "경쟁저해 및 독과점금지 위반 관련 소송",
+      "category_id": 8
+    },
+    {
+      "index_no": "207-1",
+      "title": "조세 접근법",
+      "category_id": 9
+    },
+    {
+      "index_no": "207-2",
+      "title": "조세 전략을 책임지는 지배기구, 통제 및 리스크 관리",
+      "category_id": 9
+    },
+    {
+      "index_no": "207-3",
+      "title": "조세 관련 이해관계자의 참여 및 권리",
+      "category_id": 9
+    },
+    {
+      "index_no": "207-4",
+      "title": "국가별 리포팅.",
+      "category_id": 9
+    },
+    {
+      "index_no": "301-1",
+      "title": "사용된 원재료의 중량 또는 용량",
+      "category_id": 10
+    },
+    {
+      "index_no": "301-2",
+      "title": "재생 투입 원자재",
+      "category_id": 10
+    },
+    {
+      "index_no": "301-3",
+      "title": "재생된 제품 및 포장재",
+      "category_id": 10
+    },
+    {
+      "index_no": "302-1",
+      "title": "조직 내 에너지 소비",
+      "category_id": 11
+    },
+    {
+      "index_no": "302-2",
+      "title": "조직 외부에서의 에너지 소비",
+      "category_id": 11
+    },
+    {
+      "index_no": "302-3",
+      "title": "에너지 집약도",
+      "category_id": 11
+    },
+    {
+      "index_no": "302-4",
+      "title": "에너지 소비 감축",
+      "category_id": 11
+    },
+    {
+      "index_no": "302-5",
+      "title": "제품 및 서비스의 에너지 요구량 감축",
+      "category_id": 11
+    },
+    {
+      "index_no": "303-1",
+      "title": "공유 자원으로서의 물과의 상호작용",
+      "category_id": 12
+    },
+    {
+      "index_no": "303-2",
+      "title": "물 방류 관련 영향 관리",
+      "category_id": 12
+    },
+    {
+      "index_no": "303-3",
+      "title": "취수",
+      "category_id": 12
+    },
+    {
+      "index_no": "303-4",
+      "title": "방류",
+      "category_id": 12
+    },
+    {
+      "index_no": "303-5",
+      "title": "물 소비",
+      "category_id": 12
+    },
+    {
+      "index_no": "304-1",
+      "title": "보호지역 및 생물다양성 가치가 높은 지역 내 또는 그 인근에서 소유/임대/운영되는 사업장",
+      "category_id": 13
+    },
+    {
+      "index_no": "304-2",
+      "title": "조직의 활동, 제품, 서비스가 생물다양성에 미치는 중대한 영향",
+      "category_id": 13
+    },
+    {
+      "index_no": "304-3",
+      "title": "보호 또는 복원된 서식지",
+      "category_id": 13
+    },
+    {
+      "index_no": "304-4",
+      "title": "IUCN 적색목록 및 조직 사업의 영향을 받는 지역 내에 서식하는 국가보호종 목록",
+      "category_id": 13
+    },
+    {
+      "index_no": "305-1",
+      "title": "직접 온실가스 배출량 (Scope1)",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-2",
+      "title": "간접 온실가스 배출량 (Scope2)",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-3",
+      "title": "기타 간접 온실가스 배출량 (Scope3)",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-4",
+      "title": "온실가스 배출 집약도",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-5",
+      "title": "온실가스 배출량 감축",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-6",
+      "title": "오존층 파괴 물질 (ODS) 배출량",
+      "category_id": 14
+    },
+    {
+      "index_no": "305-7",
+      "title": "질소산화물(NOx), 황산화물(SOx) 및 기타 중요한 대기 배출량",
+      "category_id": 14
+    },
+    {
+      "index_no": "306-1",
+      "title": "수질 및 목적지별 방류",
+      "category_id": 15
+    },
+    {
+      "index_no": "306-2",
+      "title": "유형별, 처리방법별 폐기물",
+      "category_id": 15
+    },
+    {
+      "index_no": "306-3",
+      "title": "중대한 유출",
+      "category_id": 15
+    },
+    {
+      "index_no": "306-4",
+      "title": "유해 폐기물의 운반",
+      "category_id": 15
+    },
+    {
+      "index_no": "306-5",
+      "title": "방류 또는 유출의 영향을 받는 수역",
+      "category_id": 15
+    },
+    {
+      "index_no": "308-1",
+      "title": "환경 기준 심사를 거친 신규 공급업체",
+      "category_id": 16
+    },
+    {
+      "index_no": "308-2",
+      "title": "공급망의 부정적 환경 영향 및 이에 대한 조치",
+      "category_id": 16
+    },
+    {
+      "index_no": "401-1",
+      "title": "신규채용 및 이직",
+      "category_id": 17
+    },
+    {
+      "index_no": "401-2",
+      "title": "비정규직 근로자에게는 제공되지 않는 정규직 근로자를 위한 복리후생",
+      "category_id": 17
+    },
+    {
+      "index_no": "401-3",
+      "title": "육아휴직",
+      "category_id": 17
+    },
+    {
+      "index_no": "402-1",
+      "title": "운영상의 변화와 관련한 최소 공지기간",
+      "category_id": 18
+    },
+    {
+      "index_no": "403-1",
+      "title": "산업안전보건경영시스템",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-2",
+      "title": "위험요인 파악, 리스크 평가, 사고 조사",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-3",
+      "title": "산업보건 서비스",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-4",
+      "title": "직업안전보건에 대한 커뮤니케이션, 자문 및 근로자 참여",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-5",
+      "title": "산업안전보건 근로자 교육",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-6",
+      "title": "근로자 건강 증진",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-7",
+      "title": "비즈니스 관계와 직접적으로 연계된 직장 건강 및 안전 영향의 예방 및 저감",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-8",
+      "title": "직장 건강 및 안전 관리 시스템의 적용 대상 근로자",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-9",
+      "title": "업무 관련 상해",
+      "category_id": 19
+    },
+    {
+      "index_no": "403-10",
+      "title": "업무 관련 질병",
+      "category_id": 19
+    },
+    {
+      "index_no": "404-1",
+      "title": "직원 1인당 평균 교육 시간",
+      "category_id": 20
+    },
+    {
+      "index_no": "404-2",
+      "title": "직원 역량강화 및 이직지원 프로그램",
+      "category_id": 20
+    },
+    {
+      "index_no": "404-3",
+      "title": "정기적으로 성과 및 경력 개발 검토를 받는 직원 비율",
+      "category_id": 20
+    },
+    {
+      "index_no": "405-1",
+      "title": "지배구조 기구와 직원의 다양성",
+      "category_id": 21
+    },
+    {
+      "index_no": "405-2",
+      "title": "남성 대비 여성의 기본급 및 보수 비율",
+      "category_id": 21
+    },
+    {
+      "index_no": "406-1",
+      "title": "차별 사례 및 이에 대한 시정조치",
+      "category_id": 22
+    },
+    {
+      "index_no": "407-1",
+      "title": "집회결사 및 단체교섭권 훼손 위험이 있는 사업장 및 공급업체",
+      "category_id": 23
+    },
+    {
+      "index_no": "408-1",
+      "title": "아동노동 발생 위험이 높은 사업장 및 공급업체",
+      "category_id": 24
+    },
+    {
+      "index_no": "409-1",
+      "title": "강제 노역 발생 위험이 높은 사업장 및 공급업체",
+      "category_id": 25
+    },
+    {
+      "index_no": "410-1",
+      "title": "인권 정책 및 절차에 관한 교육을 받은 보안 담당자",
+      "category_id": 26
+    },
+    {
+      "index_no": "411-1",
+      "title": "원주민 권리 침해 사례",
+      "category_id": 27
+    },
+    {
+      "index_no": "412-1",
+      "title": "인권 관련 검토 또는 영향 평가 대상 사업장",
+      "category_id": 28
+    },
+    {
+      "index_no": "412-2",
+      "title": "인권 정책 및 절차 관련 직원 교육",
+      "category_id": 28
+    },
+    {
+      "index_no": "412-3",
+      "title": "인권 관련 조항을 포함하고 있거나 인권 심사를 받은 주요 투자 협정 및 계약",
+      "category_id": 28
+    },
+    {
+      "index_no": "413-1",
+      "title": "지역사회 참여, 영향 평가 및 개발 프로그램 운영 사업장",
+      "category_id": 29
+    },
+    {
+      "index_no": "413-2",
+      "title": "지역사회에 중대한 실제적/잠재적 부정적 영향을 미치는 사업장",
+      "category_id": 29
+    },
+    {
+      "index_no": "414-1",
+      "title": "사회적 기준에 따른 심사를 거친 신규 공급업체",
+      "category_id": 30
+    },
+    {
+      "index_no": "414-2",
+      "title": "공급망 내 부정적 사회적 영향 및 그에 대한 대응조치",
+      "category_id": 30
+    },
+    {
+      "index_no": "415-1",
+      "title": "정치 기부금",
+      "category_id": 31
+    },
+    {
+      "index_no": "416-1",
+      "title": "제품/서비스의 건강 및 안전 영향 평가",
+      "category_id": 32
+    },
+    {
+      "index_no": "416-2",
+      "title": "제품/서비스의 건강 및 안전 영향 관련 위반",
+      "category_id": 32
+    },
+    {
+      "index_no": "417-1",
+      "title": "제품/서비스 관련 정보 및 라벨링 요건",
+      "category_id": 33
+    },
+    {
+      "index_no": "417-2",
+      "title": "제품/서비스 정보 및 라벨링 관련 위반",
+      "category_id": 33
+    },
+    {
+      "index_no": "417-3",
+      "title": "마케팅 커뮤니케이션 관련 위반",
+      "category_id": 33
+    },
+    {
+      "index_no": "418-1",
+      "title": "고객 개인정보보호 위반 및 고객정보 분실 관련해 입증된 민원",
+      "category_id": 34
+    },
+    {
+      "index_no": "419-1",
+      "title": "사회적 및 경제적 분야의 법률 및 규정 위반",
+      "category_id": 35
+    }
+  ]
+}

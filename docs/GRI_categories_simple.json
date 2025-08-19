@@ -1,0 +1,144 @@
+{
+  "categories": [
+    {
+      "code": "GRI 2",
+      "title": "General Disclosures"
+    },
+    {
+      "code": "GRI 3",
+      "title": "Material Topics"
+    },
+    {
+      "code": "GRI 201",
+      "title": "Economic Performance"
+    },
+    {
+      "code": "GRI 202",
+      "title": "Market Presence"
+    },
+    {
+      "code": "GRI 203",
+      "title": "Indirect Economic Impacts"
+    },
+    {
+      "code": "GRI 204",
+      "title": "Procurement Practices"
+    },
+    {
+      "code": "GRI 205",
+      "title": "Anti-corruption"
+    },
+    {
+      "code": "GRI 206",
+      "title": "Anti-competitive Behavior"
+    },
+    {
+      "code": "GRI 207",
+      "title": "Tax"
+    },
+    {
+      "code": "GRI 301",
+      "title": "Materials"
+    },
+    {
+      "code": "GRI 302",
+      "title": "Energy"
+    },
+    {
+      "code": "GRI 303",
+      "title": "Water and Effluents"
+    },
+    {
+      "code": "GRI 304",
+      "title": "Biodiversity"
+    },
+    {
+      "code": "GRI 305",
+      "title": "Emissions"
+    },
+    {
+      "code": "GRI 306",
+      "title": "Waste"
+    },
+    {
+      "code": "GRI 308",
+      "title": "Supplier Environmental Assessment"
+    },
+    {
+      "code": "GRI 401",
+      "title": "Employment"
+    },
+    {
+      "code": "GRI 402",
+      "title": "Labor/Management Relations"
+    },
+    {
+      "code": "GRI 403",
+      "title": "Occupational Health and Safety"
+    },
+    {
+      "code": "GRI 404",
+      "title": "Training and Education"
+    },
+    {
+      "code": "GRI 405",
+      "title": "Diversity and Equal Opportunity"
+    },
+    {
+      "code": "GRI 406",
+      "title": "Non-discrimination"
+    },
+    {
+      "code": "GRI 407",
+      "title": "Freedom of Association and Collective Bargaining"
+    },
+    {
+      "code": "GRI 408",
+      "title": "Child Labor"
+    },
+    {
+      "code": "GRI 409",
+      "title": "Forced or Compulsory Labor"
+    },
+    {
+      "code": "GRI 410",
+      "title": "Security Practices"
+    },
+    {
+      "code": "GRI 411",
+      "title": "Rights of Indigenous People"
+    },
+    {
+      "code": "GRI 412",
+      "title": "Local Communities"
+    },
+    {
+      "code": "GRI 413",
+      "title": "Supplier Social Assessment"
+    },
+    {
+      "code": "GRI 414",
+      "title": "Public Policy"
+    },
+    {
+      "code": "GRI 415",
+      "title": "Customer Health and Safety"
+    },
+    {
+      "code": "GRI 416",
+      "title": "Marketing and Labeling"
+    },
+    {
+      "code": "GRI 417",
+      "title": "Customer Privacy"
+    },
+    {
+      "code": "GRI 418",
+      "title": "Socioeconomic Compliance"
+    },
+    {
+      "code": "GRI 419",
+      "title": "Social and Economic Compliance"
+    }
+  ]
+}
