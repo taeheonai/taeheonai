@@ -31,6 +31,10 @@ app.add_middleware(
         "http://taeheonai.com",
         "https://www.taeheonai.com",
         "http://www.taeheonai.com",
+        # Vercel 배포 도메인
+        "https://taeheonai.vercel.app",
+        "https://taeheonai-git-main.vercel.app",
+        "https://taeheonai-git-develop.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -93,7 +97,9 @@ if __name__ == "__main__":
     import uvicorn
     import os
     
-    # Railway 환경변수 처리
+    # Railway 환경변수 처리 (Railway는 $PORT를 제공)
     port = int(os.getenv("PORT", 8003))
     logger.info(f"🚀 GRI Service 시작 중... 포트: {port}")
+    
+    # Railway 권장 설정: 0.0.0.0으로 모든 인터페이스에서 리스닝
     uvicorn.run(app, host="0.0.0.0", port=port) 
