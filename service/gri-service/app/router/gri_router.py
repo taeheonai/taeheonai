@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy import text, select
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
@@ -255,10 +256,9 @@ async def get_progress(session_key: str):
         db = await get_db().__anext__()
         
         # 전체 질문 수
-        total_query = "SELECT COUNT(*) FROM gri_question"
-        total_result = await db.execute(total_query)
-        total_row = total_result.fetchone()
-        total_questions = total_row[0] if total_row else 0
+        from sqlalchemy import func
+        total_result = await db.execute(select(func.count()).select_from(text("gri_question")))
+        total_questions = total_result.scalar() or 0
         
         # 답변 완료된 질문 수
         completed_query = """
@@ -525,11 +525,11 @@ async def health_db():
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 간단한 쿼리로 DB 연결 테스트
-        result = await db.execute("SELECT 1 as test")
-        test_value = result.fetchone()
+        # SQLAlchemy 2.0 스타일로 DB 연결 테스트
+        result = await db.execute(select(1))
+        test_value = result.scalar()
         
-        if test_value and test_value[0] == 1:
+        if test_value == 1:
             return {"db": "ok", "service": "gri-service", "timestamp": datetime.now().isoformat()}
         else:
             raise HTTPException(status_code=503, detail="DB_QUERY_FAILED")
