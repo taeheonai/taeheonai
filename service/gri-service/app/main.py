@@ -49,6 +49,36 @@ from app.router import gri_router
 # 라우터를 앱에 포함
 app.include_router(gri_router)
 
+# 루트 경로 핸들러 (Railway 호환성)
+@app.get("/", summary="루트 경로")
+async def root():
+    """루트 경로 - 서비스 상태 확인"""
+    return {
+        "message": "GRI Service is running!",
+        "service": "GRI Service",
+        "version": "1.0.0",
+        "status": "healthy",
+        "database": "Railway PostgreSQL",
+        "timestamp": datetime.now().isoformat(),
+        "endpoints": {
+            "main": "/v1/gri",
+            "health": "/v1/gri/health",
+            "categories": "/v1/gri/categories"
+        }
+    }
+
+# 헬스체크 (루트 레벨)
+@app.get("/health", summary="헬스체크")
+async def health_check():
+    """헬스체크 엔드포인트"""
+    return {
+        "status": "healthy",
+        "service": "GRI Service",
+        "database": "Railway PostgreSQL",
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.0.0",
+    }
+
 if __name__ == "__main__":
     import uvicorn
     import os
