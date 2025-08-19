@@ -42,15 +42,15 @@ async def get_categories():
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 카테고리 조회 쿼리
+        # 카테고리 조회 쿼리 - AsyncSession 올바른 메서드 사용
         query = """
             SELECT id, code, title, display_order
             FROM gri_category
             ORDER BY display_order, id
         """
         
-        result = await db.fetch_all(query)
-        categories = [dict(row) for row in result]
+        result = await db.execute(query)
+        categories = [dict(row._mapping) for row in result.fetchall()]
         
         logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
         
@@ -79,16 +79,16 @@ async def get_category_items(category_id: int):
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 아이템 조회 쿼리
+        # 아이템 조회 쿼리 - AsyncSession 올바른 메서드 사용
         query = """
             SELECT id, index_no, title, display_order
             FROM gri_item
-            WHERE category_id = $1
+            WHERE category_id = :category_id
             ORDER BY display_order, index_no
         """
         
-        result = await db.fetch_all(query, category_id)
-        items = [dict(row) for row in result]
+        result = await db.execute(query, {"category_id": category_id})
+        items = [dict(row._mapping) for row in result.fetchall()]
         
         logger.info(f"✅ GRI Index 조회 성공: {len(items)}개")
         
@@ -126,8 +126,8 @@ async def get_item_questions(item_id: int):
             ORDER BY display_order, key_alpha
         """
         
-        result = await db.fetch_all(query, item_id)
-        questions = [dict(row) for row in result]
+        result = await db.execute(query, {"item_id": item_id})
+        questions = [dict(row._mapping) for row in result.fetchall()]
         
         logger.info(f"✅ GRI 질문 조회 성공: {len(questions)}개")
         
@@ -164,11 +164,12 @@ async def get_complete_gri_data(category_id: int):
             WHERE id = $1
         """
         
-        category_result = await db.fetch_one(category_query, category_id)
-        if not category_result:
+        category_result = await db.execute(category_query, {"category_id": category_id})
+        category_row = category_result.fetchone()
+        if not category_row:
             raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다")
         
-        category = dict(category_result)
+        category = dict(category_row._mapping)
         
         # 아이템 및 질문 정보 조회
         items_query = """
@@ -188,14 +189,14 @@ async def get_complete_gri_data(category_id: int):
             ORDER BY i.display_order, i.index_no, q.display_order, q.key_alpha
         """
         
-        items_result = await db.fetch_all(items_query, category_id)
+        items_result = await db.execute(items_query, {"category_id": category_id})
         
         # 데이터 구조화
         items = []
         current_item = None
         
-        for row in items_result:
-            row_dict = dict(row)
+        for row in items_result.fetchall():
+            row_dict = dict(row._mapping)
             
             if current_item is None or current_item["id"] != row_dict["item_id"]:
                 # 새 아이템 시작
@@ -251,16 +252,18 @@ async def get_progress(session_key: str):
         
         # 전체 질문 수
         total_query = "SELECT COUNT(*) FROM gri_question"
-        total_result = await db.fetch_one(total_query)
-        total_questions = total_result[0] if total_result else 0
+        total_result = await db.execute(total_query)
+        total_row = total_result.fetchone()
+        total_questions = total_row[0] if total_row else 0
         
         # 답변 완료된 질문 수
         completed_query = """
             SELECT COUNT(*) FROM gri_answer
-            WHERE session_key = $1 AND is_completed = TRUE
+            WHERE session_key = :session_key AND is_completed = TRUE
         """
-        completed_result = await db.fetch_one(completed_query, session_key)
-        completed_answers = completed_result[0] if completed_result else 0
+        completed_result = await db.execute(completed_query, {"session_key": session_key})
+        completed_row = completed_result.fetchone()
+        completed_answers = completed_row[0] if completed_row else 0
         
         progress_percentage = (completed_answers / total_questions * 100) if total_questions > 0 else 0
         
