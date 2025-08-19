@@ -44,15 +44,15 @@ async def get_categories():
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 카테고리 조회 쿼리 - AsyncSession 올바른 메서드 사용
-        query = """
+        # 카테고리 조회 쿼리 - SQLAlchemy 2.0 text() 사용
+        query = text("""
             SELECT id, code, title, display_order
             FROM gri_category
             ORDER BY display_order, id
-        """
+        """)
         
         result = await db.execute(query)
-        categories = [dict(row._mapping) for row in result.fetchall()]
+        categories = [dict(row._mapping) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
         
@@ -84,16 +84,16 @@ async def get_category_items(category_id: int):
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 아이템 조회 쿼리 - AsyncSession 올바른 메서드 사용
-        query = """
+        # 아이템 조회 쿼리 - SQLAlchemy 2.0 text() 사용
+        query = text("""
             SELECT id, index_no, title, display_order
             FROM gri_item
             WHERE category_id = :category_id
             ORDER BY display_order, index_no
-        """
+        """)
         
         result = await db.execute(query, {"category_id": category_id})
-        items = [dict(row._mapping) for row in result.fetchall()]
+        items = [dict(row._mapping) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI Index 조회 성공: {len(items)}개")
         
@@ -123,16 +123,16 @@ async def get_item_questions(item_id: int):
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 질문 조회 쿼리
-        query = """
+        # 질문 조회 쿼리 - SQLAlchemy 2.0 text() 사용
+        query = text("""
             SELECT id, key_alpha, question_text, reference_text, question_type, display_order, required
             FROM gri_question
-            WHERE item_id = $1
+            WHERE item_id = :item_id
             ORDER BY display_order, key_alpha
-        """
+        """)
         
         result = await db.execute(query, {"item_id": item_id})
-        questions = [dict(row._mapping) for row in result.fetchall()]
+        questions = [dict(row._mapping) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI 질문 조회 성공: {len(questions)}개")
         
@@ -162,22 +162,22 @@ async def get_complete_gri_data(category_id: int):
         from app.common.database.database import get_db
         db = await get_db().__anext__()
         
-        # 카테고리 정보 조회
-        category_query = """
+        # 카테고리 정보 조회 - SQLAlchemy 2.0 text() 사용
+        category_query = text("""
             SELECT id, code, title
             FROM gri_category
-            WHERE id = $1
-        """
+            WHERE id = :category_id
+        """)
         
         category_result = await db.execute(category_query, {"category_id": category_id})
-        category_row = category_result.fetchone()
+        category_row = category_result.mappings().first()
         if not category_row:
             raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다")
         
-        category = dict(category_row._mapping)
+        category = dict(category_row)
         
-        # 아이템 및 질문 정보 조회
-        items_query = """
+        # 아이템 및 질문 정보 조회 - SQLAlchemy 2.0 text() 사용
+        items_query = text("""
             SELECT 
                 i.id as item_id,
                 i.index_no,
@@ -190,9 +190,9 @@ async def get_complete_gri_data(category_id: int):
                 q.required
             FROM gri_item i
             LEFT JOIN gri_question q ON i.id = q.item_id
-            WHERE i.category_id = $1
+            WHERE i.category_id = :category_id
             ORDER BY i.display_order, i.index_no, q.display_order, q.key_alpha
-        """
+        """)
         
         items_result = await db.execute(items_query, {"category_id": category_id})
         
@@ -200,8 +200,8 @@ async def get_complete_gri_data(category_id: int):
         items = []
         current_item = None
         
-        for row in items_result.fetchall():
-            row_dict = dict(row._mapping)
+        for row in items_result.mappings().all():
+            row_dict = dict(row)
             
             if current_item is None or current_item["id"] != row_dict["item_id"]:
                 # 새 아이템 시작
@@ -260,14 +260,13 @@ async def get_progress(session_key: str):
         total_result = await db.execute(select(func.count()).select_from(text("gri_question")))
         total_questions = total_result.scalar() or 0
         
-        # 답변 완료된 질문 수
-        completed_query = """
+        # 답변 완료된 질문 수 - SQLAlchemy 2.0 text() 사용
+        completed_query = text("""
             SELECT COUNT(*) FROM gri_answer
             WHERE session_key = :session_key AND is_completed = TRUE
-        """
+        """)
         completed_result = await db.execute(completed_query, {"session_key": session_key})
-        completed_row = completed_result.fetchone()
-        completed_answers = completed_row[0] if completed_row else 0
+        completed_answers = completed_result.scalar() or 0
         
         progress_percentage = (completed_answers / total_questions * 100) if total_questions > 0 else 0
         
