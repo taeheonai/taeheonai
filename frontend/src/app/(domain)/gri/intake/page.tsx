@@ -13,13 +13,6 @@ interface GRICategory {
   display_order: number;
 }
 
-interface GRIItem {
-  id: number;
-  index_no: string;
-  title: string;
-  display_order: number;
-}
-
 interface GRIQuestion {
   id: number;
   key_alpha: string;
@@ -30,14 +23,16 @@ interface GRIQuestion {
   required: boolean;
 }
 
+interface GRIItem {
+  id: number;
+  index_no: string;
+  title: string;
+  questions: GRIQuestion[];
+}
+
 interface GRICompleteData {
   category: GRICategory;
-  items: Array<{
-    id: number;
-    index_no: string;
-    title: string;
-    questions: GRIQuestion[];
-  }>;
+  items: GRIItem[];
   item_count: number;
 }
 
@@ -47,7 +42,7 @@ export default function GRIIntakePage() {
   // 상태 관리
   const [categories, setCategories] = useState<GRICategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<GRICategory | null>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<GRIItem | null>(null);
   const [griData, setGriData] = useState<GRICompleteData | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -211,7 +206,7 @@ export default function GRIIntakePage() {
   };
 
   // 아이템 선택 핸들러
-  const handleItemSelect = (item: any) => {
+  const handleItemSelect = (item: GRIItem) => {
     setSelectedItem(item);
     setAnswers({});
   };
@@ -387,7 +382,7 @@ export default function GRIIntakePage() {
                       <p className="text-sm text-gray-600 mt-1">{selectedItem.title}</p>
                     </div>
                     <div className="p-6 space-y-6">
-                      {selectedItem.questions.map((question: GRIQuestion, index: number) => (
+                      {selectedItem.questions.map((question: GRIQuestion) => (
                         <div key={question.id} className="space-y-3">
                           <div className="flex items-start space-x-2">
                             <span className="text-sm font-medium text-gray-700 mt-1">
