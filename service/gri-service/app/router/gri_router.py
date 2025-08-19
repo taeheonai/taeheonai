@@ -524,12 +524,31 @@ async def gri_service_info():
         "service": "GRI Service",
         "version": "1.0.0",
         "description": "GRI Standards Service for TaeheonAI",
+        "status": "running",
         "endpoints": {
+            "categories": "GET /v1/gri/categories",
+            "complete_data": "GET /v1/gri/complete/{category_id}",
             "create_answer": "POST /v1/gri/answers",
             "get_answer": "GET /v1/gri/answers/{id}",
             "get_answers": "GET /v1/gri/answers",
             "update_answer": "PUT /v1/gri/answers/{id}",
             "delete_answer": "DELETE /v1/gri/answers/{id}",
+            "progress": "GET /v1/gri/progress/{session_key}",
             "health": "GET /v1/gri/health"
+        },
+        "base_url": "/v1/gri"
+    }
+
+# 루트 경로 리다이렉트 (Railway 호환성)
+@gri_router.get("/", summary="루트 경로")
+async def root():
+    """루트 경로 - GRI 서비스로 리다이렉트"""
+    return {
+        "message": "GRI Service is running!",
+        "redirect": "/v1/gri",
+        "endpoints": {
+            "main": "/v1/gri",
+            "health": "/v1/gri/health",
+            "categories": "/v1/gri/categories"
         }
     }
