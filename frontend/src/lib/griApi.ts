@@ -68,7 +68,7 @@ export class GRIApiService {
   // 카테고리 목록 조회
   static async getCategories(): Promise<{ categories: GRICategory[]; count: number }> {
     try {
-      const response = await api.get('/categories');
+      const response = await api.get('/v1/gri/categories');
       return response.data;
     } catch (error) {
       console.error('카테고리 조회 오류:', error);
@@ -83,7 +83,7 @@ export class GRIApiService {
   // 완전한 GRI 데이터 조회
   static async getCompleteData(categoryId: number): Promise<GRICompleteData> {
     try {
-      const response = await api.get(`/complete/${categoryId}`);
+      const response = await api.get(`/v1/gri/complete/${categoryId}`);
       return response.data;
     } catch (error) {
       console.error('GRI 데이터 조회 오류:', error);
@@ -98,7 +98,7 @@ export class GRIApiService {
   // 답변 생성
   static async createAnswer(answerData: AnswerCreate): Promise<AnswerResponse> {
     try {
-      const response = await api.post('/answers', answerData);
+      const response = await api.post('/v1/gri/answers', answerData);
       return response.data;
     } catch (error) {
       console.error('답변 생성 오류:', error);
@@ -113,7 +113,7 @@ export class GRIApiService {
   // 진행률 조회
   static async getProgress(sessionKey: string): Promise<ProgressResponse> {
     try {
-      const response = await api.get(`/progress/${sessionKey}`);
+      const response = await api.get(`/v1/gri/progress/${sessionKey}`);
       return response.data;
     } catch (error) {
       console.error('진행률 조회 오류:', error);
@@ -133,7 +133,7 @@ export class GRIApiService {
         Object.assign(params, { session_key: sessionKey });
       }
       
-      const response = await api.get('/answers', { params });
+      const response = await api.get('/v1/gri/answers', { params });
       return response.data;
     } catch (error) {
       console.error('답변 목록 조회 오류:', error);
@@ -148,7 +148,7 @@ export class GRIApiService {
   // 답변 수정
   static async updateAnswer(answerId: number, answerData: AnswerCreate): Promise<AnswerResponse> {
     try {
-      const response = await api.put(`/answers/${answerId}`, answerData);
+      const response = await api.put(`/v1/gri/answers/${answerId}`, answerData);
       return response.data;
     } catch (error) {
       console.error('답변 수정 오류:', error);
@@ -163,7 +163,7 @@ export class GRIApiService {
   // 답변 삭제
   static async deleteAnswer(answerId: number): Promise<{ deleted_id: number }> {
     try {
-      const response = await api.delete(`/answers/${answerId}`);
+      const response = await api.delete(`/v1/gri/answers/${answerId}`);
       return response.data;
     } catch (error) {
       console.error('답변 삭제 오류:', error);
