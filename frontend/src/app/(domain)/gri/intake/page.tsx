@@ -118,7 +118,7 @@ export default function GRIIntakePage() {
             const response = await GRIApiService.createAnswer(answerData);
             console.log('답변 저장 성공:', response);
             return response;
-          } catch (error) {
+          } catch {
             throw new Error(`Failed to save answer for ${question.id}`);
           }
         });
