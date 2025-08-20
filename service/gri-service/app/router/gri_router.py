@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import text, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
@@ -9,6 +10,7 @@ import json
 
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
+from app.common.database.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +38,10 @@ def validate_and_convert_json(request_data: Dict[str, Any], model_class) -> Any:
 # ===== GRI 데이터 조회 엔드포인트들 =====
 
 @gri_router.get("/categories", summary="GRI 카테고리 목록 조회")
-async def get_categories():
+async def get_categories(db: AsyncSession = Depends(get_db)):
     """모든 GRI 카테고리 조회"""
     try:
         logger.info("📝 GRI 카테고리 목록 조회 요청")
-        
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
         
         # 카테고리 조회 쿼리 - SQLAlchemy 2.0 text() 사용
         query = text("""
@@ -76,13 +75,10 @@ async def get_categories():
             raise HTTPException(status_code=500, detail="CATEGORY_FETCH_FAILED")
 
 @gri_router.get("/categories/{category_id}/items", summary="카테고리별 GRI Index 목록 조회")
-async def get_category_items(category_id: int):
+async def get_category_items(category_id: int, db: AsyncSession = Depends(get_db)):
     """특정 카테고리의 GRI Index 목록 조회"""
     try:
         logger.info(f"📝 GRI Index 목록 조회 요청: category_id={category_id}")
-        
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
         
         # 아이템 조회 쿼리 - SQLAlchemy 2.0 text() 사용
         query = text("""
@@ -115,13 +111,10 @@ async def get_category_items(category_id: int):
         )
 
 @gri_router.get("/items/{item_id}/questions", summary="GRI Index별 질문 목록 조회")
-async def get_item_questions(item_id: int):
+async def get_item_questions(item_id: int, db: AsyncSession = Depends(get_db)):
     """특정 GRI Index의 질문 목록 조회"""
     try:
         logger.info(f"📝 GRI 질문 목록 조회 요청: item_id={item_id}")
-        
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
         
         # 질문 조회 쿼리 - SQLAlchemy 2.0 text() 사용
         query = text("""
@@ -154,13 +147,10 @@ async def get_item_questions(item_id: int):
         )
 
 @gri_router.get("/complete/{category_id}", summary="카테고리별 완전한 GRI 데이터 조회")
-async def get_complete_gri_data(category_id: int):
+async def get_complete_gri_data(category_id: int, db: AsyncSession = Depends(get_db)):
     """카테고리별 완전한 GRI 데이터 조회 (카테고리 + 아이템 + 질문)"""
     try:
         logger.info(f"📝 완전한 GRI 데이터 조회 요청: category_id={category_id}")
-        
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
         
         # 카테고리 정보 조회 - SQLAlchemy 2.0 text() 사용
         category_query = text("""
@@ -247,13 +237,10 @@ async def get_complete_gri_data(category_id: int):
         )
 
 @gri_router.get("/progress/{session_key}", summary="세션별 답변 진행률 조회")
-async def get_progress(session_key: str):
+async def get_progress(session_key: str, db: AsyncSession = Depends(get_db)):
     """특정 세션의 답변 진행률 조회"""
     try:
         logger.info(f"📝 진행률 조회 요청: session_key={session_key}")
-        
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
         
         # 전체 질문 수
         from sqlalchemy import func
@@ -294,7 +281,7 @@ async def get_progress(session_key: str):
 
 # GRI 답변 관리 엔드포인트들
 @gri_router.post("/answers", summary="GRI 답변 생성")
-async def create_answer(request: Request):
+async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 생성 요청을 처리합니다."""
     try:
         # JSON 요청 본문 파싱
@@ -307,10 +294,6 @@ async def create_answer(request: Request):
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database.database import get_db
-        
-        # 의존성 주입을 위한 임시 처리
-        db = await get_db().__anext__()
         
         result = await answer_controller.create_answer(answer_data, db)
         
@@ -337,16 +320,12 @@ async def create_answer(request: Request):
         )
 
 @gri_router.get("/answers/{answer_id}", summary="GRI 답변 조회")
-async def get_answer(answer_id: int, request: Request):
+async def get_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 조회 요청을 처리합니다."""
     try:
         logger.info(f"📝 GRI 답변 조회 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database.database import get_db
-        
-        # 의존성 주입을 위한 임시 처리
-        db = await get_db().__anext__()
         
         result = await answer_controller.get_answer_by_id(answer_id, db)
         
@@ -372,6 +351,7 @@ async def get_answer(answer_id: int, request: Request):
 @gri_router.get("/answers", summary="GRI 답변 목록 조회")
 async def get_answers(
     request: Request,
+    db: AsyncSession = Depends(get_db),
     session_key: Optional[str] = None,
     page: int = 1,
     size: int = 10
@@ -381,10 +361,6 @@ async def get_answers(
         logger.info(f"📝 GRI 답변 목록 조회 요청: session_key={session_key}, page={page}, size={size}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database.database import get_db
-        
-        # 의존성 주입을 위한 임시 처리
-        db = await get_db().__anext__()
         
         if session_key:
             result = await answer_controller.get_answers_by_session(session_key, page, size, db)
@@ -409,7 +385,7 @@ async def get_answers(
         )
 
 @gri_router.put("/answers/{answer_id}", summary="GRI 답변 수정")
-async def update_answer(answer_id: int, request: Request):
+async def update_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 수정 요청을 처리합니다."""
     try:
         # JSON 요청 본문 파싱
@@ -422,10 +398,6 @@ async def update_answer(answer_id: int, request: Request):
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database.database import get_db
-        
-        # 의존성 주입을 위한 임시 처리
-        db = await get_db().__anext__()
         
         result = await answer_controller.update_answer(answer_id, answer_data, db)
         
@@ -452,16 +424,12 @@ async def update_answer(answer_id: int, request: Request):
         )
 
 @gri_router.delete("/answers/{answer_id}", summary="GRI 답변 삭제")
-async def delete_answer(answer_id: int, request: Request):
+async def delete_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 삭제 요청을 처리합니다."""
     try:
         logger.info(f"📝 GRI 답변 삭제 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        from app.common.database.database import get_db
-        
-        # 의존성 주입을 위한 임시 처리
-        db = await get_db().__anext__()
         
         result = await answer_controller.delete_answer(answer_id, db)
         
@@ -518,12 +486,9 @@ async def health():
     return {"status": "ok", "service": "gri-service", "timestamp": datetime.now().isoformat()}
 
 @gri_router.get("/health/db", include_in_schema=False)
-async def health_db():
+async def health_db(db: AsyncSession = Depends(get_db)):
     """DB 연결 상태 진단"""
     try:
-        from app.common.database.database import get_db
-        db = await get_db().__anext__()
-        
         # SQLAlchemy 2.0 스타일로 DB 연결 테스트
         result = await db.execute(select(1))
         test_value = result.scalar()
