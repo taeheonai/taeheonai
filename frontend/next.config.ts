@@ -20,14 +20,18 @@ const nextConfig: NextConfig = {
   // SPA 라우팅을 위한 설정
   trailingSlash: false,
   
-  // API 프록시 설정 - Railway 게이트웨이로 연결
+  // API 프록시 설정 - Railway 서비스들로 연결
   async rewrites() {
     return [
-      // /api 프리픽스는 Next의 Serverless Functions와 충돌할 수 있어
-      // /backend 같은 별도 프리픽스를 권장
+      // gri-service API 프록시
       { 
-        source: '/backend/:path*', 
-        destination: 'https://taeheonai-production-2130.up.railway.app/:path*' 
+        source: '/api/gri/:path*', 
+        destination: 'https://gri-service-production.up.railway.app/:path*' 
+      },
+      // auth-service API 프록시
+      { 
+        source: '/api/auth/:path*', 
+        destination: 'https://auth-service-production.up.railway.app/:path*' 
       },
       // (domain) 그룹 폴더를 위한 rewrites
       {
