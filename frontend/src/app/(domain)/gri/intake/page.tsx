@@ -348,14 +348,19 @@ export default function GRIIntakePage() {
                             </span>
                             <div className="flex-1">
                               <label className="block text-sm font-medium text-gray-700 mb-2">
-                                {question.question_text}
+                                <div className="whitespace-pre-wrap">
+                                  {question.question_text}
+                                </div>
                                 {question.required && (
                                   <span className="text-red-500 ml-1">*</span>
                                 )}
                               </label>
                               {question.reference_text && (
                                 <div className="mb-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                                  <strong>참고:</strong> {question.reference_text}
+                                  <strong>참고:</strong> 
+                                  <div className="whitespace-pre-wrap mt-1">
+                                    {question.reference_text}
+                                  </div>
                                 </div>
                               )}
                               <textarea
