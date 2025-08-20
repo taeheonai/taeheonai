@@ -4,37 +4,13 @@ import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-
-// GRI 데이터 타입 정의
-interface GRICategory {
-  id: number;
-  code: string;
-  title: string;
-  display_order: number;
-}
-
-interface GRIQuestion {
-  id: number;
-  key_alpha: string;
-  question_text: string;
-  reference_text: string | null;
-  question_type: string;
-  display_order: number;
-  required: boolean;
-}
-
-interface GRIItem {
-  id: number;
-  index_no: string;
-  title: string;
-  questions: GRIQuestion[];
-}
-
-interface GRICompleteData {
-  category: GRICategory;
-  items: GRIItem[];
-  item_count: number;
-}
+import GRIApiService, { 
+  GRICategory, 
+  GRIQuestion, 
+  GRIItem, 
+  GRICompleteData,
+  AnswerCreate 
+} from '@/lib/griApi';
 
 export default function GRIIntakePage() {
   const { user } = useAuth();
@@ -80,13 +56,7 @@ export default function GRIIntakePage() {
   const loadCategories = async () => {
     try {
       setIsLoadingData(true);
-      const response = await fetch('/api/v1/gri/categories');
-      
-      if (!response.ok) {
-        throw new Error('카테고리 로드 실패');
-      }
-      
-      const data = await response.json();
+      const data = await GRIApiService.getCategories();
       setCategories(data.categories || []);
       
       // 첫 번째 카테고리 자동 선택
@@ -94,9 +64,9 @@ export default function GRIIntakePage() {
         setSelectedCategory(data.categories[0]);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('카테고리 로드 오류:', error);
-      setMessage('카테고리 로드 중 오류가 발생했습니다.');
+      setMessage(error.message || '카테고리 로드 중 오류가 발생했습니다.');
     } finally {
       setIsLoadingData(false);
     }
@@ -106,18 +76,12 @@ export default function GRIIntakePage() {
   const loadGRICompleteData = async (categoryId: number) => {
     try {
       setIsLoadingData(true);
-      const response = await fetch(`/api/v1/gri/complete/${categoryId}`);
-      
-      if (!response.ok) {
-        throw new Error('GRI 데이터 로드 실패');
-      }
-      
-      const data = await response.json();
+      const data = await GRIApiService.getCompleteData(categoryId);
       setGriData(data);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('GRI 데이터 로드 오류:', error);
-      setMessage('GRI 데이터 로드 중 오류가 발생했습니다.');
+      setMessage(error.message || 'GRI 데이터 로드 중 오류가 발생했습니다.');
     } finally {
       setIsLoadingData(false);
     }
@@ -141,26 +105,20 @@ export default function GRIIntakePage() {
       const savePromises = selectedItem.questions
         .filter((q: GRIQuestion) => answers[q.id.toString()] && answers[q.id.toString()].trim() !== '')
         .map(async (question: GRIQuestion) => {
-          const answerData = {
+          const answerData: AnswerCreate = {
             question_id: question.id,
             session_key: sessionKey,
             answer_text: answers[question.id.toString()],
             answer_json: null
           };
 
-          const response = await fetch('/api/v1/gri/answers', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(answerData),
-          });
-
-          if (!response.ok) {
+          try {
+            const response = await GRIApiService.createAnswer(answerData);
+            console.log('답변 저장 성공:', response);
+            return response;
+          } catch (error) {
             throw new Error(`Failed to save answer for ${question.id}`);
           }
-
-          return response.json();
         });
 
       await Promise.all(savePromises);
@@ -169,9 +127,9 @@ export default function GRIIntakePage() {
       // 답변 저장 후 진행률 확인
       checkProgress();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('답변 저장 중 오류:', error);
-      setMessage('답변 저장 중 오류가 발생했습니다.');
+      setMessage(error.message || '답변 저장 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -180,12 +138,9 @@ export default function GRIIntakePage() {
   // 진행률 확인
   const checkProgress = async () => {
     try {
-      const response = await fetch(`/api/v1/gri/progress/${sessionKey}`);
-      if (response.ok) {
-        const progressData = await response.json();
-        console.log('진행률:', progressData);
-      }
-    } catch (error) {
+      const progressData = await GRIApiService.getProgress(sessionKey);
+      console.log('진행률:', progressData);
+    } catch (error: any) {
       console.error('진행률 확인 오류:', error);
     }
   };
