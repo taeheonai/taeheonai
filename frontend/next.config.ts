@@ -59,6 +59,14 @@ const nextConfig: NextConfig = {
         destination: '/gri'
       },
       {
+        source: '/gri/intake',
+        destination: '/gri/intake'
+      },
+      {
+        source: '/gri/report',
+        destination: '/gri/report'
+      },
+      {
         source: '/materiality',
         destination: '/materiality'
       }
