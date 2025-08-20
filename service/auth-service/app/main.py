@@ -68,7 +68,7 @@ app.add_middleware(
 )
 
 # ---------- 라우터 ----------
-app.include_router(auth_router)  # prefix 제거 (auth_router에 이미 있음)
+app.include_router(auth_router) # prefix 제거 (auth_router에 이미 있음)
 
 # ---------- 애플리케이션 시작 시 데이터베이스 초기화 ----------
 @app.on_event("startup")
