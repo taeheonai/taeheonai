@@ -23,7 +23,7 @@ class ServiceProxyFactory:
         # Railway 프로덕션 환경 URL 설정 (기본값)
         self.base_urls = {
             ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+            ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://gri-service-production.up.railway.app"),
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
 
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
@@ -48,7 +48,6 @@ class ServiceProxyFactory:
             ServiceType.chatbot: "/v1/chatbot",
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
-
             ServiceType.grireport: "/v1/grireport",
 
         }
