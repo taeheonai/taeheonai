@@ -64,9 +64,10 @@ export default function GRIIntakePage() {
         setSelectedCategory(data.categories[0]);
       }
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('카테고리 로드 오류:', error);
-      setMessage(error.message || '카테고리 로드 중 오류가 발생했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '카테고리 로드 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
     } finally {
       setIsLoadingData(false);
     }
@@ -79,9 +80,10 @@ export default function GRIIntakePage() {
       const data = await GRIApiService.getCompleteData(categoryId);
       setGriData(data);
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('GRI 데이터 로드 오류:', error);
-      setMessage(error.message || 'GRI 데이터 로드 중 오류가 발생했습니다.');
+      const errorMessage = error instanceof Error ? error.message : 'GRI 데이터 로드 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
     } finally {
       setIsLoadingData(false);
     }
@@ -109,7 +111,7 @@ export default function GRIIntakePage() {
             question_id: question.id,
             session_key: sessionKey,
             answer_text: answers[question.id.toString()],
-            answer_json: null
+            answer_json: undefined
           };
 
           try {
@@ -127,9 +129,10 @@ export default function GRIIntakePage() {
       // 답변 저장 후 진행률 확인
       checkProgress();
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('답변 저장 중 오류:', error);
-      setMessage(error.message || '답변 저장 중 오류가 발생했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '답변 저장 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -140,7 +143,7 @@ export default function GRIIntakePage() {
     try {
       const progressData = await GRIApiService.getProgress(sessionKey);
       console.log('진행률:', progressData);
-    } catch (error: any) {
+    } catch (error) {
       console.error('진행률 확인 오류:', error);
     }
   };

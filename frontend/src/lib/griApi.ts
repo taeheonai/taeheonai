@@ -35,7 +35,7 @@ export interface AnswerCreate {
   question_id: number;
   session_key: string;
   answer_text: string;
-  answer_json?: any;
+  answer_json?: Record<string, unknown>;
 }
 
 export interface AnswerResponse {
@@ -43,7 +43,7 @@ export interface AnswerResponse {
   question_id: number;
   session_key: string;
   answer_text: string;
-  answer_json?: any;
+  answer_json?: Record<string, unknown>;
   is_completed: boolean;
   created_at: string;
   updated_at: string;
@@ -56,6 +56,13 @@ export interface ProgressResponse {
   progress_percentage: number;
 }
 
+// API 에러 타입 정의
+export interface APIError {
+  message: string;
+  status?: number;
+  detail?: string;
+}
+
 // GRI API 서비스 클래스
 export class GRIApiService {
   // 카테고리 목록 조회
@@ -65,7 +72,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('카테고리 조회 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -76,7 +87,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('GRI 데이터 조회 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : 'GRI 데이터 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -87,7 +102,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 생성 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 생성 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -98,7 +117,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('진행률 조회 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '진행률 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -114,7 +137,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 목록 조회 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 목록 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -125,7 +152,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 수정 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 수정 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -136,7 +167,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 삭제 오류:', error);
-      throw error;
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 삭제 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 }
