@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
 import logging
 import os
+import traceback
 
 # 데이터베이스 관련 import
 from app.common.database.database import init_database, check_database_connection
@@ -11,6 +13,17 @@ from app.common.database.database import init_database, check_database_connectio
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# 에러 로깅 미들웨어 (개발용)
+@app.middleware("http")
+async def log_errors(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.error("❌ Unhandled error on %s %s", request.method, request.url.path)
+        logger.error("Exception: %r", e)
+        logger.error("%s", traceback.format_exc())
+        return JSONResponse(status_code=500, content={"detail": "internal_error"})
 
 app = FastAPI(
     title="GRI Service",

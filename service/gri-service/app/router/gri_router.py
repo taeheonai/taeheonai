@@ -51,7 +51,7 @@ async def get_categories(db: AsyncSession = Depends(get_db)):
         """)
         
         result = await db.execute(query)
-        categories = [dict(row._mapping) for row in result.mappings().all()]
+        categories = [dict(row) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
         
@@ -89,7 +89,7 @@ async def get_category_items(category_id: int, db: AsyncSession = Depends(get_db
         """)
         
         result = await db.execute(query, {"category_id": category_id})
-        items = [dict(row._mapping) for row in result.mappings().all()]
+        items = [dict(row) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI Index 조회 성공: {len(items)}개")
         
@@ -125,7 +125,7 @@ async def get_item_questions(item_id: int, db: AsyncSession = Depends(get_db)):
         """)
         
         result = await db.execute(query, {"item_id": item_id})
-        questions = [dict(row._mapping) for row in result.mappings().all()]
+        questions = [dict(row) for row in result.mappings().all()]
         
         logger.info(f"✅ GRI 질문 조회 성공: {len(questions)}개")
         
