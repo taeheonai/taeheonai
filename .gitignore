@@ -130,3 +130,7 @@ dump.rdb
 
 # Git
 .git/ 
+
+# docs folder
+docs/
+slm-service/

@@ -5,7 +5,7 @@
 -- =====================================================
 
 -- CASCADE로 모든 의존성 제거
-DROP TABLE IF EXISTS "user" CASCADE;
+
 DROP TABLE IF EXISTS media CASCADE;
 DROP TABLE IF EXISTS company_report CASCADE;
 DROP TABLE IF EXISTS issue_pool CASCADE;

@@ -106,39 +106,31 @@
     },
     {
       "code": "GRI 411",
-      "title": "Rights of Indigenous People"
-    },
-    {
-      "code": "GRI 412",
-      "title": "Local Communities"
+      "title": "Rights of Indigenous Peoples"
     },
     {
       "code": "GRI 413",
-      "title": "Supplier Social Assessment"
+      "title": "Local Communities"
     },
     {
       "code": "GRI 414",
-      "title": "Public Policy"
+      "title": "Supplier Social Assessment"
     },
     {
       "code": "GRI 415",
-      "title": "Customer Health and Safety"
+      "title": "Public Policy"
     },
     {
       "code": "GRI 416",
-      "title": "Marketing and Labeling"
+      "title": "Customer Health and Safety"
     },
     {
       "code": "GRI 417",
-      "title": "Customer Privacy"
+      "title": "Marketing and Labeling"
     },
     {
       "code": "GRI 418",
-      "title": "Socioeconomic Compliance"
-    },
-    {
-      "code": "GRI 419",
-      "title": "Social and Economic Compliance"
+      "title": "Customer Privacy"
     }
   ]
 }
