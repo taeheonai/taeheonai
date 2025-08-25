@@ -531,79 +531,59 @@
       "category_id": 27
     },
     {
-      "index_no": "412-1",
-      "title": "인권 관련 검토 또는 영향 평가 대상 사업장",
-      "category_id": 28
-    },
-    {
-      "index_no": "412-2",
-      "title": "인권 정책 및 절차 관련 직원 교육",
-      "category_id": 28
-    },
-    {
-      "index_no": "412-3",
-      "title": "인권 관련 조항을 포함하고 있거나 인권 심사를 받은 주요 투자 협정 및 계약",
-      "category_id": 28
-    },
-    {
       "index_no": "413-1",
       "title": "지역사회 참여, 영향 평가 및 개발 프로그램 운영 사업장",
-      "category_id": 29
+      "category_id": 28
     },
     {
       "index_no": "413-2",
       "title": "지역사회에 중대한 실제적/잠재적 부정적 영향을 미치는 사업장",
-      "category_id": 29
+      "category_id": 28
     },
     {
       "index_no": "414-1",
       "title": "사회적 기준에 따른 심사를 거친 신규 공급업체",
-      "category_id": 30
+      "category_id": 29
     },
     {
       "index_no": "414-2",
       "title": "공급망 내 부정적 사회적 영향 및 그에 대한 대응조치",
-      "category_id": 30
+      "category_id": 29
     },
     {
       "index_no": "415-1",
       "title": "정치 기부금",
-      "category_id": 31
+      "category_id": 30
     },
     {
       "index_no": "416-1",
       "title": "제품/서비스의 건강 및 안전 영향 평가",
-      "category_id": 32
+      "category_id": 31
     },
     {
       "index_no": "416-2",
       "title": "제품/서비스의 건강 및 안전 영향 관련 위반",
-      "category_id": 32
+      "category_id": 31
     },
     {
       "index_no": "417-1",
       "title": "제품/서비스 관련 정보 및 라벨링 요건",
-      "category_id": 33
+      "category_id": 32
     },
     {
       "index_no": "417-2",
       "title": "제품/서비스 정보 및 라벨링 관련 위반",
-      "category_id": 33
+      "category_id": 32
     },
     {
       "index_no": "417-3",
       "title": "마케팅 커뮤니케이션 관련 위반",
-      "category_id": 33
+      "category_id": 32
     },
     {
       "index_no": "418-1",
       "title": "고객 개인정보보호 위반 및 고객정보 분실 관련해 입증된 민원",
-      "category_id": 34
-    },
-    {
-      "index_no": "419-1",
-      "title": "사회적 및 경제적 분야의 법률 및 규정 위반",
-      "category_id": 35
+      "category_id": 33
     }
   ]
 }

@@ -24,19 +24,19 @@ class ExcelUploader:
             },
             {
                 "file_path": r"C:\Users\bit\taeheonai\docs\임원.xlsx",
-                "table_name": "executives",
+                "table_name": "executive",
                 "primary_key": "id",
                 "description": "임원 정보"
             },
             {
                 "file_path": r"C:\Users\bit\taeheonai\docs\재무상태.xlsx",
-                "table_name": "financial_status",
+                "table_name": "finance",
                 "primary_key": "id",
                 "description": "재무상태표"
             },
             {
                 "file_path": r"C:\Users\bit\taeheonai\docs\all_corp.xlsx",
-                "table_name": "all_corporations",
+                "table_name": "corporation",
                 "primary_key": "id",
                 "description": "전체 기업 정보"
             }
