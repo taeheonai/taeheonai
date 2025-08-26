@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
+import api from '@/lib/api';
 import { SignupPayload } from '@/types/user';
 
 // 데이터베이스 스키마에 맞춘 타입
@@ -49,21 +50,9 @@ export default function SignupPage() {
   const fetchCorporations = async () => {
     try {
       setLoadingCorporations(true);
-      const base = process.env.NEXT_PUBLIC_API_URL;
-      if (!base) {
-        console.error('NEXT_PUBLIC_API_URL is not defined');
-        return;
-      }
-      const res = await fetch(`${base}/v1/corporations?limit=1000`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) {
-        console.error('기업 목록 가져오기 실패:', res.status, res.statusText);
-        return;
-      }
-      const json = await res.json();
-      // 컨트롤러가 { data: [...] } 형태라면
-      const list: Corporation[] = Array.isArray(json) ? json : (json.data ?? []);
+      const response = await api.get('/v1/corporations?limit=1000');
+      // axios는 response.data에 실제 데이터가 있음
+      const list: Corporation[] = Array.isArray(response.data) ? response.data : (response.data.data ?? []);
       setCorporations(list);
     } catch (e) {
       console.error('기업 목록 가져오기 오류:', e);
