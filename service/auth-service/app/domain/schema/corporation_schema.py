@@ -1,21 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
 
-class CorporationBase(BaseModel):
-    companyname: str = Field(..., min_length=1, max_length=255, description="기업명")
-    industry: Optional[str] = Field(None, max_length=100, description="산업 분야")
-
-class CorporationCreate(CorporationBase):
-    pass
-
-class CorporationResponse(CorporationBase):
+class CorporationResponse(BaseModel):
     id: int
-    created_at: datetime
-    updated_at: datetime
+    companyname: str = Field(..., description="기업명")
+    corp_code: str = Field(..., description="기업 코드")
+    market: Optional[str] = Field(None, description="시장 구분 (KOSPI, KOSDAQ 등)")
+    dart_code: Optional[str] = Field(None, description="DART 코드")
+    industry: Optional[str] = Field(None, description="산업 분야")
 
     class Config:
         from_attributes = True
-
-class CorporationSearch(BaseModel):
-    q: str = Field(..., min_length=1, description="검색어")
