@@ -13,6 +13,7 @@ from fastapi import (
     APIRouter, FastAPI, Request, UploadFile, Query, HTTPException, Body
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
@@ -350,6 +351,22 @@ async def root():
 
 # 라우터를 앱에 포함 (generic proxy만 사용)
 app.include_router(gateway_router)
+
+@app.middleware("http")
+async def force_https_redirect(request: Request, call_next):
+    """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
+    # Railway 환경에서 HTTPS 강제 적용
+    if request.url.scheme == "http":
+        # HTTPS URL로 리다이렉트
+        https_url = str(request.url).replace("http://", "https://", 1)
+        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트: {request.url} → {https_url}")
+        return Response(
+            status_code=307,
+            headers={"Location": https_url},
+            content="HTTPS required"
+        )
+    
+    return await call_next(request)
 
 # 모든 요청 로깅 미들웨어 추가
 @app.middleware("http")
