@@ -64,9 +64,35 @@ export default function SignupPage() {
         console.log('✅ HTTPS URL 확인됨');
       }
       
+      // 🚨 추가 검증: URL이 실제로 HTTPS인지 확인
+      if (!apiUrl.startsWith('https://')) {
+        console.error('❌ URL이 여전히 HTTPS가 아님! 강제 변환');
+        apiUrl = apiUrl.replace(/^http:\/\//, 'https://');
+        console.log('✅ 최종 변환된 URL:', apiUrl);
+      }
+      
+      // 🚨 최종 URL 검증
+      console.log('🔍 최종 API URL 검증:', apiUrl);
+      if (apiUrl.startsWith('https://')) {
+        console.log('✅ HTTPS URL 최종 확인 완료');
+      } else {
+        throw new Error(`URL이 여전히 안전하지 않음: ${apiUrl}`);
+      }
+      
       console.log('🔍 API 요청 URL:', apiUrl);
       
-      const response = await axios.get(apiUrl);
+      // 🚨 axios 요청 전 최종 URL 검증
+      const finalUrl = new URL(apiUrl);
+      if (finalUrl.protocol !== 'https:') {
+        throw new Error(`프로토콜이 안전하지 않음: ${finalUrl.protocol}`);
+      }
+      console.log('✅ URL 프로토콜 검증 완료:', finalUrl.protocol);
+      
+      const response = await axios.get(apiUrl, {
+        // 🚨 추가 보안 설정
+        timeout: 10000,
+        validateStatus: (status) => status < 500, // 5xx 에러만 reject
+      });
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
       
@@ -79,11 +105,27 @@ export default function SignupPage() {
       console.log('🚀 === 기업 목록 가져오기 완료 ===');
     } catch (e) {
       console.error('❌ 기업 목록 가져오기 오류:', e);
+      
+      // 🚨 더 자세한 에러 정보 출력
+      if (e instanceof Error) {
+        console.error('🔍 에러 타입:', e.constructor.name);
+        console.error('🔍 에러 메시지:', e.message);
+        console.error('🔍 에러 스택:', e.stack);
+      }
+      
       if (e && typeof e === 'object' && 'response' in e) {
         const axiosError = e as { response?: { status?: number; statusText?: string; data?: { detail?: string } } };
         console.error('🔍 HTTP 상태:', axiosError.response?.status);
         console.error('🔍 에러 메시지:', axiosError.response?.data);
       }
+      
+      // 🚨 네트워크 에러 특별 처리
+      if (e && typeof e === 'object' && 'code' in e) {
+        const networkError = e as { code?: string; message?: string };
+        console.error('🔍 네트워크 에러 코드:', networkError.code);
+        console.error('🔍 네트워크 에러 메시지:', networkError.message);
+      }
+      
       console.error('🚨 === 기업 목록 가져오기 실패 ===');
     } finally {
       setLoadingCorporations(false);
