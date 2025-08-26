@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
-import api from '@/lib/api';
 import { SignupPayload } from '@/types/user';
+import axios from 'axios';
 
 // 데이터베이스 스키마에 맞춘 타입
 interface Corporation {
@@ -54,15 +54,11 @@ export default function SignupPage() {
       console.log('🔍 프록시 라우트 호출: /api/proxy/corporations?limit=1000');
       
       // 프록시 라우트를 통해 동일 출처로 요청 (Mixed Content 방지)
-      const response = await fetch('/api/proxy/corporations?limit=1000');
+      const response = await axios.get('/api/proxy/corporations?limit=1000');
       console.log('🔍 프록시 응답 상태:', response.status, response.statusText);
-      console.log('🔍 프록시 응답 헤더:', Object.fromEntries(response.headers.entries()));
+      console.log('🔍 프록시 응답 헤더:', response.headers);
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = response.data;
       console.log('🔍 프록시 응답 데이터:', data);
       
       const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);

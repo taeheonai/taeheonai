@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // CORS preflight 요청 처리
-export async function OPTIONS(request: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
