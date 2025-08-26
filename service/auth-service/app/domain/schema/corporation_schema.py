@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 class CorporationResponse(BaseModel):
@@ -11,3 +11,19 @@ class CorporationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator("dart_code", mode="before")
+    @classmethod
+    def cast_dart_code_to_str(cls, v):
+        if v is None:
+            return v
+        # int를 str로 안전하게 변환 (선행 0 보존)
+        return str(v)
+
+    @field_validator("corp_code", mode="before")
+    @classmethod
+    def cast_corp_code_to_str(cls, v):
+        if v is None:
+            return v
+        # int를 str로 안전하게 변환 (선행 0 보존)
+        return str(v)
