@@ -50,13 +50,19 @@ const getApiBaseUrl = () => {
   return 'http://localhost:8080/api';
 };
 
-const api = axios.create({
-  baseURL: getApiBaseUrl(),
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// axios 인스턴스를 동적으로 생성하는 함수
+const createApiInstance = () => {
+  return axios.create({
+    baseURL: getApiBaseUrl(),
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+// 기본 api 인스턴스
+let api = createApiInstance();
 
 // Request interceptor
 api.interceptors.request.use(
@@ -83,6 +89,14 @@ api.interceptors.request.use(
     if (config.baseURL && config.baseURL.includes('disciplined-imagination-production-d5c.up.railway.app')) {
       console.error('❌ 잘못된 API URL 감지! Auth Service로 직접 요청 중');
       console.error('❌ 올바른 URL:', 'https://taeheonai-production-2130.up.railway.app/api');
+    }
+    
+    // 🚨 HTTP URL 감지 시 HTTPS로 강제 수정
+    if (config.baseURL && config.baseURL.startsWith('http://')) {
+      console.error('🚨 HTTP URL 감지! HTTPS로 강제 수정');
+      config.baseURL = config.baseURL.replace('http://', 'https://');
+      console.log('✅ 수정된 baseURL:', config.baseURL);
+      console.log('✅ 수정된 최종 URL:', `${config.baseURL}${config.url}`);
     }
     
     // 🚨 Vercel 환경에서 잘못된 URL 사용 시 강제 수정
@@ -130,7 +144,13 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+export default api;
+
+// 동적으로 새로운 인스턴스 생성 함수 export
+export const refreshApiInstance = () => {
+  api = createApiInstance();
+  return api;
+}; 
 
 // ===== Helpers for gateway auth logging =====
 export async function postSignupPayload(payload: {
