@@ -19,11 +19,11 @@ class CorporationRepository:
         except Exception as e:
             raise Exception(f"기업 정보 조회 실패: {str(e)}")
     
-    async def get_by_name(self, name: str) -> Optional[Corporation]:
+    async def get_by_name(self, companyname: str) -> Optional[Corporation]:
         """기업명으로 기업 정보 조회"""
         try:
             result = await self.db.execute(
-                select(Corporation).where(Corporation.name == name)
+                select(Corporation).where(Corporation.companyname == companyname)
             )
             return result.scalar_one_or_none()
         except Exception as e:
@@ -36,11 +36,11 @@ class CorporationRepository:
             result = await self.db.execute(
                 select(Corporation)
                 .where(or_(
-                    Corporation.name.ilike(f"%{query}%"),
+                    Corporation.companyname.ilike(f"%{query}%"),
                     Corporation.industry.ilike(f"%{query}%")
                 ))
                 .limit(limit)
-                .order_by(Corporation.name)
+                .order_by(Corporation.companyname)
             )
             return result.scalars().all()
         except Exception as e:
@@ -57,16 +57,16 @@ class CorporationRepository:
             await self.db.rollback()
             raise Exception(f"기업 정보 생성 실패: {str(e)}")
     
-    async def create_if_not_exists(self, name: str, industry: str = None) -> int:
+    async def create_if_not_exists(self, companyname: str, industry: str = None) -> int:
         """기업이 없으면 생성하고 ID 반환"""
         try:
             # 기존 기업 확인
-            existing = await self.get_by_name(name)
+            existing = await self.get_by_name(companyname)
             if existing:
                 return existing.id
             
             # 새 기업 생성
-            new_corporation = Corporation(name=name, industry=industry)
+            new_corporation = Corporation(companyname=companyname, industry=industry)
             created = await self.create(new_corporation)
             return created.id
             
@@ -80,7 +80,7 @@ class CorporationRepository:
                 select(Corporation)
                 .offset(skip)
                 .limit(limit)
-                .order_by(Corporation.name)
+                .order_by(Corporation.companyname)
             )
             return result.scalars().all()
         except Exception as e:

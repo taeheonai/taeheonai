@@ -14,13 +14,13 @@ class CorporationService:
         """기업 정보 생성"""
         try:
             # 기존 기업명 확인
-            existing = await self.repo.get_by_name(data.name)
+            existing = await self.repo.get_by_name(data.companyname)
             if existing:
-                raise Exception(f"기업명 '{data.name}'이 이미 존재합니다.")
+                raise Exception(f"기업명 '{data.companyname}'이 이미 존재합니다.")
             
             # 새 기업 생성
             corporation = Corporation(
-                name=data.name,
+                companyname=data.companyname,
                 industry=data.industry
             )
             created = await self.repo.create(corporation)
