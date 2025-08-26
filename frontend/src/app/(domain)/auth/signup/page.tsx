@@ -52,8 +52,18 @@ export default function SignupPage() {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // axios로 직접 API 호출 (올바른 Auth Service URL)
-      const apiUrl = 'https://disciplined-imagination-production-df5c.up.railway.app/v1/corporations?limit=1000';
+      // axios로 직접 API 호출 (올바른 Auth Service URL - HTTPS)
+      let apiUrl = 'https://disciplined-imagination-production-df5c.up.railway.app/v1/corporations?limit=1000';
+      
+      // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
+      if (apiUrl.includes('http://')) {
+        console.error('❌ HTTP URL 감지! 강제로 HTTPS로 변환');
+        apiUrl = apiUrl.replace('http://', 'https://');
+        console.log('✅ 변환된 URL:', apiUrl);
+      } else {
+        console.log('✅ HTTPS URL 확인됨');
+      }
+      
       console.log('🔍 API 요청 URL:', apiUrl);
       
       const response = await axios.get(apiUrl);
@@ -69,6 +79,11 @@ export default function SignupPage() {
       console.log('🚀 === 기업 목록 가져오기 완료 ===');
     } catch (e) {
       console.error('❌ 기업 목록 가져오기 오류:', e);
+      if (e && typeof e === 'object' && 'response' in e) {
+        const axiosError = e as { response?: { status?: number; statusText?: string; data?: { detail?: string } } };
+        console.error('🔍 HTTP 상태:', axiosError.response?.status);
+        console.error('🔍 에러 메시지:', axiosError.response?.data);
+      }
       console.error('🚨 === 기업 목록 가져오기 실패 ===');
     } finally {
       setLoadingCorporations(false);
