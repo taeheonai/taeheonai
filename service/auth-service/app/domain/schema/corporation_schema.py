@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class CorporationBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255, description="기업명")
+    companyname: str = Field(..., min_length=1, max_length=255, description="기업명")
     industry: Optional[str] = Field(None, max_length=100, description="산업 분야")
 
 class CorporationCreate(CorporationBase):
