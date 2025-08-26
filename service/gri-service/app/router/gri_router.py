@@ -281,7 +281,7 @@ async def get_progress(session_key: str, db: AsyncSession = Depends(get_db)):
 # ===== 기존 GRI 답변 관리 엔드포인트들 =====
 
 # GRI 답변 관리 엔드포인트들
-@gri_router.post("/answers", summary="GRI 답변 생성", response_model=AnswerResponse)
+@gri_router.post("/answers", summary="GRI 답변 생성")
 async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 생성 요청을 처리합니다."""
     try:
@@ -297,9 +297,9 @@ async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
         # AnswerController를 통해 서비스 호출
         result = await answer_controller.create_answer(answer_data, db)
         
-        logger.info(f"✅ GRI 답변 생성 성공: ID {result.id if hasattr(result, 'id') else 'N/A'}")
+        logger.info(f"✅ GRI 답변 생성 성공: ID {result.get('data', {}).get('id', 'N/A')}")
         
-        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        # wrapper 구조 그대로 반환 (FastAPI가 자동으로 JSON 직렬화)
         return result
         
     except HTTPException:
@@ -314,7 +314,7 @@ async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
             detail=f"GRI 답변 생성 중 오류가 발생했습니다: {str(e)}"
         )
 
-@gri_router.get("/answers/{answer_id}", summary="GRI 답변 조회", response_model=AnswerResponse)
+@gri_router.get("/answers/{answer_id}", summary="GRI 답변 조회")
 async def get_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 조회 요청을 처리합니다."""
     try:
@@ -325,7 +325,7 @@ async def get_answer(answer_id: int, request: Request, db: AsyncSession = Depend
         
         logger.info(f"✅ GRI 답변 조회 성공: ID {answer_id}")
         
-        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        # wrapper 구조 그대로 반환 (FastAPI가 자동으로 JSON 직렬화)
         return result
         
     except HTTPException:
@@ -367,7 +367,7 @@ async def get_answers(
             detail=f"GRI 답변 목록 조회 중 오류가 발생했습니다: {str(e)}"
         )
 
-@gri_router.put("/answers/{answer_id}", summary="GRI 답변 수정", response_model=AnswerResponse)
+@gri_router.put("/answers/{answer_id}", summary="GRI 답변 수정")
 async def update_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 수정 요청을 처리합니다."""
     try:
@@ -375,7 +375,7 @@ async def update_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         body = await request.body()
         request_data = json.loads(body.decode('utf-8'))
         
-        logger.info(f"📝 GRI 답변 수정 요청: ID {answer_id}, 데이터: {request_data}")
+        logger.info(f"📝 GRI 답변 수정 요청: ID {answer_id}, 데이터: {jsonable_encoder(request_data)}")
         
         # JSON 데이터를 AnswerCreate 모델로 변환
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
@@ -385,7 +385,7 @@ async def update_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         
         logger.info(f"✅ GRI 답변 수정 성공: ID {answer_id}")
         
-        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        # wrapper 구조 그대로 반환 (FastAPI가 자동으로 JSON 직렬화)
         return result
         
     except HTTPException:
