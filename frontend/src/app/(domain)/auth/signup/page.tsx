@@ -20,7 +20,7 @@ type SignupFormState = {
   industry: string;
   email: string;
   name: string;
-  age: string;              // 입력은 문자열로 받되 전송 시 숫자로 변환
+  birth: string;            // 생년월일 (문자열)
   auth_id: string;
   auth_pw: string;
 };
@@ -33,7 +33,7 @@ export default function SignupPage() {
     industry: '',
     email: '',
     name: '',
-    age: '',
+    birth: '',
     auth_id: '',
     auth_pw: '',
   });
@@ -106,15 +106,14 @@ export default function SignupPage() {
       return;
     }
 
-    // 숫자 변환
-    const ageNum = form.age ? Number(form.age) : null;
+    // birth는 문자열로 유지
 
     const payload: SignupPayload = {
       corporation_id: form.corporation_id,          // 숫자 FK
       industry: form.industry || null,
       email: form.email || null,
       name: form.name || null,
-      age: ageNum as any,                   // 타입 정의에 맞게 조정
+      birth: form.birth || null,                   // 문자열
       auth_id: form.auth_id,
       auth_pw: form.auth_pw,
     };
@@ -130,7 +129,7 @@ export default function SignupPage() {
           email: form.email,
           corporation_id: form.corporation_id,
           industry: form.industry,
-          age: ageNum,
+          birth: form.birth,
         };
         localStorage.setItem('user', JSON.stringify(userInfo));
         alert('회원가입 성공! 자동으로 로그인되었습니다.');
@@ -239,13 +238,13 @@ export default function SignupPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">나이 (age)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">생년월일 (birth)</label>
                 <input
-                  name="age"
-                  value={form.age}
+                  name="birth"
+                  value={form.birth}
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="예: 30"
+                  placeholder="예: 1990-01-01"
                   disabled={loading}
                 />
               </div>
