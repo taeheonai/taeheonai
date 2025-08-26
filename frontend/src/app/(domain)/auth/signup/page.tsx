@@ -56,7 +56,7 @@ export default function SignupPage() {
       let apiUrl = 'https://disciplined-imagination-production-df5c.up.railway.app/v1/corporations?limit=1000';
       
       // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
-      if (apiUrl.includes('https://')) {
+      if (apiUrl.includes('http://')) {
         console.error('❌ HTTP URL 감지! 강제로 HTTPS로 변환');
         apiUrl = apiUrl.replace('http://', 'https://');
         console.log('✅ 변환된 URL:', apiUrl);
@@ -92,9 +92,44 @@ export default function SignupPage() {
         // 🚨 추가 보안 설정
         timeout: 10000,
         validateStatus: (status) => status < 500, // 5xx 에러만 reject
+        maxRedirects: 0, // 🚨 리다이렉트 방지
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
       });
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
+      
+      // 🚨 리다이렉트 응답 처리
+      if (response.status === 307) {
+        const redirectUrl = response.headers.location;
+        console.log('🔄 리다이렉트 URL 감지:', redirectUrl);
+        
+        if (redirectUrl && redirectUrl.startsWith('http://')) {
+          console.error('❌ HTTP 리다이렉트 감지! HTTPS로 변환 시도');
+          const httpsUrl = redirectUrl.replace('http://', 'https://');
+          console.log('✅ HTTPS로 변환된 URL:', httpsUrl);
+          
+          // HTTPS URL로 재요청
+          const redirectResponse = await axios.get(httpsUrl, {
+            timeout: 10000,
+            validateStatus: (status) => status < 500,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          console.log('🔄 리다이렉트 후 응답 상태:', redirectResponse.status);
+          const data = redirectResponse.data;
+          const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);
+          setCorporations(list);
+          console.log('✅ 기업 목록 가져오기 성공 (리다이렉트 후):', list.length, '개');
+          console.log('🚀 === 기업 목록 가져오기 완료 ===');
+          return;
+        }
+      }
       
       const data = response.data;
       console.log('🔍 API 응답 데이터:', data);
