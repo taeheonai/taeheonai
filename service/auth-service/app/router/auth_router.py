@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.common.database import get_db, engine
-from app.domain.user.user_controller import UserController
-from app.domain.user.user_schema import SignupIn, LoginIn
+from app.domain.controller.user_controller import UserController
+from app.domain.schema.user_schema import SignupIn, LoginIn
 from pydantic import ValidationError
 from datetime import datetime, timezone
 import logging

@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.corporation.corporation_repository import CorporationRepository
-from app.domain.corporation.corporation_schema import CorporationCreate, CorporationResponse, CorporationSearch
-from app.domain.corporation.corporation_entity import Corporation
+from app.domain.repository.corporation_repository import CorporationRepository
+from app.domain.schema.corporation_schema import CorporationCreate, CorporationResponse, CorporationSearch
+from app.domain.entity.corporation_entity import Corporation
 
 class CorporationService:
     """기업 정보 비즈니스 로직 계층"""

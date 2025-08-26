@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from typing import Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.corporation.corporation_schema import CorporationCreate, CorporationResponse, CorporationSearch
-from app.domain.corporation.corporation_service import CorporationService
+from app.domain.schema.corporation_schema import CorporationCreate, CorporationResponse, CorporationSearch
+from app.domain.service.corporation_service import CorporationService
 
 class CorporationController:
     """

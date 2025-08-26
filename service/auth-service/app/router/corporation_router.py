@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 import logging
 
-from app.domain.corporation.corporation_controller import CorporationController
-from app.domain.corporation.corporation_schema import CorporationCreate, CorporationSearch
+from app.domain.controller.corporation_controller import CorporationController
+from app.domain.schema.corporation_schema import CorporationCreate, CorporationSearch
 from app.common.database import get_db
 
 logger = logging.getLogger(__name__)

@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.user.user_schema import SignupIn, LoginIn
-from app.domain.user.user_service import UserService
+from app.domain.schema.user_schema import SignupIn, LoginIn
+from app.domain.service.user_service import UserService
 
 class UserController:
     """

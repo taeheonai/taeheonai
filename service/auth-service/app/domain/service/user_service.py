@@ -1,9 +1,9 @@
 from fastapi import HTTPException
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.user.user_schema import SignupIn, LoginIn
-from app.domain.user.user_repository import UserRepository
-from app.domain.corporation.corporation_service import CorporationService
+from app.domain.schema.user_schema import SignupIn, LoginIn
+from app.domain.repository.user_repository import UserRepository
+from app.domain.service.corporation_service import CorporationService
 from datetime import datetime, timezone
 
 class UserService:
