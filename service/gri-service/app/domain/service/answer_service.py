@@ -1,3 +1,4 @@
+from typing import Optional
 from app.domain.repository.answer_repository import AnswerRepository
 from app.domain.schema.answer_schema import AnswerCreate, AnswerResponse
 
