@@ -15,13 +15,13 @@ class AnswerRepository:
     def _convert_base_model_to_base(self, answer_data: AnswerCreate) -> AnswerEntity:
         """BaseModel을 Base(Entity)로 변환합니다."""
         try:
-            # BaseModel의 데이터를 추출하여 Base(Entity) 생성 (date는 자동으로 현재 날짜 문자열)
+            # BaseModel의 데이터를 추출하여 Base(Entity) 생성
             answer_entity = AnswerEntity(
-                company_id=answer_data.company_id,
-                date=date.today().strftime("%Y-%m-%d"),  # 자동으로 현재 날짜 문자열 설정
-                question=answer_data.question,
-                answer=answer_data.answer,
-                gri_index=answer_data.gri_index
+                question_id=answer_data.question_id,
+                session_key=answer_data.session_key,
+                answer_text=answer_data.answer_text,
+                answer_json=answer_data.answer_json,
+                is_completed=answer_data.is_completed
             )
             return answer_entity
             
@@ -49,15 +49,15 @@ class AnswerRepository:
         except Exception as e:
             raise e
     
-    async def find_by_company_id(self, company_id: str, skip: int = 0, limit: int = 100) -> List[AnswerEntity]:
-        """회사 ID로 엔티티 목록을 조회합니다."""
+    async def find_by_session_key(self, session_key: str, skip: int = 0, limit: int = 100) -> List[AnswerEntity]:
+        """세션 키로 엔티티 목록을 조회합니다."""
         try:
             result = await self.db.execute(
                 select(AnswerEntity)
-                .where(AnswerEntity.company_id == company_id)
+                .where(AnswerEntity.session_key == session_key)
                 .offset(skip)
                 .limit(limit)
-                .order_by(AnswerEntity.date.desc())
+                .order_by(AnswerEntity.created_at.desc())
             )
             return result.scalars().all()
         except Exception as e:
@@ -70,7 +70,7 @@ class AnswerRepository:
                 select(AnswerEntity)
                 .offset(skip)
                 .limit(limit)
-                .order_by(AnswerEntity.date.desc())
+                .order_by(AnswerEntity.created_at.desc())
             )
             return result.scalars().all()
         except Exception as e:
@@ -106,13 +106,13 @@ class AnswerRepository:
             await self.db.rollback()
             raise e
     
-    async def find_by_gri_index(self, gri_index: str, company_id: Optional[str] = None) -> List[AnswerEntity]:
-        """GRI 지수로 엔티티를 조회합니다."""
+    async def find_by_question_id(self, question_id: int, session_key: Optional[str] = None) -> List[AnswerEntity]:
+        """질문 ID로 엔티티를 조회합니다."""
         try:
-            query = select(AnswerEntity).where(AnswerEntity.gri_index == gri_index)
+            query = select(AnswerEntity).where(AnswerEntity.question_id == question_id)
             
-            if company_id:
-                query = query.where(AnswerEntity.company_id == company_id)
+            if session_key:
+                query = query.where(AnswerEntity.session_key == session_key)
             
             result = await self.db.execute(query)
             return result.scalars().all()

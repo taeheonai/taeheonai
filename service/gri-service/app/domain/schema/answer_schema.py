@@ -8,6 +8,7 @@ class AnswerCreate(BaseModel):
     session_key: str = Field(..., max_length=100, description="세션 키")
     answer_text: str = Field(..., max_length=3000, description="사용자 답변")
     answer_json: Optional[Dict[str, Any]] = Field(None, description="추가 JSON 데이터")
+    is_completed: bool = Field(False, description="답변 완료 여부")
 
 class AnswerResponse(BaseModel):
     """GRI 답변 응답 스키마"""
