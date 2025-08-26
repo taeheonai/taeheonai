@@ -11,6 +11,7 @@ import json
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
 from app.common.database import get_db
+from app.domain.schema.answer_schema import AnswerResponse
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +281,7 @@ async def get_progress(session_key: str, db: AsyncSession = Depends(get_db)):
 # ===== 기존 GRI 답변 관리 엔드포인트들 =====
 
 # GRI 답변 관리 엔드포인트들
-@gri_router.post("/answers", summary="GRI 답변 생성")
+@gri_router.post("/answers", summary="GRI 답변 생성", response_model=AnswerResponse)
 async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 생성 요청을 처리합니다."""
     try:
@@ -288,32 +289,18 @@ async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
         body = await request.body()
         request_data = json.loads(body.decode('utf-8'))
         
-        logger.info(f"📝 GRI 답변 생성 요청: {request_data}")
+        logger.info(f"📝 GRI 답변 생성 요청: {jsonable_encoder(request_data)}")
         
         # JSON 데이터를 AnswerCreate 모델로 변환
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        
         result = await answer_controller.create_answer(answer_data, db)
         
-        logger.info(f"✅ GRI 답변 생성 성공")
+        logger.info(f"✅ GRI 답변 생성 성공: ID {result.id if hasattr(result, 'id') else 'N/A'}")
         
-        # AnswerResponse 객체를 dict로 변환
-        if hasattr(result, 'model_dump'):
-            result_dict = result.model_dump()
-        elif hasattr(result, 'dict'):
-            result_dict = result.dict()
-        else:
-            result_dict = result
-        
-        return JSONResponse(
-            status_code=201,
-            content={
-                **result_dict,
-                "source": "frontend"
-            }
-        )
+        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        return result
         
     except HTTPException:
         raise
@@ -327,33 +314,19 @@ async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
             detail=f"GRI 답변 생성 중 오류가 발생했습니다: {str(e)}"
         )
 
-@gri_router.get("/answers/{answer_id}", summary="GRI 답변 조회")
+@gri_router.get("/answers/{answer_id}", summary="GRI 답변 조회", response_model=AnswerResponse)
 async def get_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 조회 요청을 처리합니다."""
     try:
         logger.info(f"📝 GRI 답변 조회 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        
         result = await answer_controller.get_answer_by_id(answer_id, db)
         
         logger.info(f"✅ GRI 답변 조회 성공: ID {answer_id}")
         
-        # AnswerResponse 객체를 dict로 변환
-        if hasattr(result, 'model_dump'):
-            result_dict = result.model_dump()
-        elif hasattr(result, 'dict'):
-            result_dict = result.dict()
-        else:
-            result_dict = result
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                **result_dict,
-                "source": "frontend"
-            }
-        )
+        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        return result
         
     except HTTPException:
         raise
@@ -377,7 +350,6 @@ async def get_answers(
         logger.info(f"📝 GRI 답변 목록 조회 요청: session_key={session_key}, page={page}, size={size}")
         
         # AnswerController를 통해 서비스 호출
-        
         if session_key:
             result = await answer_controller.get_answers_by_session(session_key, page, size, db)
         else:
@@ -385,21 +357,8 @@ async def get_answers(
         
         logger.info(f"✅ GRI 답변 목록 조회 성공")
         
-        # AnswerResponse 객체를 dict로 변환
-        if hasattr(result, 'model_dump'):
-            result_dict = result.model_dump()
-        elif hasattr(result, 'dict'):
-            result_dict = result.dict()
-        else:
-            result_dict = result
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                **result_dict,
-                "source": "frontend"
-            }
-        )
+        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        return result
         
     except Exception as e:
         logger.error(f"❌ GRI 답변 목록 조회 실패: {e}")
@@ -408,7 +367,7 @@ async def get_answers(
             detail=f"GRI 답변 목록 조회 중 오류가 발생했습니다: {str(e)}"
         )
 
-@gri_router.put("/answers/{answer_id}", summary="GRI 답변 수정")
+@gri_router.put("/answers/{answer_id}", summary="GRI 답변 수정", response_model=AnswerResponse)
 async def update_answer(answer_id: int, request: Request, db: AsyncSession = Depends(get_db)):
     """GRI 답변 수정 요청을 처리합니다."""
     try:
@@ -422,26 +381,12 @@ async def update_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         answer_data = validate_and_convert_json(request_data, AnswerCreate)
         
         # AnswerController를 통해 서비스 호출
-        
         result = await answer_controller.update_answer(answer_id, answer_data, db)
         
         logger.info(f"✅ GRI 답변 수정 성공: ID {answer_id}")
         
-        # AnswerResponse 객체를 dict로 변환
-        if hasattr(result, 'model_dump'):
-            result_dict = result.model_dump()
-        elif hasattr(result, 'dict'):
-            result_dict = result.dict()
-        else:
-            result_dict = result
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                **result_dict,
-                "source": "frontend"
-            }
-        )
+        # FastAPI가 자동으로 Pydantic 모델을 JSON으로 직렬화
+        return result
         
     except HTTPException:
         raise
@@ -462,26 +407,16 @@ async def delete_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         logger.info(f"📝 GRI 답변 삭제 요청: ID {answer_id}")
         
         # AnswerController를 통해 서비스 호출
-        
         result = await answer_controller.delete_answer(answer_id, db)
         
         logger.info(f"✅ GRI 답변 삭제 성공: ID {answer_id}")
         
-        # AnswerResponse 객체를 dict로 변환
-        if hasattr(result, 'model_dump'):
-            result_dict = result.model_dump()
-        elif hasattr(result, 'dict'):
-            result_dict = result.dict()
-        else:
-            result_dict = result
-        
-        return JSONResponse(
-            status_code=200,
-            content={
-                **result_dict,
-                "source": "frontend"
-            }
-        )
+        # 삭제 결과를 dict로 반환 (삭제는 보통 단순한 상태 메시지)
+        return {
+            "success": True,
+            "message": f"GRI 답변 ID {answer_id}가 성공적으로 삭제되었습니다.",
+            "deleted_id": answer_id
+        }
         
     except HTTPException:
         raise
