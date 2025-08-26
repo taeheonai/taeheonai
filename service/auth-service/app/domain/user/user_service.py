@@ -3,12 +3,14 @@ from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.user.user_schema import SignupIn, LoginIn
 from app.domain.user.user_repository import UserRepository
+from app.domain.corporation.corporation_service import CorporationService
 from datetime import datetime, timezone
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.user_repository = UserRepository(db)
+        self.corporation_service = CorporationService(db)
 
     async def signup(self, signup_data: SignupIn) -> Dict[str, Any]:
         """
@@ -22,6 +24,19 @@ class UserService:
                     detail="이미 존재하는 사용자입니다."
                 )
 
+            # 기업명을 ID로 매핑 (없으면 자동 생성)
+            try:
+                company_id = await self.corporation_service.get_or_create_corporation(
+                    name=signup_data.company_name,
+                    industry=signup_data.industry
+                )
+                signup_data.company_id = company_id
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"기업 정보 처리 실패: {str(e)}"
+                )
+
             # UserRepository를 통한 사용자 생성 (BaseModel → Entity 변환)
             user_entity = await self.user_repository.create_user(signup_data)
 
@@ -30,6 +45,8 @@ class UserService:
                 "message": "회원가입이 완료되었습니다.",
                 "user_id": str(user_entity.id),
                 "auth_id": user_entity.auth_id,
+                "company_id": company_id,
+                "company_name": signup_data.company_name,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
