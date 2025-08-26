@@ -60,14 +60,12 @@ if is_railway:
     # Railway 프로덕션 환경
     cors_origins = [
         "https://taeheonai.com",
-        "http://taeheonai.com",
         "https://www.taeheonai.com",
-        "http://www.taeheonai.com",
-        "taeheonai-9df6jy61w-oheth9-gmailcoms-projects.vercel.app",
-        "taeheonai-oheth9-gmailcoms-projects.vercel.app",
-        "https://taeheonai-production-2130.up.railway.app"
-        "gri-service-production.up.railway.app"
-        "disciplined-imagination-production-df5c.up.railway.app"
+        "https://taeheonai-9df6jy61w-oheth9-gmailcoms-projects.vercel.app",
+        "https://taeheonai-oheth9-gmailcoms-projects.vercel.app",
+        "https://taeheonai-production-2130.up.railway.app",
+        "https://gri-service-production.up.railway.app",
+        "https://disciplined-imagination-production-df5c.up.railway.app"
     ]
     logger.info("🌐 Railway 프로덕션 환경 CORS 설정 적용")
 else:
