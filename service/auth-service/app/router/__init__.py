@@ -1,6 +1,6 @@
 # Auth Service Router Package
 
-from .user_router import user_router
+from .auth_router import auth_router
 from .corporation_router import corporation_router
 
-__all__ = ["user_router", "corporation_router"] 
+__all__ = ["auth_router", "corporation_router"] 
