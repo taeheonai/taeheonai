@@ -52,8 +52,8 @@ export default function SignupPage() {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // axios로 직접 API 호출 (올바른 Auth Service URL - HTTPS)
-      let apiUrl = 'https://disciplined-imagination-production-df5c.up.railway.app/v1/corporations?limit=1000';
+      // Gateway를 통한 API 호출 (CORS 문제 해결)
+      let apiUrl = 'https://taeheonai-production-2130.up.railway.app/api/v1/corporations?limit=1000';
       
       // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
       if (apiUrl.includes('http://')) {
@@ -89,10 +89,7 @@ export default function SignupPage() {
       console.log('✅ URL 프로토콜 검증 완료:', finalUrl.protocol);
       
       const response = await axios.get(apiUrl, {
-        // 🚨 추가 보안 설정
         timeout: 10000,
-        validateStatus: (status) => status < 500, // 5xx 에러만 reject
-        maxRedirects: 0, // 🚨 리다이렉트 방지
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -101,35 +98,8 @@ export default function SignupPage() {
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
       
-      // 🚨 리다이렉트 응답 처리
-      if (response.status === 307) {
-        const redirectUrl = response.headers.location;
-        console.log('🔄 리다이렉트 URL 감지:', redirectUrl);
-        
-        if (redirectUrl && redirectUrl.startsWith('http://')) {
-          console.error('❌ HTTP 리다이렉트 감지! HTTPS로 변환 시도');
-          const httpsUrl = redirectUrl.replace('http://', 'https://');
-          console.log('✅ HTTPS로 변환된 URL:', httpsUrl);
-          
-          // HTTPS URL로 재요청
-          const redirectResponse = await axios.get(httpsUrl, {
-            timeout: 10000,
-            validateStatus: (status) => status < 500,
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          console.log('🔄 리다이렉트 후 응답 상태:', redirectResponse.status);
-          const data = redirectResponse.data;
-          const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);
-          setCorporations(list);
-          console.log('✅ 기업 목록 가져오기 성공 (리다이렉트 후):', list.length, '개');
-          console.log('🚀 === 기업 목록 가져오기 완료 ===');
-          return;
-        }
-      }
+      // Gateway를 사용하므로 리다이렉트 처리가 불필요
+      console.log('✅ Gateway를 통한 요청, 리다이렉트 없음');
       
       const data = response.data;
       console.log('🔍 API 응답 데이터:', data);
