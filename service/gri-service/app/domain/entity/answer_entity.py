@@ -2,7 +2,7 @@ from sqlalchemy import (
     Column, String, Integer, Boolean, DateTime, Text
 )
 from sqlalchemy.sql import func
-from app.common.database.database import Base
+from app.common.database import Base
 
 class AnswerEntity(Base):
     """GRI 질문에 대한 답변 엔티티"""

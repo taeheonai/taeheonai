@@ -8,7 +8,7 @@ import os
 import traceback
 
 # 데이터베이스 관련 import
-from app.common.database.database import init_database, check_database_connection
+from app.common.database import init_database, check_database_connection
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)

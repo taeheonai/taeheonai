@@ -10,7 +10,7 @@ import json
 
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
-from app.common.database.database import get_db
+from app.common.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -459,7 +459,7 @@ async def delete_answer(answer_id: int, request: Request, db: AsyncSession = Dep
 async def database_status_check():
     """데이터베이스 상태 확인 엔드포인트"""
     try:
-        from app.common.database.database import check_database_connection
+        from app.common.database import check_database_connection
         connection_ok = await check_database_connection()
         return {
             "status": "success" if connection_ok else "failed",
