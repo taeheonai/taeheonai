@@ -50,12 +50,17 @@ export default function SignupPage() {
   const fetchCorporations = async () => {
     try {
       setLoadingCorporations(true);
-      const response = await api.get('/v1/corporations?limit=1000');
-      // axios는 response.data에 실제 데이터가 있음
-      const list: Corporation[] = Array.isArray(response.data) ? response.data : (response.data.data ?? []);
+      // 프록시 라우트를 통해 동일 출처로 요청 (Mixed Content 방지)
+      const response = await fetch('/api/proxy/corporations?limit=1000');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);
       setCorporations(list);
+      console.log('✅ 기업 목록 가져오기 성공 (프록시):', list.length, '개');
     } catch (e) {
-      console.error('기업 목록 가져오기 오류:', e);
+      console.error('❌ 기업 목록 가져오기 오류:', e);
     } finally {
       setLoadingCorporations(false);
     }
