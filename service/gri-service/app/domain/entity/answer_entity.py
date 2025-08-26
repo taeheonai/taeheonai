@@ -1,18 +1,20 @@
-from sqlalchemy import (
-    Column, String, Integer, Boolean, DateTime, Text, JSON
-)
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, Text, Index
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 from app.common.database import Base
 
 class AnswerEntity(Base):
-    """GRI 질문에 대한 답변 엔티티"""
     __tablename__ = "gri_answer"
 
     id = Column(Integer, primary_key=True, index=True)
-    question_id = Column(Integer, nullable=False, index=True)  # 질문 ID (gri_question 테이블 참조)
-    session_key = Column(String(100), nullable=False, index=True)  # 세션 키
-    answer_text = Column(Text, nullable=False)  # 사용자 답변
-    answer_json = Column(JSON, nullable=True)  # 추가 JSON 데이터 (JSON 타입)
-    is_completed = Column(Boolean, default=False)  # 답변 완료 여부
-    created_at = Column(DateTime(timezone=True), server_default=func.now())  # 생성 시간
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())  # 수정 시간
+    question_id = Column(Integer, nullable=False, index=True)
+    session_key = Column(String(100), nullable=False, index=True)
+    answer_text = Column(Text, nullable=False)
+    # JSONB + MutableDict
+    answer_json = Column(MutableDict.as_mutable(JSONB), nullable=True)
+    is_completed = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+Index("ix_gri_answer_session_question", AnswerEntity.session_key, AnswerEntity.question_id)
