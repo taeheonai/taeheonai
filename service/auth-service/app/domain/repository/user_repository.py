@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.domain.user.user_entity import UserEntity
+from app.domain.entity.user_entity import UserEntity
 
-from app.domain.user.user_schema import SignupIn, LoginIn
+from app.domain.schema.user_schema import SignupIn, LoginIn
 from typing import Optional, Dict, Any
 from fastapi import HTTPException
 from passlib.context import CryptContext
