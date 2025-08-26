@@ -1,131 +1,60 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
-from typing import List, Optional
-from datetime import date
 from fastapi.encoders import jsonable_encoder
-
+from sqlalchemy import select, update, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional, List
 from app.domain.entity.answer_entity import AnswerEntity
 from app.domain.schema.answer_schema import AnswerCreate
 
 class AnswerRepository:
-    """GRI 답변 데이터 접근 계층 - BaseModel을 Base로 변환하는 역할만 담당"""
-    
     def __init__(self, db: AsyncSession):
         self.db = db
-    
-    def _convert_base_model_to_base(self, answer_data: AnswerCreate) -> AnswerEntity:
-        """BaseModel을 Base(Entity)로 변환합니다."""
-        try:
-            # JSONB 컬럼에 안전하게 dict 변환
-            answer_json = None
-            if answer_data.answer_json is not None:
-                if hasattr(answer_data.answer_json, 'model_dump'):
-                    answer_json = answer_data.answer_json.model_dump()
-                elif hasattr(answer_data.answer_json, 'dict'):
-                    answer_json = answer_data.answer_json.dict()
-                else:
-                    answer_json = jsonable_encoder(answer_data.answer_json)
-            
-            # BaseModel의 데이터를 추출하여 Base(Entity) 생성
-            answer_entity = AnswerEntity(
-                question_id=answer_data.question_id,
-                session_key=answer_data.session_key,
-                answer_text=answer_data.answer_text,
-                answer_json=answer_json,  # 안전하게 변환된 JSON 데이터
-                is_completed=answer_data.is_completed
-            )
-            return answer_entity
-            
-        except Exception as e:
-            raise Exception(f"BaseModel을 Base로 변환 중 오류 발생: {str(e)}")
-    
-    async def save_entity(self, entity: AnswerEntity) -> AnswerEntity:
-        """엔티티를 데이터베이스에 저장합니다."""
-        try:
-            self.db.add(entity)
-            await self.db.commit()
-            await self.db.refresh(entity)
-            return entity
-        except Exception as e:
-            await self.db.rollback()
-            raise e
-    
-    async def find_by_id(self, answer_id: int) -> Optional[AnswerEntity]:
-        """ID로 엔티티를 조회합니다."""
-        try:
-            result = await self.db.execute(
-                select(AnswerEntity).where(AnswerEntity.id == answer_id)
-            )
-            return result.scalar_one_or_none()
-        except Exception as e:
-            raise e
-    
-    async def find_by_session_key(self, session_key: str, skip: int = 0, limit: int = 100) -> List[AnswerEntity]:
-        """세션 키로 엔티티 목록을 조회합니다."""
-        try:
-            result = await self.db.execute(
-                select(AnswerEntity)
-                .where(AnswerEntity.session_key == session_key)
-                .offset(skip)
-                .limit(limit)
-                .order_by(AnswerEntity.created_at.desc())
-            )
-            return result.scalars().all()
-        except Exception as e:
-            raise e
-    
-    async def find_all(self, skip: int = 0, limit: int = 100) -> List[AnswerEntity]:
-        """모든 엔티티를 조회합니다."""
-        try:
-            result = await self.db.execute(
-                select(AnswerEntity)
-                .offset(skip)
-                .limit(limit)
-                .order_by(AnswerEntity.created_at.desc())
-            )
-            return result.scalars().all()
-        except Exception as e:
-            raise e
-    
-    async def update_entity(self, answer_id: int, update_data: dict) -> Optional[AnswerEntity]:
-        """엔티티를 업데이트합니다."""
-        try:
-            if not update_data:
-                return await self.find_by_id(answer_id)
-            
-            await self.db.execute(
-                update(AnswerEntity)
-                .where(AnswerEntity.id == answer_id)
-                .values(**update_data)
-            )
-            
-            await self.db.commit()
-            return await self.find_by_id(answer_id)
-        except Exception as e:
-            await self.db.rollback()
-            raise e
-    
-    async def delete_entity(self, answer_id: int) -> bool:
-        """엔티티를 삭제합니다."""
-        try:
-            result = await self.db.execute(
-                delete(AnswerEntity).where(AnswerEntity.id == answer_id)
-            )
-            await self.db.commit()
-            return result.rowcount > 0
-        except Exception as e:
-            await self.db.rollback()
-            raise e
-    
-    async def find_by_question_id(self, question_id: int, session_key: Optional[str] = None) -> List[AnswerEntity]:
-        """질문 ID로 엔티티를 조회합니다."""
-        try:
-            query = select(AnswerEntity).where(AnswerEntity.question_id == question_id)
-            
-            if session_key:
-                query = query.where(AnswerEntity.session_key == session_key)
-            
-            result = await self.db.execute(query)
-            return result.scalars().all()
-        except Exception as e:
-            raise e
+
+    def to_entity(self, data: AnswerCreate) -> AnswerEntity:
+        return AnswerEntity(
+            question_id=data.question_id,
+            session_key=data.session_key,
+            answer_text=data.answer_text,
+            answer_json=jsonable_encoder(data.answer_json),  # 안전 변환
+            is_completed=data.is_completed
+        )
+
+    async def save(self, entity: AnswerEntity) -> AnswerEntity:
+        self.db.add(entity)
+        await self.db.commit()
+        await self.db.refresh(entity)
+        return entity
+
+    async def get(self, answer_id: int) -> Optional[AnswerEntity]:
+        return await self.db.get(AnswerEntity, answer_id)
+
+    async def list_by_session(self, session_key: str, skip: int, limit: int) -> List[AnswerEntity]:
+        q = (
+            select(AnswerEntity)
+            .where(AnswerEntity.session_key == session_key)
+            .order_by(AnswerEntity.created_at.desc())
+            .offset(skip).limit(limit)
+        )
+        rows = await self.db.execute(q)
+        return rows.scalars().all()
+
+    async def list_all(self, skip: int, limit: int) -> List[AnswerEntity]:
+        q = select(AnswerEntity).order_by(AnswerEntity.created_at.desc()).offset(skip).limit(limit)
+        rows = await self.db.execute(q)
+        return rows.scalars().all()
+
+    async def update(self, answer_id: int, data: AnswerCreate) -> Optional[AnswerEntity]:
+        payload = {
+            "answer_text": data.answer_text,
+            "answer_json": jsonable_encoder(data.answer_json),
+            "is_completed": True
+        }
+        await self.db.execute(
+            update(AnswerEntity).where(AnswerEntity.id == answer_id).values(**payload)
+        )
+        await self.db.commit()
+        return await self.get(answer_id)
+
+    async def delete(self, answer_id: int) -> bool:
+        res = await self.db.execute(delete(AnswerEntity).where(AnswerEntity.id == answer_id))
+        await self.db.commit()
+        return res.rowcount > 0
