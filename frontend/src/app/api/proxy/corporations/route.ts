@@ -17,7 +17,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get('limit') ?? '1000';
 
-    const base = process.env.API_BASE_URL;
+    // 🚨 임시 해결책: Auth Service를 직접 호출
+    const base = process.env.API_BASE_URL || 'https://disciplined-imagination-production-df5c.up.railway.app';
+    console.log('🔍 API_BASE_URL 환경변수:', base);
+    
     if (!base) {
       console.error('❌ API_BASE_URL 환경변수가 설정되지 않음');
       return NextResponse.json(
@@ -26,7 +29,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const url = `${base}/api/v1/corporations/?limit=${encodeURIComponent(limit)}`;
+    // Auth Service를 직접 호출 (Gateway 우회)
+    const url = `${base}/v1/corporations/?limit=${encodeURIComponent(limit)}`;
     console.log('🚀 프록시 요청:', url);
 
     const response = await fetch(url, { 
