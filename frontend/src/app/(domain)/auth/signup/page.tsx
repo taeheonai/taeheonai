@@ -121,7 +121,28 @@ export default function SignupPage() {
       const data = response.data;
       console.log('🔍 API 응답 데이터:', data);
       
-      const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);
+      // 🚨 응답 데이터 구조 분석 및 처리
+      let list: Corporation[] = [];
+      
+      if (Array.isArray(data)) {
+        // 직접 배열인 경우
+        list = data;
+        console.log('✅ 직접 배열 응답 감지');
+      } else if (data && typeof data === 'object' && 'data' in data) {
+        // { data: [...] } 구조인 경우
+        list = Array.isArray(data.data) ? data.data : [];
+        console.log('✅ data 객체 응답 감지');
+      } else if (data && typeof data === 'object' && 'success' in data) {
+        // { success: true, data: [...] } 구조인 경우
+        if (data.success && data.data) {
+          list = Array.isArray(data.data) ? data.data : [];
+          console.log('✅ success 객체 응답 감지');
+        }
+      }
+      
+      console.log('🔍 파싱된 기업 목록:', list);
+      console.log('🔍 기업 목록 길이:', list.length);
+      
       setCorporations(list);
       console.log('✅ 기업 목록 가져오기 성공:', list.length, '개');
       console.log('🚀 === 기업 목록 가져오기 완료 ===');
@@ -139,6 +160,7 @@ export default function SignupPage() {
         const axiosError = e as { response?: { status?: number; statusText?: string; data?: { detail?: string } } };
         console.error('🔍 HTTP 상태:', axiosError.response?.status);
         console.error('🔍 에러 메시지:', axiosError.response?.data);
+        console.error('🔍 에러 상태 텍스트:', axiosError.response?.statusText);
       }
       
       // 🚨 네트워크 에러 특별 처리
@@ -146,6 +168,17 @@ export default function SignupPage() {
         const networkError = e as { code?: string; message?: string };
         console.error('🔍 네트워크 에러 코드:', networkError.code);
         console.error('🔍 네트워크 에러 메시지:', networkError.message);
+      }
+      
+      // 🚨 CORS 오류 특별 처리
+      if (e && typeof e === 'object' && 'message' in e) {
+        const errorMessage = (e as any).message;
+        if (typeof errorMessage === 'string' && errorMessage.includes('CORS')) {
+          console.error('🚨 CORS 오류 감지! Gateway CORS 설정 확인 필요');
+        }
+        if (typeof errorMessage === 'string' && errorMessage.includes('Mixed Content')) {
+          console.error('🚨 Mixed Content 오류 감지! HTTPS 강제 변환 필요');
+        }
       }
       
       console.error('🚨 === 기업 목록 가져오기 실패 ===');

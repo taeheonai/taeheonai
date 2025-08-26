@@ -63,9 +63,12 @@ if is_railway:
         "https://www.taeheonai.com",
         "https://taeheonai-9df6jy61w-oheth9-gmailcoms-projects.vercel.app",
         "https://taeheonai-oheth9-gmailcoms-projects.vercel.app",
+        "https://taeheonai-git-main-oheth9-gmailcoms-projects.vercel.app",  # 현재 Vercel 도메인 추가
         "https://taeheonai-production-2130.up.railway.app",
         "https://gri-service-production.up.railway.app",
-        "https://disciplined-imagination-production-df5c.up.railway.app"
+        "https://disciplined-imagination-production-df5c.up.railway.app",
+        # 🚨 개발 중 Vercel 도메인 와일드카드 허용
+        "https://*.vercel.app"  # 모든 Vercel 도메인 허용
     ]
     logger.info("🌐 Railway 프로덕션 환경 CORS 설정 적용")
 else:
@@ -84,6 +87,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# CORS 요청 로깅을 위한 미들웨어 추가
+@app.middleware("http")
+async def log_cors_requests(request: Request, call_next):
+    origin = request.headers.get("origin")
+    logger.info(f"🌐 CORS 요청 감지: {request.method} {request.url.path} from {origin}")
+    
+    if origin:
+        if origin in cors_origins:
+            logger.info(f"✅ CORS 허용된 origin: {origin}")
+        else:
+            logger.warning(f"⚠️ CORS 허용되지 않은 origin: {origin}")
+    
+    response = await call_next(request)
+    return response
 
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 
