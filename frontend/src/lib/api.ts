@@ -25,11 +25,26 @@ const getApiBaseUrl = () => {
     }
   }
   
+  // 🚨 Railway 환경 감지
+  if (process.env.RAILWAY === '1') {
+    return 'https://taeheonai-production-2130.up.railway.app/api';
+  }
+  
   // 1. 환경변수가 설정된 경우 (Vercel이 아닌 환경에서만)
   if (process.env.NEXT_PUBLIC_API_URL) {
     console.log('🔍 환경변수 감지됨:', process.env.NEXT_PUBLIC_API_URL);
     // 환경변수 값 검증 및 수정
     const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    // 🚨 HTTP URL 감지 시 HTTPS로 강제 변환
+    if (envUrl.startsWith('http://')) {
+      console.warn('⚠️ HTTP 환경변수 감지, HTTPS로 강제 변환');
+      const httpsUrl = envUrl.replace('http://', 'https://');
+      console.warn('⚠️ 원래 값:', envUrl);
+      console.warn('⚠️ 수정된 값:', httpsUrl);
+      return httpsUrl;
+    }
+    
     if (envUrl.includes('disciplined-imagination-production-df5c.up.railway.app')) {
       console.warn('⚠️ 잘못된 환경변수 감지, Gateway URL로 수정');
       console.warn('⚠️ 원래 값:', envUrl);
@@ -154,11 +169,11 @@ export const refreshApiInstance = () => {
 
 // ===== Helpers for gateway auth logging =====
 export async function postSignupPayload(payload: {
-  company_id?: string | null;
+  corporation_id?: number | null;
   industry?: string | null;
   email?: string | null;
   name?: string | null;
-  age?: string | null;
+  birth?: string | null;
   auth_id: string;
   auth_pw: string;
 }) {
