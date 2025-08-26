@@ -7,7 +7,7 @@ class Corporation(Base):
     __tablename__ = "corporation"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), unique=True, nullable=False, index=True)  # 기업명 (고유)
-    industry = Column(String(100), nullable=True)  # 산업 분야
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    corp_code = Column(String, unique=True, index=True, nullable=False)  # 기업 코드
+    companyname = Column(String, nullable=False)  # 기업명
+    market = Column(String, nullable=True)  # KOSPI, KOSDAQ 등
+    dart_code = Column(String, nullable=True)  # DART 코드

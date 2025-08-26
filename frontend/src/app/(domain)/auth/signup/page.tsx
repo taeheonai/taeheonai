@@ -6,23 +6,21 @@ import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
 
-// 기업 정보 타입 정의
+// 백엔드 스키마에 맞춘 타입
 interface Corporation {
   id: number;
-  corp_code: string;
-  companyname: string;
-  market: string;
-  dart_code: string;
+  name: string;
+  industry?: string | null;
 }
 
 type SignupFormState = {
   id: string;
-  company_name: string;
-  company_id: string;
+  company_name: string;     // 선택한 회사명(표시용)
+  corporation_id: number | null;// 실제 저장할 FK
   industry: string;
   email: string;
   name: string;
-  age: string;
+  age: string;              // 입력은 문자열로 받되 전송 시 숫자로 변환
   auth_id: string;
   auth_pw: string;
 };
@@ -31,7 +29,7 @@ export default function SignupPage() {
   const [form, setForm] = useState<SignupFormState>({
     id: '',
     company_name: '',
-    company_id: '',
+    corporation_id: null,
     industry: '',
     email: '',
     name: '',
@@ -45,31 +43,33 @@ export default function SignupPage() {
   const [loadingCorporations, setLoadingCorporations] = useState(false);
   const router = useRouter();
 
-  // 기업 목록을 가져오는 함수
+  // 기업 목록
   const fetchCorporations = async () => {
     try {
       setLoadingCorporations(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/corporation/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCorporations(data);
-      } else {
-        console.error('기업 목록 가져오기 실패:', response.statusText);
+      const base = process.env.NEXT_PUBLIC_API_URL;
+      if (!base) {
+        console.error('NEXT_PUBLIC_API_URL is not defined');
+        return;
       }
-    } catch (error) {
-      console.error('기업 목록 가져오기 오류:', error);
+      const res = await fetch(`${base}/v1/corporations?limit=1000`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        console.error('기업 목록 가져오기 실패:', res.status, res.statusText);
+        return;
+      }
+      const json = await res.json();
+      // 컨트롤러가 { data: [...] } 형태라면
+      const list: Corporation[] = Array.isArray(json) ? json : (json.data ?? []);
+      setCorporations(list);
+    } catch (e) {
+      console.error('기업 목록 가져오기 오류:', e);
     } finally {
       setLoadingCorporations(false);
     }
   };
 
-  // 컴포넌트 마운트 시 기업 목록 가져오기
   useEffect(() => {
     fetchCorporations();
   }, []);
@@ -79,13 +79,13 @@ export default function SignupPage() {
   ) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    
-    // 기업명 선택 시 실제 corp_code를 가져오는 로직
-    if (name === 'company_name' && value.trim()) {
-      // corporations 배열에서 선택된 기업명에 해당하는 corp_code 찾기
-      const selectedCorporation = corporations.find(corp => corp.companyname === value);
-      const corpCode = selectedCorporation ? selectedCorporation.corp_code : '';
-      setForm((prev) => ({ ...prev, company_id: corpCode }));
+
+    // 회사명 선택 시 corporation_id 동기화 (id를 FK로 저장)
+    if (name === 'company_name') {
+      const selected = corporations.find(c => c.companyname === value);
+      setForm((prev) => ({ ...prev, corporation_id: selected ? selected.id : null }));
+      // 선택된 회사의 industry를 기본값으로 넣고 싶다면 아래 주석 해제
+      // setForm((prev) => ({ ...prev, industry: selected?.industry ?? '' }));
     }
   };
 
@@ -94,74 +94,52 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
-    // 환경변수 상태 확인 로깅 추가
-    console.log('🔍 === 환경변수 상태 확인 ===');
-    console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-    console.log('NEXT_PUBLIC_ENVIRONMENT:', process.env.NEXT_PUBLIC_ENVIRONMENT);
-    console.log('🔍 === 환경변수 상태 끝 ===');
-
-    // 간단한 클라이언트 측 검증
+    // 간단 검증
     if (!form.auth_id.trim() || !form.auth_pw.trim()) {
       setError('아이디와 비밀번호를 입력하세요.');
       setLoading(false);
       return;
     }
+    if (!form.corporation_id) {
+      setError('기업명을 선택하세요.');
+      setLoading(false);
+      return;
+    }
 
-    // JSON 생성 및 알림
+    // 숫자 변환
+    const ageNum = form.age ? Number(form.age) : null;
+
     const payload: SignupPayload = {
-      company_id: form.company_id || null,
+      corporation_id: form.corporation_id,          // 숫자 FK
       industry: form.industry || null,
       email: form.email || null,
       name: form.name || null,
-      age: form.age || null,
+      age: ageNum as any,                   // 타입 정의에 맞게 조정
       auth_id: form.auth_id,
       auth_pw: form.auth_pw,
     };
-    
-    // 브라우저 alert와 Docker 로그 모두에서 확인 가능
-    const alertMessage = `회원가입 데이터 (JSON):\n${JSON.stringify(payload, null, 2)}`;
-    alert(alertMessage);
-    console.log('=== 회원가입 Alert 데이터 ===');
-    console.log(alertMessage);
-    console.log('=== Alert 데이터 끝 ===');
-    
-    // 백엔드 로깅 호출 (실패해도 UI는 계속 동작)
+
     try {
-      // api.ts의 함수 사용
       const response = await postSignupPayload(payload);
       console.log('Signup successful:', response.data);
-      
-      // 회원가입 성공 시 자동 로그인 처리
+
       if (response.data) {
-        // 사용자 정보를 로컬 스토리지에 저장
         const userInfo = {
           auth_id: form.auth_id,
           name: form.name || form.auth_id,
           email: form.email,
-          company_id: form.company_id,
+          corporation_id: form.corporation_id,
           industry: form.industry,
-          age: form.age
+          age: ageNum,
         };
         localStorage.setItem('user', JSON.stringify(userInfo));
-        
-        // 성공 메시지 표시
         alert('회원가입 성공! 자동으로 로그인되었습니다.');
-        
-        // 홈페이지로 리다이렉트
         router.push('/');
       }
     } catch (err: unknown) {
       console.error('signup log post failed', err);
-      
-      // AxiosError 타입 가드
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosError = err as { response?: { status?: number; statusText?: string; data?: { detail?: string } } };
-        console.error('Error details:', {
-          status: axiosError.response?.status,
-          statusText: axiosError.response?.statusText,
-          data: axiosError.response?.data,
-        });
         setError(axiosError.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
       } else {
         setError('회원가입 중 오류가 발생했습니다.');
@@ -209,8 +187,8 @@ export default function SignupPage() {
                   {loadingCorporations ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
                 </option>
                 {corporations.map((corp) => (
-                  <option key={corp.id} value={corp.companyname}>
-                    {corp.companyname} ({corp.corp_code})
+                  <option key={corp.id} value={corp.name}>
+                    {corp.name} (id: {corp.id})
                   </option>
                 ))}
               </select>
@@ -219,7 +197,7 @@ export default function SignupPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업 ID (company_id)</label>
               <div className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 px-3 py-2">
-                {form.company_id ? `(${form.company_id})` : '(기업명 선택 시 자동 생성)'}
+                {form.corporation_id ? `(${form.corporation_id})` : '(기업명 선택 시 자동 설정)'}
               </div>
             </div>
 
@@ -320,5 +298,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-
