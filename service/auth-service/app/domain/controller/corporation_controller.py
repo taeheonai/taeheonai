@@ -63,7 +63,7 @@ class CorporationController:
         except Exception as e:
             raise
 
-    async def get_all_corporations(self, skip: int = 0, limit: int = 100, db: AsyncSession) -> Dict[str, Any]:
+    async def get_all_corporations(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
         """모든 기업 정보 조회 요청을 CorporationService로 전달"""
         try:
             corporation_service = CorporationService(db)

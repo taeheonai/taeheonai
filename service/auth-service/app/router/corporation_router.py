@@ -88,15 +88,15 @@ async def get_corporation(
 
 @corporation_router.get("/", summary="기업 목록 조회")
 async def get_all_corporations(
+pi    db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
-    limit: int = Query(100, ge=1, le=1000, description="가져올 개수"),
-    db: AsyncSession = Depends(get_db)
+    limit: int = Query(100, ge=1, le=1000, description="가져올 개수")
 ):
     """모든 기업 정보를 조회합니다."""
     try:
         logger.info(f"📝 기업 목록 조회 요청: skip={skip}, limit={limit}")
         
-        result = await corporation_controller.get_all_corporations(skip, limit, db)
+        result = await corporation_controller.get_all_corporations(db, skip, limit)
         
         logger.info(f"✅ 기업 목록 조회 성공: {result.get('count', 0)}개")
         return result
