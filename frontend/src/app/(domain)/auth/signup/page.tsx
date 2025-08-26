@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
+
+// 기업 정보 타입 정의
+interface Corporation {
+  id: number;
+  corp_code: string;
+  companyname: string;
+  market: string;
+  dart_code: string;
+}
 
 type SignupFormState = {
   id: string;
@@ -32,7 +41,38 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [corporations, setCorporations] = useState<Corporation[]>([]);
+  const [loadingCorporations, setLoadingCorporations] = useState(false);
   const router = useRouter();
+
+  // 기업 목록을 가져오는 함수
+  const fetchCorporations = async () => {
+    try {
+      setLoadingCorporations(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/corporation/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCorporations(data);
+      } else {
+        console.error('기업 목록 가져오기 실패:', response.statusText);
+      }
+    } catch (error) {
+      console.error('기업 목록 가져오기 오류:', error);
+    } finally {
+      setLoadingCorporations(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 기업 목록 가져오기
+  useEffect(() => {
+    fetchCorporations();
+  }, []);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -40,12 +80,12 @@ export default function SignupPage() {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     
-    // 기업명 입력 시 기업 ID 자동 업데이트 (시뮬레이션)
+    // 기업명 선택 시 실제 corp_code를 가져오는 로직
     if (name === 'company_name' && value.trim()) {
-      // 실제로는 백엔드 API를 호출하여 기업 ID를 가져와야 함
-      // 여기서는 간단한 시뮬레이션으로 처리
-      const mockCompanyId = `CORP-${Date.now().toString().slice(-4)}`;
-      setForm((prev) => ({ ...prev, company_id: mockCompanyId }));
+      // corporations 배열에서 선택된 기업명에 해당하는 corp_code 찾기
+      const selectedCorporation = corporations.find(corp => corp.companyname === value);
+      const corpCode = selectedCorporation ? selectedCorporation.corp_code : '';
+      setForm((prev) => ({ ...prev, company_id: corpCode }));
     }
   };
 
@@ -157,21 +197,29 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업명 (company_name) *</label>
-              <input
+              <select
                 name="company_name"
                 value={form.company_name}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="예: 한온시스템, 삼성전자"
                 required
-                disabled={loading}
-              />
+                disabled={loading || loadingCorporations}
+              >
+                <option value="">
+                  {loadingCorporations ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
+                </option>
+                {corporations.map((corp) => (
+                  <option key={corp.id} value={corp.companyname}>
+                    {corp.companyname} ({corp.corp_code})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업 ID (company_id)</label>
               <div className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 px-3 py-2">
-                {form.company_id ? `(${form.company_id})` : '(기업명 입력 시 자동 생성)'}
+                {form.company_id ? `(${form.company_id})` : '(기업명 선택 시 자동 생성)'}
               </div>
             </div>
 
