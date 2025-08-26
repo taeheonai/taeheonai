@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from typing import List, Optional
 from datetime import date
+from fastapi.encoders import jsonable_encoder
 
 from app.domain.entity.answer_entity import AnswerEntity
 from app.domain.schema.answer_schema import AnswerCreate
@@ -15,12 +16,22 @@ class AnswerRepository:
     def _convert_base_model_to_base(self, answer_data: AnswerCreate) -> AnswerEntity:
         """BaseModel을 Base(Entity)로 변환합니다."""
         try:
+            # JSONB 컬럼에 안전하게 dict 변환
+            answer_json = None
+            if answer_data.answer_json is not None:
+                if hasattr(answer_data.answer_json, 'model_dump'):
+                    answer_json = answer_data.answer_json.model_dump()
+                elif hasattr(answer_data.answer_json, 'dict'):
+                    answer_json = answer_data.answer_json.dict()
+                else:
+                    answer_json = jsonable_encoder(answer_data.answer_json)
+            
             # BaseModel의 데이터를 추출하여 Base(Entity) 생성
             answer_entity = AnswerEntity(
                 question_id=answer_data.question_id,
                 session_key=answer_data.session_key,
                 answer_text=answer_data.answer_text,
-                answer_json=answer_data.answer_json,
+                answer_json=answer_json,  # 안전하게 변환된 JSON 데이터
                 is_completed=answer_data.is_completed
             )
             return answer_entity
