@@ -8,6 +8,7 @@ import { SignupPayload } from '@/types/user';
 
 type SignupFormState = {
   id: string;
+  company_name: string;
   company_id: string;
   industry: string;
   email: string;
@@ -20,6 +21,7 @@ type SignupFormState = {
 export default function SignupPage() {
   const [form, setForm] = useState<SignupFormState>({
     id: '',
+    company_name: '',
     company_id: '',
     industry: '',
     email: '',
@@ -37,6 +39,14 @@ export default function SignupPage() {
   ) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    
+    // 기업명 입력 시 기업 ID 자동 업데이트 (시뮬레이션)
+    if (name === 'company_name' && value.trim()) {
+      // 실제로는 백엔드 API를 호출하여 기업 ID를 가져와야 함
+      // 여기서는 간단한 시뮬레이션으로 처리
+      const mockCompanyId = `CORP-${Date.now().toString().slice(-4)}`;
+      setForm((prev) => ({ ...prev, company_id: mockCompanyId }));
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -146,15 +156,23 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">회사 ID (company_id)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업명 (company_name) *</label>
               <input
-                name="company_id"
-                value={form.company_id}
+                name="company_name"
+                value={form.company_name}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="예: THN-001"
+                placeholder="예: 한온시스템, 삼성전자"
+                required
                 disabled={loading}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업 ID (company_id)</label>
+              <div className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 px-3 py-2">
+                {form.company_id ? `(${form.company_id})` : '(기업명 입력 시 자동 생성)'}
+              </div>
             </div>
 
             <div>
