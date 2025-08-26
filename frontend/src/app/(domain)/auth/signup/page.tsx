@@ -88,6 +88,14 @@ export default function SignupPage() {
       }
       console.log('✅ URL 프로토콜 검증 완료:', finalUrl.protocol);
       
+      // 🚨 axios 요청 직전 최종 확인
+      console.log('🚨 === axios 요청 직전 최종 확인 ===');
+      console.log('🚨 apiUrl 변수:', apiUrl);
+      console.log('🚨 apiUrl 타입:', typeof apiUrl);
+      console.log('🚨 apiUrl startsWith https:', apiUrl.startsWith('https://'));
+      console.log('🚨 finalUrl.protocol:', finalUrl.protocol);
+      console.log('🚨 === axios 요청 직전 최종 확인 끝 ===');
+      
       const response = await axios.get(apiUrl, {
         timeout: 10000,
         headers: {
@@ -95,6 +103,15 @@ export default function SignupPage() {
           'Content-Type': 'application/json',
         }
       });
+      
+      // 🚨 axios 요청 후 URL 상태 확인
+      console.log('🚨 === axios 요청 후 URL 상태 확인 ===');
+      console.log('🚨 원본 apiUrl:', apiUrl);
+      console.log('🚨 response.config.url:', response.config.url);
+      console.log('🚨 response.config.baseURL:', response.config.baseURL);
+      console.log('🚨 response.request.responseURL:', response.request.responseURL);
+      console.log('🚨 === axios 요청 후 URL 상태 확인 끝 ===');
+      
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
       
