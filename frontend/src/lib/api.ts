@@ -8,10 +8,10 @@ const getApiBaseUrl = () => {
   console.log('🔍 process.env.NODE_ENV:', process.env.NODE_ENV);
   console.log('🔍 window.location.hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
   
-  // 🚨 Vercel 환경에서는 무조건 Gateway URL 사용 (환경변수 무시)
+  // 🚨 Vercel 환경에서는 무조건 Gateway URL 사용 (환경변수 완전 무시)
   if (process.env.VERCEL === '1' || process.env.VERCEL === 'true') {
     console.log('🔍 Vercel 환경 감지, Gateway URL 강제 사용');
-    console.log('🔍 환경변수 무시하고 Gateway로 요청');
+    console.log('🔍 환경변수 완전 무시하고 Gateway로 요청');
     return 'https://taeheonai-production-2130.up.railway.app/api';
   }
   
@@ -21,6 +21,7 @@ const getApiBaseUrl = () => {
     if (hostname === 'taeheonai.com' || hostname === 'www.taeheonai.com' || hostname.endsWith('.vercel.app')) {
       console.log('🔍 도메인 기반 Vercel 환경 감지:', hostname);
       console.log('🔍 Gateway URL 강제 사용');
+      console.log('🔍 환경변수 무시하고 Gateway로 요청');
       return 'https://taeheonai-production-2130.up.railway.app/api';
     }
   }
@@ -31,8 +32,9 @@ const getApiBaseUrl = () => {
   }
   
   // 1. 환경변수가 설정된 경우 (Vercel이 아닌 환경에서만)
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    console.log('🔍 환경변수 감지됨:', process.env.NEXT_PUBLIC_API_URL);
+  // 🚨 Vercel 환경에서는 환경변수 완전 무시
+  if (process.env.VERCEL !== '1' && process.env.VERCEL !== 'true' && process.env.NEXT_PUBLIC_API_URL) {
+    console.log('🔍 환경변수 감지됨 (Vercel이 아님):', process.env.NEXT_PUBLIC_API_URL);
     // 환경변수 값 검증 및 수정
     const envUrl = process.env.NEXT_PUBLIC_API_URL;
     
