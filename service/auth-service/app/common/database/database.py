@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import text
 import os
 import logging
@@ -44,9 +43,6 @@ except Exception as e:
     engine = None
     SessionLocal = None
 
-# Base 클래스 생성
-Base = declarative_base()
-
 # Async 데이터베이스 세션 의존성
 async def get_db():
     if not SessionLocal:
@@ -76,8 +72,8 @@ async def create_tables():
             
         logger.info("🔨 Railway PostgreSQL 테이블 생성 시작...")
         
-        # UserEntity 모델 import (순환 참조 방지)
-        from app.domain.user.user_entity import UserEntity
+        # Base를 base.py에서 import하여 사용
+        from .base import Base
         
         async with engine.begin() as connection:
             # 테이블 생성

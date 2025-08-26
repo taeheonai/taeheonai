@@ -1,6 +1,6 @@
 # Database 패키지 초기화
+from .base import Base
 from .database import (
-    Base,
     engine,
     SessionLocal,
     get_db,
