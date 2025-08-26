@@ -11,7 +11,7 @@ import json
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
 from app.common.database import get_db
-from app.domain.schema.answer_schema import AnswerResponse
+
 
 logger = logging.getLogger(__name__)
 
