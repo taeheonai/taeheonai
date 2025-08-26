@@ -51,19 +51,18 @@ export default function SignupPage() {
     try {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
-      console.log('🔍 프록시 라우트 호출: /api/proxy/corporations?limit=1000');
       
-      // 프록시 라우트를 통해 동일 출처로 요청 (Mixed Content 방지)
-      const response = await axios.get('/api/proxy/corporations?limit=1000');
-      console.log('🔍 프록시 응답 상태:', response.status, response.statusText);
-      console.log('🔍 프록시 응답 헤더:', response.headers);
+      // axios로 직접 API 호출
+      const response = await axios.get('https://taeheonai-production-2130.up.railway.app/v1/corporations?limit=1000');
+      console.log('🔍 API 응답 상태:', response.status, response.statusText);
+      console.log('🔍 API 응답 헤더:', response.headers);
       
       const data = response.data;
-      console.log('🔍 프록시 응답 데이터:', data);
+      console.log('🔍 API 응답 데이터:', data);
       
       const list: Corporation[] = Array.isArray(data) ? data : (data.data ?? []);
       setCorporations(list);
-      console.log('✅ 기업 목록 가져오기 성공 (프록시):', list.length, '개');
+      console.log('✅ 기업 목록 가져오기 성공:', list.length, '개');
       console.log('🚀 === 기업 목록 가져오기 완료 ===');
     } catch (e) {
       console.error('❌ 기업 목록 가져오기 오류:', e);
