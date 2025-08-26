@@ -427,10 +427,18 @@ async def update_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         
         logger.info(f"✅ GRI 답변 수정 성공: ID {answer_id}")
         
+        # AnswerResponse 객체를 dict로 변환
+        if hasattr(result, 'model_dump'):
+            result_dict = result.model_dump()
+        elif hasattr(result, 'dict'):
+            result_dict = result.dict()
+        else:
+            result_dict = result
+        
         return JSONResponse(
             status_code=200,
             content={
-                **result,
+                **result_dict,
                 "source": "frontend"
             }
         )
@@ -459,10 +467,18 @@ async def delete_answer(answer_id: int, request: Request, db: AsyncSession = Dep
         
         logger.info(f"✅ GRI 답변 삭제 성공: ID {answer_id}")
         
+        # AnswerResponse 객체를 dict로 변환
+        if hasattr(result, 'model_dump'):
+            result_dict = result.model_dump()
+        elif hasattr(result, 'dict'):
+            result_dict = result.dict()
+        else:
+            result_dict = result
+        
         return JSONResponse(
             status_code=200,
             content={
-                **result,
+                **result_dict,
                 "source": "frontend"
             }
         )
