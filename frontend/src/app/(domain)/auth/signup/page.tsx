@@ -172,7 +172,7 @@ export default function SignupPage() {
       
       // 🚨 CORS 오류 특별 처리
       if (e && typeof e === 'object' && 'message' in e) {
-        const errorMessage = (e as any).message;
+        const errorMessage = (e as { message?: string }).message;
         if (typeof errorMessage === 'string' && errorMessage.includes('CORS')) {
           console.error('🚨 CORS 오류 감지! Gateway CORS 설정 확인 필요');
         }
