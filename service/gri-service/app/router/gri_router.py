@@ -299,10 +299,18 @@ async def create_answer(request: Request, db: AsyncSession = Depends(get_db)):
         
         logger.info(f"✅ GRI 답변 생성 성공")
         
+        # AnswerResponse 객체를 dict로 변환
+        if hasattr(result, 'model_dump'):
+            result_dict = result.model_dump()
+        elif hasattr(result, 'dict'):
+            result_dict = result.dict()
+        else:
+            result_dict = result
+        
         return JSONResponse(
             status_code=201,
             content={
-                **result,
+                **result_dict,
                 "source": "frontend"
             }
         )
@@ -331,10 +339,18 @@ async def get_answer(answer_id: int, request: Request, db: AsyncSession = Depend
         
         logger.info(f"✅ GRI 답변 조회 성공: ID {answer_id}")
         
+        # AnswerResponse 객체를 dict로 변환
+        if hasattr(result, 'model_dump'):
+            result_dict = result.model_dump()
+        elif hasattr(result, 'dict'):
+            result_dict = result.dict()
+        else:
+            result_dict = result
+        
         return JSONResponse(
             status_code=200,
             content={
-                **result,
+                **result_dict,
                 "source": "frontend"
             }
         )
@@ -369,10 +385,18 @@ async def get_answers(
         
         logger.info(f"✅ GRI 답변 목록 조회 성공")
         
+        # AnswerResponse 객체를 dict로 변환
+        if hasattr(result, 'model_dump'):
+            result_dict = result.model_dump()
+        elif hasattr(result, 'dict'):
+            result_dict = result.dict()
+        else:
+            result_dict = result
+        
         return JSONResponse(
             status_code=200,
             content={
-                **result,
+                **result_dict,
                 "source": "frontend"
             }
         )
