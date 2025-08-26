@@ -52,7 +52,7 @@ export default function SignupPage() {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // Gateway를 통한 API 호출 (CORS 문제 해결)
+      // Gateway를 통한 corporations 서비스 API 호출 (CORS 문제 해결)
       let apiUrl = 'https://taeheonai-production-2130.up.railway.app/api/v1/corporations?limit=1000';
       
       // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환

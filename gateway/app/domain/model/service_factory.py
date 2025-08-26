@@ -14,6 +14,7 @@ class ServiceType(str, Enum):
     materiality = "materiality"
     grireport = "grireport"
     auth = "auth"
+    corporations = "corporations"  # 기업 목록 서비스 추가
 
 
 class ServiceProxyFactory:
@@ -29,6 +30,7 @@ class ServiceProxyFactory:
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
 
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+            ServiceType.corporations: os.getenv("CORPORATIONS_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),  # corporations 서비스 추가
         }
         
         # Railway 환경 감지
@@ -49,6 +51,7 @@ class ServiceProxyFactory:
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
             ServiceType.grireport: "/v1/grireport",
+            ServiceType.corporations: "/v1/corporations",  # corporations 경로 접두사 추가
 
         }
         prefix = prefixes.get(self.service_type, "")
