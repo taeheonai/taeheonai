@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import { postSignupPayload } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
 
-// 백엔드 스키마에 맞춘 타입
+// 데이터베이스 스키마에 맞춘 타입
 interface Corporation {
   id: number;
-  name: string;
-  industry?: string | null;
+  corp_code: string;
+  companyname: string;  // 기업명 (데이터베이스 컬럼명과 일치)
+  market: string;
+  dart_code: string;
 }
 
 type SignupFormState = {
@@ -186,8 +188,8 @@ export default function SignupPage() {
                   {loadingCorporations ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
                 </option>
                 {corporations.map((corp) => (
-                  <option key={corp.id} value={corp.name}>
-                    {corp.name} (id: {corp.id})
+                  <option key={corp.id} value={corp.companyname}>
+                    {corp.companyname} ({corp.corp_code})
                   </option>
                 ))}
               </select>
