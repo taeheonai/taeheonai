@@ -56,7 +56,7 @@ export default function SignupPage() {
       let apiUrl = 'https://disciplined-imagination-production-df5c.up.railway.app/v1/corporations?limit=1000';
       
       // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
-      if (apiUrl.includes('http://')) {
+      if (apiUrl.includes('https://')) {
         console.error('❌ HTTP URL 감지! 강제로 HTTPS로 변환');
         apiUrl = apiUrl.replace('http://', 'https://');
         console.log('✅ 변환된 URL:', apiUrl);
