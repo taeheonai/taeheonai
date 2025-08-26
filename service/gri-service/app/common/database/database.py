@@ -8,10 +8,13 @@ logger = logging.getLogger(__name__)
 # Railway PostgreSQL 환경변수 사용
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# 개발 환경에서는 DATABASE_URL이 없어도 import는 가능하도록
 if not DATABASE_URL:
-    logger.error("DATABASE_URL 환경변수가 설정되지 않았습니다. Railway에서 DATABASE_URL을 설정해주세요.")
-    logger.warning("로컬 개발 환경에서는 .env 파일을 확인해주세요.")
-    raise ValueError("DATABASE_URL environment variable is required")
+    logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않았습니다. Railway에서 DATABASE_URL을 설정해주세요.")
+    logger.warning("⚠️ 로컬 개발 환경에서는 .env 파일을 확인해주세요.")
+    logger.warning("⚠️ 서비스는 시작되지만 데이터베이스 연결은 불가능합니다.")
+    # 개발 환경에서는 기본값 설정 (실제 연결은 안됨)
+    DATABASE_URL = "postgresql://dev:dev@localhost:5432/dev"
 
 logger.info(f"🔗 DATABASE_URL 환경변수 확인: {DATABASE_URL[:20]}...{DATABASE_URL[-20:] if len(DATABASE_URL) > 40 else ''}")
 
