@@ -88,7 +88,7 @@ async def get_corporation(
 
 @corporation_router.get("/", summary="기업 목록 조회")
 async def get_all_corporations(
-pi    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
     limit: int = Query(100, ge=1, le=1000, description="가져올 개수")
 ):
