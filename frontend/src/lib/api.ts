@@ -182,11 +182,20 @@ api.interceptors.request.use(
       console.log(`✅ baseURL HTTPS로 변환됨: ${config.baseURL}`);
     }
     
-    // 🚨 최종 URL 검증
+    // 🚨 최종 URL 검증 (절대 URL만 검증)
     const finalUrl = config.url || config.baseURL;
-    if (finalUrl && !finalUrl.startsWith('https://')) {
-      console.error(`❌ 최종 URL이 여전히 안전하지 않음: ${finalUrl}`);
-      throw new Error(`보안상 HTTPS가 필요합니다: ${finalUrl}`);
+    if (finalUrl && finalUrl.startsWith('http')) {
+      // 절대 URL인 경우에만 HTTPS 검증
+      if (!finalUrl.startsWith('https://')) {
+        console.error(`❌ 최종 URL이 여전히 안전하지 않음: ${finalUrl}`);
+        throw new Error(`보안상 HTTPS가 필요합니다: ${finalUrl}`);
+      }
+    } else {
+      // 상대 URL인 경우 baseURL과 조합하여 검증
+      if (config.baseURL && config.baseURL.startsWith('http') && !config.baseURL.startsWith('https://')) {
+        console.error(`❌ baseURL이 안전하지 않음: ${config.baseURL}`);
+        throw new Error(`보안상 HTTPS가 필요합니다: ${config.baseURL}`);
+      }
     }
     
     return config;
