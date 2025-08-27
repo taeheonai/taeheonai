@@ -351,9 +351,8 @@ app.include_router(gateway_router)
 async def log_cors_requests(request: Request, call_next):
     logger.info(f"🚀 === CORS 미들웨어 시작 === {request.method} {request.url.path}")
     
-    # 🚨 프록시 헤더로 scheme 판단
-    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
-    logger.info(f"🔍 Scheme 판단: x-forwarded-proto={request.headers.get('x-forwarded-proto')}, request.url.scheme={request.url.scheme}, 최종={scheme}")
+    # 🚨 ProxyHeadersMiddleware가 자동으로 scheme 수정
+    logger.info(f"🔍 Scheme 상태: request.url.scheme={request.url.scheme}")
     
     origin = request.headers.get("origin")
     logger.info(f"🌐 Origin 헤더: {origin}")
