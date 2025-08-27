@@ -14,7 +14,7 @@ class ServiceType(str, Enum):
     materiality = "materiality"
     grireport = "grireport"
     auth = "auth"
-    corporations = "corporations"
+    corporation = "corporation"
 
 
 class ServiceProxyFactory:
@@ -28,10 +28,10 @@ class ServiceProxyFactory:
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.corporations: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
+            ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
         }
         
-        # corporations는 독립 서비스로 처리
+        # corporation는 독립 서비스로 처리
         self.service_redirects = {}
         
         # Railway 환경 감지
@@ -52,7 +52,7 @@ class ServiceProxyFactory:
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
             ServiceType.grireport: "/v1/grireport",
-            ServiceType.corporations: "/v1/corporations",
+            ServiceType.corporation: "/v1/corporation",
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:
@@ -82,9 +82,9 @@ class ServiceProxyFactory:
         params: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> httpx.Response:
-        # corporations는 독립 서비스로 처리
-        if self.service_type == ServiceType.corporations:
-            logger.info(f"🏢 corporations 서비스 요청: {path}")
+        # corporation는 독립 서비스로 처리
+        if self.service_type == ServiceType.corporation:
+            logger.info(f"🏢 corporation 서비스 요청: {path}")
         
         base_url = self.base_urls.get(self.service_type)
         if not base_url:
