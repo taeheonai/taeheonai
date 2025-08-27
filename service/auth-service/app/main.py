@@ -11,7 +11,6 @@ import tempfile
 
 from app.common.database import get_db, engine, check_database_connection, test_database_connection, init_database, check_tables_status
 from .router.auth_router import auth_router
-from .router.corporation_router import corporation_router
 
 # ---------- 로깅 설정 ----------
 log_dir = tempfile.gettempdir()
@@ -61,7 +60,6 @@ app = FastAPI(
 
 # ---------- 라우터 ----------
 app.include_router(auth_router) # prefix 제거 (auth_router에 이미 있음)
-app.include_router(corporation_router)
 
 # ---------- 애플리케이션 시작 시 데이터베이스 초기화 ----------
 @app.on_event("startup")

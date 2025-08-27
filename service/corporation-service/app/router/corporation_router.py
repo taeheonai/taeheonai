@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, Path
+from fastapi import APIRouter, Depends, Query, HTTPException, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
@@ -132,8 +132,8 @@ async def create_corporation(
 
 @corporation_router.put("/{corporation_id}", summary="기업 정보 수정", response_model=CorporationResponse)
 async def update_corporation(
+    update_data: CorporationUpdate = Body(..., description="수정할 기업 정보"),
     corporation_id: int = Path(..., description="기업 ID"),
-    update_data: CorporationUpdate,
     db: AsyncSession = Depends(get_db)
 ):
     """기업 정보를 수정합니다."""
