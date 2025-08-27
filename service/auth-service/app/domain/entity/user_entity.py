@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, String, Integer, ForeignKey
+    Column, String, Integer
 )
 from app.common.database import Base
 
@@ -7,7 +7,7 @@ class UserEntity(Base):
     __tablename__ = "user"  # 테이블명을 "user"로 유지 (데이터베이스 스키마와 일치)
 
     id = Column(Integer, primary_key=True, index=True)
-    corporation_id = Column(Integer, ForeignKey("corporation.id"), nullable=True)  # Corporation 테이블과 연결
+    corporation_id = Column(Integer, nullable=True)  # ✅ ForeignKey 제거
     industry = Column(String, nullable=True)
     email = Column(String, nullable=True)
     name = Column(String, nullable=True)
