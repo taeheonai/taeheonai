@@ -52,7 +52,7 @@ export default function SignupPage() {
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
       // 🚨 api.ts의 fetchCorporations 함수 사용 (일관성 유지)
-      const response = await fetchCorporations(1000);
+      const response = await fetchCorporations();
       
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
