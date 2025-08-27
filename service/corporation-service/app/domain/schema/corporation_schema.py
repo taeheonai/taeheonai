@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
-from datetime import datetime
 
 class CorporationBase(BaseModel):
     """기업 정보 기본 스키마"""
@@ -23,8 +22,6 @@ class CorporationUpdate(BaseModel):
 class CorporationResponse(CorporationBase):
     """기업 정보 응답 스키마"""
     id: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

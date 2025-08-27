@@ -11,5 +11,3 @@ class Corporation(Base):
     companyname = Column(String, nullable=False)  # 기업명
     market = Column(String, nullable=True)  # KOSPI, KOSDAQ 등
     dart_code = Column(String, nullable=True)  # DART 코드
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
