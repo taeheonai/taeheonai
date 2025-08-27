@@ -141,7 +141,7 @@ from app.domain.model.service_factory import ServiceProxyFactory, ServiceType
 # ✅ 프리플라이트 가드: 게이트웨이가 OPTIONS를 200으로 '종단 응답'
 from starlette.responses import Response
 
-@app.options("/{path:path}")
+@app.options("/api/{path:path}")
 def _cors_preflight_guard():
     """CORS 프리플라이트 요청을 게이트웨이에서 확실히 종단 처리"""
     logger.info("🔄 CORS 프리플라이트 가드 동작: OPTIONS 요청 차단")
