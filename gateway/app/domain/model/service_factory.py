@@ -14,7 +14,7 @@ class ServiceType(str, Enum):
     materiality = "materiality"
     grireport = "grireport"
     auth = "auth"
-    corporations = "corporations"  # 기업 목록 서비스 추가
+    # corporations 제거: auth-service에서 corporation 정보 처리
 
 
 class ServiceProxyFactory:
@@ -26,11 +26,14 @@ class ServiceProxyFactory:
             ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://gri-service-production.up.railway.app"),
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.corporations: os.getenv("CORPORATIONS_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),  # corporations 서비스 추가
+            # corporations 제거: auth-service에서 corporation 정보 처리
+        }
+        
+        # ✅ corporations 요청을 auth 서비스로 리다이렉트
+        self.service_redirects = {
+            "corporations": ServiceType.auth
         }
         
         # Railway 환경 감지
@@ -51,8 +54,7 @@ class ServiceProxyFactory:
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
             ServiceType.grireport: "/v1/grireport",
-            ServiceType.corporations: "/v1/corporations",  # corporations 경로 접두사 추가
-
+            # corporations 제거: auth-service에서 corporation 정보 처리
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:
@@ -82,6 +84,13 @@ class ServiceProxyFactory:
         params: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> httpx.Response:
+        # ✅ corporations 서비스 요청을 auth 서비스로 리다이렉트
+        if self.service_type == "corporations":
+            logger.info(f"🔄 corporations → auth 서비스로 리다이렉트: {path}")
+            # auth 서비스로 요청 처리
+            auth_factory = ServiceProxyFactory(ServiceType.auth)
+            return await auth_factory.request(method, path, headers, body, files, params, data)
+        
         base_url = self.base_urls.get(self.service_type)
         if not base_url:
             raise HTTPException(status_code=404, detail=f"Service {self.service_type} not found")
@@ -97,17 +106,28 @@ class ServiceProxyFactory:
 
         # 업스트림에 보낼 헤더 정리
         fwd_headers = dict(headers or {})
-        fwd_headers.pop("host", None)  # ✅ Host 제거
         
-        # 기본 헤더 설정
-        if not fwd_headers.get('Content-Type'):
-            fwd_headers['Content-Type'] = 'application/json'
+        # ✅ hop-by-hop/민감 헤더들 정리
+        for h in ["host", "origin", "referer", "content-length", "connection"]:
+            fwd_headers.pop(h, None)
+        
+        # ✅ 메서드별로 Content-Type 부여
+        m = method.upper()
+        if m in {"POST", "PUT", "PATCH"}:
+            fwd_headers.setdefault("Content-Type", "application/json")
+        else:
+            fwd_headers.pop("Content-Type", None)
+        
+        # Accept 헤더 설정
         if not fwd_headers.get('Accept'):
             fwd_headers['Accept'] = 'application/json'
 
-        async with httpx.AsyncClient() as client:
+        logger.info(f"🔒 헤더 정리 완료: Content-Type={fwd_headers.get('Content-Type', '제거됨')} (메서드: {m})")
+        logger.info(f"🔒 민감 헤더 제거: origin, referer, content-length, connection")
+
+        # ✅ 리다이렉트 제대로 따라가기 + 타임아웃 설정
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
             try:
-                m = method.upper()
                 if m == "GET":
                     response = await client.get(url, headers=fwd_headers, params=params)
                 elif m == "POST":
