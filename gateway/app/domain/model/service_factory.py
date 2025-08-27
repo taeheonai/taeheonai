@@ -15,6 +15,7 @@ class ServiceType(str, Enum):
     grireport = "grireport"
     auth = "auth"
     corporation = "corporation"
+    llm = "llm"  # LLM 서비스 추가
 
 
 class ServiceProxyFactory:
@@ -29,6 +30,7 @@ class ServiceProxyFactory:
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
+            ServiceType.llm: os.getenv("LLM_SERVICE_URL", "http://localhost:8005"),  # LLM 서비스 URL 추가
         }
         
         # corporation는 독립 서비스로 처리
@@ -53,6 +55,7 @@ class ServiceProxyFactory:
             ServiceType.materiality: "/v1/materiality",
             ServiceType.grireport: "/v1/grireport",
             ServiceType.corporation: "/v1/corporation",
+            ServiceType.llm: "/v1/llm",  # LLM 서비스 prefix 추가
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:

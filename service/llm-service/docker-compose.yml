@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  llm-service:  # 서비스 이름도 llm-service로 통일
+    build: .
+    ports:
+      - "8005:8005"
+    environment:
+      - PORT=8005
+      - MODEL_NAME=beomi/KoAlpaca-Polyglot-5.8B
+      - DATA_PATH=./data/gri_all.jsonl
+      - OUTPUT_DIR=./outputs/srlm-koalpaca-5.8b-qlora
+      - MAX_SEQ_LEN=1536
+      - LR=2e-4
+      - EPOCHS=2
+      - BATCH=1
+      - GRAD_ACC=8
+      - LORA_R=16
+      - LORA_ALPHA=32
+      - LORA_DROPOUT=0.05
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # TensorBoard 서비스 (선택사항)
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./outputs/srlm-koalpaca-5.8b-qlora/logs:/logs
+    command: tensorboard --logdir=/logs --host=0.0.0.0 --port=6006
+    depends_on:
+      - llm-service
+    restart: unless-stopped
