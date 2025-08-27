@@ -73,18 +73,34 @@ const createApiInstance = () => {
   return axios.create({
     baseURL: getApiBaseUrl(),
     timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    withCredentials: true, // 쿠키 인증이면 켜기 (서버 CORS도 allow_credentials=True)
   });
 };
 
 // 기본 api 인스턴스
 let api = createApiInstance();
 
+// 응답은 JSON으로 받고 싶다
+api.defaults.headers.common['Accept'] = 'application/json';
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // 🚨 동적 Content-Type 설정: 바디가 있는 메서드에서만 설정
+    const method = (config.method || 'get').toLowerCase();
+    
+    if (['post', 'put', 'patch'].includes(method)) {
+      const isForm = typeof FormData !== 'undefined' && config.data instanceof FormData;
+      if (!isForm && !config.headers?.['Content-Type']) {
+        config.headers.set('Content-Type', 'application/json');
+      }
+    } else {
+      // GET/DELETE/HEAD 등엔 굳이 Content-Type 넣지 않기 (프리플라이트 방지)
+      if (config.headers && config.headers.has('Content-Type')) {
+        config.headers.delete('Content-Type');
+      }
+    }
+    
     // 디버깅 로깅 추가
     console.log('🚀 === API 요청 시작 ===');
     console.log('📋 Method:', config.method?.toUpperCase());
@@ -247,4 +263,9 @@ export async function postLoginPayload(payload: {
   auth_pw: string;
 }) {
   return api.post('/v1/auth/login', payload);  // Gateway를 통한 요청
+}
+
+// ===== 기업 관련 API =====
+export async function fetchCorporations(limit: number = 1000) {
+  return api.get(`/v1/corporations?limit=${limit}`);
 }

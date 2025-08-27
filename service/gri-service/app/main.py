@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Request
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware  # 🚨 CORS 제거로 인해 불필요
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
@@ -20,21 +20,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS 설정
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://taeheonai.com",
-        "https://www.taeheonai.com",
-        "https://taeheonai-production-2130.up.railway.app",
-        "https://gri-service-production.up.railway.app",
-        "https://disciplined-imagination-production-df5c.up.railway.app",
-        "https://*.vercel.app"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 🚨 CORS 제거: Gateway에서만 CORS 처리 (브라우저가 직접 호출하지 않음)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[...],
+#     allow_credentials=True,
+#     allow_methods=[...],
+#     allow_headers=[...],
+# )
 
 # 애플리케이션 시작 시 데이터베이스 초기화
 @app.on_event("startup")
