@@ -1,5 +1,6 @@
-# TaeheonAI
+# TaeheonAI Frontend
 
+<!-- Last updated: 2025-08-27 01:15 - Force redeploy to clear browser cache -->
 Next.js 기반의 PWA 애플리케이션으로 TypeScript, React, Zustand, Axios를 사용하여 구축되었습니다. **MSA(Microservice Architecture)** 구조로 설계되어 API Gateway를 통해 서비스 디스커버리와 프록시 패턴을 구현했습니다.
 
 ## 🚀 기술 스택
