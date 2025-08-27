@@ -14,6 +14,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
@@ -43,6 +44,19 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     lifespan=lifespan,
+)
+
+# 🚨 프록시 신뢰 설정: TLS 종료 후 http로 보이는 문제 해결
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+# 🚨 CORS 미들웨어를 가장 먼저 추가 (프록시/리다이렉트/예외 핸들러보다 위에)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # CORS 설정 - 환경별 분기
@@ -81,13 +95,6 @@ else:
     ]
     logger.info("💻 로컬 개발 환경 CORS 설정 적용")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 
@@ -337,12 +344,16 @@ async def root():
 # 라우터를 앱에 포함 (generic proxy만 사용)
 app.include_router(gateway_router)
 
-# 🚨 미들웨어 순서 중요: CORS → 로깅 → HTTPS 리다이렉트
+# 🚨 미들웨어 순서 최적화: CORS → 로깅 (리다이렉트 제거)
 
 # 1. CORS 요청 로깅 및 처리 미들웨어 (가장 먼저 실행)
 @app.middleware("http")
 async def log_cors_requests(request: Request, call_next):
     logger.info(f"🚀 === CORS 미들웨어 시작 === {request.method} {request.url.path}")
+    
+    # 🚨 프록시 헤더로 scheme 판단
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    logger.info(f"🔍 Scheme 판단: x-forwarded-proto={request.headers.get('x-forwarded-proto')}, request.url.scheme={request.url.scheme}, 최종={scheme}")
     
     origin = request.headers.get("origin")
     logger.info(f"🌐 Origin 헤더: {origin}")
@@ -408,44 +419,26 @@ async def log_all_requests(request: Request, call_next):
         logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
         raise
 
-# 3. HTTPS 리다이렉트 미들웨어 (마지막에 실행)
-@app.middleware("http")
-async def force_https_redirect(request: Request, call_next):
-    """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
-    # 🚨 무한 리다이렉트 방지
-    redirect_count = request.headers.get("x-redirect-count", "0")
-    try:
-        redirect_count_int = int(redirect_count)
-        if redirect_count_int >= 3:
-            logger.error(f"🚨 무한 리다이렉트 감지! 최대 허용 횟수 초과: {redirect_count_int}")
-            return Response(
-                status_code=400,
-                content="Too many redirects. Please use HTTPS directly."
-            )
-    except ValueError:
-        redirect_count_int = 0
-    
-    # 🚨 CORS preflight 요청은 리다이렉트하지 않음
-    if request.method == "OPTIONS":
-        logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
-        return await call_next(request)
-    
-    # Railway 환경에서 HTTPS 강제 적용
-    if request.url.scheme == "http":
-        # HTTPS URL로 리다이렉트
-        https_url = str(request.url).replace("http://", "https://", 1)
-        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트 (횟수: {redirect_count_int + 1}): {request.url} → {https_url}")
-        
-        # 리다이렉트 횟수 증가
-        headers = {"Location": https_url, "x-redirect-count": str(redirect_count_int + 1)}
-        
-        return Response(
-            status_code=307,
-            headers=headers,
-            content="HTTPS required"
-        )
-    
-    return await call_next(request)
+# 3. HTTPS 리다이렉트 미들웨어 (비활성화 - 프록시 헤더로 해결)
+# @app.middleware("http")
+# async def force_https_redirect(request: Request, call_next):
+#     """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어 - 비활성화됨"""
+#     # 🚨 프록시 헤더로 scheme 판단
+#     scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+#     logger.info(f"🔍 Scheme 판단: x-forwarded-proto={request.headers.get('x-forwarded-proto')}, request.url.scheme={request.url.scheme}, 최종={scheme}")
+#     
+#     # 🚨 CORS preflight 요청은 리다이렉트하지 않음
+#     if request.method == "OPTIONS":
+#         logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
+#         return await call_next(request)
+#     
+#     # 🚨 프록시 헤더 기준으로 HTTPS 판단
+#     if scheme == "http":
+#         logger.warning(f"🚨 HTTP scheme 감지 (프록시 헤더 기준): {scheme}")
+#         # 리다이렉트 대신 로깅만 하고 계속 진행
+#         logger.info(f"🔄 리다이렉트 없이 계속 진행: {request.url.path}")
+#     
+#     return await call_next(request)
 
 # ✅ uvicorn 실행 경로 단순화
 if __name__ == "__main__":
