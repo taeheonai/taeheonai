@@ -19,7 +19,7 @@ corporation_router = APIRouter(prefix="/v1/corporations", tags=["corporations"])
 # CorporationController 인스턴스 생성
 corporation_controller = CorporationController()
 
-@router.get("", summary="기업 목록 조회 (슬래시 없음)", response_model=CorporationListResponse)
+@corporation_router.get("", summary="기업 목록 조회 (슬래시 없음)", response_model=CorporationListResponse)
 async def get_all_corporations_no_slash(
     db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
@@ -41,7 +41,7 @@ async def get_all_corporations_no_slash(
             detail=f"기업 목록 조회 중 오류가 발생했습니다: {str(e)}"
         )
 
-@router.get("/", summary="기업 목록 조회 (슬래시 있음)", response_model=CorporationListResponse)
+@corporation_router.get("/", summary="기업 목록 조회 (슬래시 있음)", response_model=CorporationListResponse)
 async def get_all_corporations_with_slash(
     db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
