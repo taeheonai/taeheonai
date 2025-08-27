@@ -1,26 +1,12 @@
-FROM nvcr.io/nvidia/cuda:11.8.0-devel-ubuntu20.04
+FROM python:3.11-slim
 
 # 환경 변수 설정
-ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV CUDA_HOME=/usr/local/cuda
-ENV PATH=${CUDA_HOME}/bin:${PATH}
-ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
-# 시스템 패키지 업데이트 및 설치
+# 시스템 패키지 업데이트 및 설치 (최소한으로 유지)
 RUN apt-get update && apt-get install -y \
-    python3.9 \
-    python3.9-dev \
-    python3-pip \
-    git \
-    wget \
     curl \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
-
-# Python 3.9을 기본 Python으로 설정
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.9 1
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
 
 # pip 업그레이드
 RUN python -m pip install --upgrade pip
@@ -31,8 +17,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# PyTorch CUDA 버전 설치 (CUDA 11.8 호환)
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# PyTorch CPU 버전 설치
+RUN pip install --no-cache-dir torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cpu
 
 # 애플리케이션 코드 복사
 COPY . .
