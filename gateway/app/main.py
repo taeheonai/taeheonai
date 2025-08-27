@@ -26,17 +26,40 @@ except ImportError:
     PROXY_HEADERS_AVAILABLE = False
     logger.warning("⚠️ ProxyHeadersMiddleware 사용 불가, 수동 처리로 대체")
 
+# --- optional: 간단한 X-Forwarded-Proto 교정 미들웨어 ---
+from starlette.datastructures import Headers
+class XForwardedProtoMiddleware:
+    def __init__(self, app, header: str = "x-forwarded-proto"):
+        self.app = app
+        self.header = header
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            proto = Headers(scope=scope).get(self.header)
+            if proto in ("http", "https"):
+                scope["scheme"] = proto
+        await self.app(scope, receive, send)
+
 from dotenv import load_dotenv
 from app.domain.model.service_factory import ServiceProxyFactory, ServiceType
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-logger = logging.getLogger("gateway_api")
+# 🚨 Logger 설정 (가장 먼저)
+import logging
+
+logger = logging.getLogger("gateway")   # 원하는 이름
+logger.setLevel(logging.INFO)
+
+# Uvicorn 환경에서 핸들러가 이미 붙어있을 수 있으니, 중복 추가 방지
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+logger.info("🚀 Gateway 서비스 시작 중...")
 
 
 @asynccontextmanager
@@ -55,7 +78,14 @@ app = FastAPI(
 )
 
 # 🚨 프록시 신뢰 설정: TLS 종료 후 http로 보이는 문제 해결
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+if PROXY_HEADERS_AVAILABLE:
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+    logger.info("✅ ProxyHeadersMiddleware 추가됨")
+else:
+    logger.warning("⚠️ ProxyHeadersMiddleware 없음, 수동 처리로 대체")
+    # 🚨 대안: 간단한 X-Forwarded-Proto 교정 미들웨어
+    app.add_middleware(XForwardedProtoMiddleware)
+    logger.info("✅ XForwardedProtoMiddleware 추가됨")
 
 # 🚨 CORS 미들웨어를 가장 먼저 추가 (프록시/리다이렉트/예외 핸들러보다 위에)
 app.add_middleware(
@@ -66,9 +96,28 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+logger.info("✅ CORS 미들웨어 추가됨")
 
 # CORS 설정 - 환경별 분기
-is_railway = os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]
+if os.getenv("ENVIRONMENT") == "production":
+    cors_origins = [
+        "https://taeheonai.com",
+        "https://www.taeheonai.com",
+        "https://*.vercel.app",
+        "https://*.railway.app"
+    ]
+else:
+    cors_origins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://localhost:3000",
+        "https://localhost:3001",
+        "https://*.vercel.app",
+        "https://*.railway.app"
+    ]
+
+logger.info("✅ App bootstrapped with proxy + CORS")
+logger.info(f"🌐 CORS origins: {cors_origins}")
 
 # 환경변수 디버깅 로깅 추가
 logger.info("🔍 === Gateway 환경변수 상태 ===")
@@ -241,7 +290,7 @@ async def proxy_post_json(
                 import traceback
                 logger.error(f"❌ Traceback: {traceback.format_exc()}")
             
-            logger.info(f"🔍 === Auth 서비스 요청 로깅 끝 ===")
+            logger.info(f"�� === Auth 서비스 요청 로깅 끝 ===")
 
         logger.info(f"🔗 {service} 서비스로 요청 전달 중...")
         logger.info(f"🔍 요청 경로: {path}")
@@ -426,7 +475,7 @@ async def log_all_requests(request: Request, call_next):
         logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
         raise
 
-# 3. HTTPS 리다이렉트 미들웨어 (비활성화 - 프록시 헤더로 해결)
+# 🚨 HTTP → HTTPS 강제 리다이렉트 (CORS 헤더 문제로 일단 비활성화)
 # @app.middleware("http")
 # async def force_https_redirect(request: Request, call_next):
 #     """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어 - 비활성화됨"""
