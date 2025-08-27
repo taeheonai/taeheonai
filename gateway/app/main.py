@@ -14,7 +14,7 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.middleware.proxy_headers import ProxyHeadersMiddleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
@@ -443,4 +443,12 @@ async def log_all_requests(request: Request, call_next):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port, 
+        reload=True,
+        # 🚨 프록시 헤더 신뢰 옵션 추가
+        proxy_headers=True,
+        forwarded_allow_ips="*"
+    )
