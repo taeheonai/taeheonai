@@ -52,7 +52,7 @@ export default function SignupPage() {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // Gateway를 통한 corporations 서비스 API 호출 (CORS 문제 해결)
+      // 🚨 Gateway를 통한 corporations 서비스 API 호출 (CORS 문제 해결)
       let apiUrl = 'https://taeheonai-production-2130.up.railway.app/api/v1/corporations?limit=1000';
       
       // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
@@ -95,6 +95,23 @@ export default function SignupPage() {
       console.log('🚨 apiUrl startsWith https:', apiUrl.startsWith('https://'));
       console.log('🚨 finalUrl.protocol:', finalUrl.protocol);
       console.log('🚨 === axios 요청 직전 최종 확인 끝 ===');
+      
+      // 🚨 마지막 안전장치: URL을 직접 문자열로 검증
+      if (typeof apiUrl !== 'string' || !apiUrl.startsWith('https://')) {
+        throw new Error(`최종 검증 실패: URL이 안전하지 않음 - ${apiUrl}`);
+      }
+      
+      // 🚨 URL 객체 재검증
+      try {
+        const urlObj = new URL(apiUrl);
+        if (urlObj.protocol !== 'https:') {
+          throw new Error(`URL 객체 검증 실패: ${urlObj.protocol}`);
+        }
+        console.log('✅ URL 객체 검증 완료');
+      } catch (urlError) {
+        console.error('❌ URL 객체 검증 실패:', urlError);
+        throw new Error(`잘못된 URL 형식: ${apiUrl}`);
+      }
       
       const response = await axios.get(apiUrl, {
         timeout: 10000,
