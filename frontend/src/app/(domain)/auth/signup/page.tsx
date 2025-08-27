@@ -15,6 +15,15 @@ interface Corporation {
   dart_code: string;
 }
 
+// API 응답 데이터 타입
+interface ApiResponse<T> {
+  data?: T;
+  success?: boolean;
+  message?: string;
+  count?: number;
+  total?: number;
+}
+
 type SignupFormState = {
   id: string;
   company_name: string;          // 표시용
@@ -72,7 +81,10 @@ export default function SignupPage() {
       let list: Corporation[] = [];
       if (Array.isArray(data)) list = data;
       else if (data && typeof data === 'object') {
-        if ('data' in data && Array.isArray((data as any).data)) list = (data as any).data;
+        const apiResponse = data as ApiResponse<Corporation[]>;
+        if ('data' in apiResponse && Array.isArray(apiResponse.data)) {
+          list = apiResponse.data;
+        }
       }
 
       setCorporations(list);
@@ -122,7 +134,10 @@ export default function SignupPage() {
         let list: Corporation[] = [];
         if (Array.isArray(data)) list = data;
         else if (data && typeof data === 'object') {
-          if ('data' in data && Array.isArray((data as any).data)) list = (data as any).data;
+          const apiResponse = data as ApiResponse<Corporation[]>;
+          if ('data' in apiResponse && Array.isArray(apiResponse.data)) {
+            list = apiResponse.data;
+          }
         }
         setSearchResults(list);
         setShowSearchResults(true);
@@ -221,8 +236,9 @@ export default function SignupPage() {
         alert('회원가입 성공! 자동으로 로그인되었습니다.');
         router.push('/');
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      setError(error?.response?.data?.detail || '회원가입 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
