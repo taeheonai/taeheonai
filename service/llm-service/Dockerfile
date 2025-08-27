@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8-devel-ubuntu20.04
+FROM nvcr.io/nvidia/cuda:11.8.0-devel-ubuntu20.04
 
 # 환경 변수 설정
 ENV DEBIAN_FRONTEND=noninteractive

@@ -71,3 +71,6 @@ service/llm-service/outputs/**/adapter/
 # Misc
 .DS_Store
 Thumbs.db
+
+# Documentation
+docs/
