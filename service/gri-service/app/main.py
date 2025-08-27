@@ -24,22 +24,15 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        # 로컬 개발
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://frontend:3000",
-        # 프로덕션
         "https://taeheonai.com",
-        "http://taeheonai.com",
         "https://www.taeheonai.com",
-        "http://www.taeheonai.com",
-        # Vercel 배포 도메인
-        "https://taeheonai.vercel.app",
-        "https://taeheonai-git-main.vercel.app",
-        "https://taeheonai-git-develop.vercel.app",
+        "https://taeheonai-production-2130.up.railway.app",
+        "https://gri-service-production.up.railway.app",
+        "https://disciplined-imagination-production-df5c.up.railway.app",
+        "https://*.vercel.app"
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
