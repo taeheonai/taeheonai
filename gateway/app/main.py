@@ -101,7 +101,27 @@ async def log_cors_requests(request: Request, call_next):
         else:
             logger.warning(f"⚠️ CORS 허용되지 않은 origin: {origin}")
     
+    # CORS preflight 요청 처리
+    if request.method == "OPTIONS":
+        logger.info(f"🔄 CORS preflight 요청 처리: {origin}")
+        response = Response()
+        if origin and origin in cors_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            logger.info(f"✅ CORS preflight 응답 헤더 설정 완료")
+        return response
+    
+    # 일반 요청 처리
     response = await call_next(request)
+    
+    # CORS 헤더 강제 추가
+    if origin and origin in cors_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        logger.info(f"✅ CORS 헤더 추가 완료: {origin}")
+    
     return response
 
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
