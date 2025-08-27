@@ -266,8 +266,14 @@ export async function postLoginPayload(payload: {
 }
 
 // ===== 기업 관련 API =====
-export async function fetchCorporations() {
+export async function fetchCorporations(limit?: number) {
   // ✅ corporation 서비스로 요청
   // Gateway에서 corporation → corporation-service로 라우팅
-  return api.get(`/v1/corporation`);
+  const params = limit ? `?limit=${limit}` : '?limit=1000';  // 기본값 1000개
+  return api.get(`/v1/corporation${params}`);
+}
+
+export async function searchCorporations(query: string, limit: number = 20) {
+  // ✅ 기업명으로 검색
+  return api.get(`/v1/corporation/search?query=${encodeURIComponent(query)}&limit=${limit}`);
 }
