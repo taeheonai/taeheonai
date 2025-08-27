@@ -342,14 +342,20 @@ app.include_router(gateway_router)
 # 1. CORS 요청 로깅 및 처리 미들웨어 (가장 먼저 실행)
 @app.middleware("http")
 async def log_cors_requests(request: Request, call_next):
+    logger.info(f"🚀 === CORS 미들웨어 시작 === {request.method} {request.url.path}")
+    
     origin = request.headers.get("origin")
-    logger.info(f"🌐 === CORS 미들웨어 시작 === {request.method} {request.url.path} from {origin}")
+    logger.info(f"🌐 Origin 헤더: {origin}")
+    logger.info(f"🌐 모든 헤더: {dict(request.headers)}")
     
     if origin:
         if origin in cors_origins:
             logger.info(f"✅ CORS 허용된 origin: {origin}")
         else:
             logger.warning(f"⚠️ CORS 허용되지 않은 origin: {origin}")
+            logger.warning(f"⚠️ 허용된 origins: {cors_origins}")
+    else:
+        logger.warning(f"⚠️ Origin 헤더가 없음")
     
     # CORS preflight 요청 처리
     if request.method == "OPTIONS":
@@ -364,6 +370,7 @@ async def log_cors_requests(request: Request, call_next):
         return response
     
     # 일반 요청 처리
+    logger.info(f"🔄 일반 요청 처리 시작: {request.method} {request.url.path}")
     response = await call_next(request)
     
     # CORS 헤더 강제 추가
@@ -371,6 +378,8 @@ async def log_cors_requests(request: Request, call_next):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         logger.info(f"✅ CORS 헤더 추가 완료: {origin}")
+    else:
+        logger.warning(f"⚠️ CORS 헤더 추가 실패: origin={origin}, allowed={cors_origins}")
     
     logger.info(f"🌐 === CORS 미들웨어 끝 === {response.status_code}")
     return response
@@ -403,6 +412,19 @@ async def log_all_requests(request: Request, call_next):
 @app.middleware("http")
 async def force_https_redirect(request: Request, call_next):
     """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
+    # 🚨 무한 리다이렉트 방지
+    redirect_count = request.headers.get("x-redirect-count", "0")
+    try:
+        redirect_count_int = int(redirect_count)
+        if redirect_count_int >= 3:
+            logger.error(f"🚨 무한 리다이렉트 감지! 최대 허용 횟수 초과: {redirect_count_int}")
+            return Response(
+                status_code=400,
+                content="Too many redirects. Please use HTTPS directly."
+            )
+    except ValueError:
+        redirect_count_int = 0
+    
     # 🚨 CORS preflight 요청은 리다이렉트하지 않음
     if request.method == "OPTIONS":
         logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
@@ -412,10 +434,14 @@ async def force_https_redirect(request: Request, call_next):
     if request.url.scheme == "http":
         # HTTPS URL로 리다이렉트
         https_url = str(request.url).replace("http://", "https://", 1)
-        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트: {request.url} → {https_url}")
+        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트 (횟수: {redirect_count_int + 1}): {request.url} → {https_url}")
+        
+        # 리다이렉트 횟수 증가
+        headers = {"Location": https_url, "x-redirect-count": str(redirect_count_int + 1)}
+        
         return Response(
             status_code=307,
-            headers={"Location": https_url},
+            headers=headers,
             content="HTTPS required"
         )
     
