@@ -133,8 +133,8 @@ class CorporationRepository:
                 .limit(limit)
                 .order_by(Corporation.companyname)
             )
-            corporations = result.scalars().all()
+            corporation = result.scalars().all()
             
-            return corporations, total
+            return corporation, total
         except Exception as e:
             raise Exception(f"기업 목록 조회 실패: {str(e)}")

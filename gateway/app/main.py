@@ -166,7 +166,7 @@ class ResponseFactory:
 async def health_check():
     return {"status": "healthy", "service": "gateway", "timestamp": datetime.utcnow().isoformat() + "Z", "version": "0.1.0"}
 
-# ✅ /api/v1/{service} 형태 지원 (예: /api/v1/corporations)
+# ✅ /api/v1/{service} 형태 지원 (예: /api/v1/corporation)
 @gateway_router.get("/{service}", summary="GET 프록시 (root)")
 async def proxy_get_root(service: ServiceType, request: Request):
     try:
@@ -184,7 +184,7 @@ async def proxy_get_root(service: ServiceType, request: Request):
         logger.error(f"Error in GET proxy (root): {e}", exc_info=True)
         return JSONResponse(content={"detail": f"Error processing request: {e}"}, status_code=500)
 
-# ✅ /api/v1/{service}/ 형태 지원 (예: /api/v1/corporations/)
+# ✅ /api/v1/{service}/ 형태 지원 (예: /api/v1/corporation/)
 @gateway_router.get("/{service}/", summary="GET 프록시 (root with slash)")
 async def proxy_get_root_slash(service: ServiceType, request: Request):
     try:
