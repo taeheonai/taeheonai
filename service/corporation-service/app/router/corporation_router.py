@@ -19,23 +19,45 @@ corporation_router = APIRouter(prefix="/v1/corporations", tags=["corporations"])
 # CorporationController 인스턴스 생성
 corporation_controller = CorporationController()
 
-@corporation_router.get("/", summary="기업 목록 조회", response_model=CorporationListResponse)
-async def get_all_corporations(
+@router.get("", summary="기업 목록 조회 (슬래시 없음)", response_model=CorporationListResponse)
+async def get_all_corporations_no_slash(
     db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
     limit: int = Query(100, ge=1, le=1000, description="가져올 개수")
 ):
-    """모든 기업 정보를 조회합니다."""
+    """모든 기업 정보를 조회합니다. (슬래시 없음)"""
     try:
-        logger.info(f"📝 기업 목록 조회 요청: skip={skip}, limit={limit}")
+        logger.info(f"📝 기업 목록 조회 요청 (슬래시 없음): skip={skip}, limit={limit}")
         
         result = await corporation_controller.get_all_corporations(db, skip, limit)
         
-        logger.info(f"✅ 기업 목록 조회 성공: {result.count}개")
+        logger.info(f"✅ 기업 목록 조회 성공 (슬래시 없음): {result.count}개")
         return result
         
     except Exception as e:
-        logger.error(f"❌ 기업 목록 조회 실패: {e}")
+        logger.error(f"❌ 기업 목록 조회 실패 (슬래시 없음): {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"기업 목록 조회 중 오류가 발생했습니다: {str(e)}"
+        )
+
+@router.get("/", summary="기업 목록 조회 (슬래시 있음)", response_model=CorporationListResponse)
+async def get_all_corporations_with_slash(
+    db: AsyncSession = Depends(get_db),
+    skip: int = Query(0, ge=0, description="건너뛸 개수"),
+    limit: int = Query(100, ge=1, le=1000, description="가져올 개수")
+):
+    """모든 기업 정보를 조회합니다. (슬래시 있음)"""
+    try:
+        logger.info(f"📝 기업 목록 조회 요청 (슬래시 있음): skip={skip}, limit={limit}")
+        
+        result = await corporation_controller.get_all_corporations(db, skip, limit)
+        
+        logger.info(f"✅ 기업 목록 조회 성공 (슬래시 있음): {result.count}개")
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ 기업 목록 조회 실패 (슬래시 있음): {e}")
         raise HTTPException(
             status_code=500, 
             detail=f"기업 목록 조회 중 오류가 발생했습니다: {str(e)}"

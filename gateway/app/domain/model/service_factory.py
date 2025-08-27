@@ -102,23 +102,25 @@ class ServiceProxyFactory:
         # 업스트림에 보낼 헤더 정리
         fwd_headers = dict(headers or {})
         
-        # ✅ hop-by-hop/민감 헤더들 정리
-        for h in ["host", "origin", "referer", "content-length", "connection"]:
+        # ✅ 프록시 안전 헤더 제거 (권장사항과 동일)
+        for h in ("host", "origin", "referer", "content-length"):
             fwd_headers.pop(h, None)
         
-        # ✅ 메서드별로 Content-Type 부여
+        # ✅ 메서드별로 Content-Type 부여 (권장사항과 동일)
         m = method.upper()
-        if m in {"POST", "PUT", "PATCH"}:
+        if m in ("POST", "PUT", "PATCH"):
             fwd_headers.setdefault("Content-Type", "application/json")
+            fwd_headers.setdefault("Accept", "application/json")
         else:
+            # ✅ GET/DELETE는 Content-Type 제거 (405 에러 방지)
             fwd_headers.pop("Content-Type", None)
-        
-        # Accept 헤더 설정
-        if not fwd_headers.get('Accept'):
-            fwd_headers['Accept'] = 'application/json'
+            fwd_headers.setdefault("Accept", "application/json")
 
-        logger.info(f"🔒 헤더 정리 완료: Content-Type={fwd_headers.get('Content-Type', '제거됨')} (메서드: {m})")
-        logger.info(f"🔒 민감 헤더 제거: origin, referer, content-length, connection")
+        logger.info(f"🔒 헤더 정리 완료:")
+        logger.info(f"  - 메서드: {m}")
+        logger.info(f"  - Content-Type: {fwd_headers.get('Content-Type', '제거됨')}")
+        logger.info(f"  - Accept: {fwd_headers.get('Accept', '설정됨')}")
+        logger.info(f"  - 프록시 안전 헤더 제거: host, origin, referer, content-length")
 
         # ✅ 리다이렉트 제대로 따라가기 + 타임아웃 설정
         async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
