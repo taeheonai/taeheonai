@@ -50,6 +50,11 @@ services:
       - PORT=8008
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+      - GATEWAY_URL=https://taeheonai-production-2130.up.railway.app
+
+
+
+
     restart: always
     networks:
       - taeheonai-network
