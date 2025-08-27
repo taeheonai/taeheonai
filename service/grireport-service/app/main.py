@@ -17,7 +17,13 @@ app = FastAPI(
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://taeheonai.com", "http://taeheonai.com"],
+    allow_origins=[
+        "https://taeheonai.com",
+        "https://www.taeheonai.com",
+        "https://taeheonai-production-2130.up.railway.app",
+        "https://grireport-service-production.up.railway.app",
+        "https://*.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
