@@ -7,6 +7,8 @@ const withPWAConfig = withPWA({
   disable: process.env.NODE_ENV === 'development', // dev에서는 비활성화
   register: true,
   skipWaiting: true,
+  // Vercel 배포 시 PWA 파일 접근 문제 해결
+  buildExcludes: [/middleware-manifest\.json$/],
   // runtimeCaching 같은 커스텀은 지금은 넣지 말고, 빌드 성공 후 점진 추가
 });
 
