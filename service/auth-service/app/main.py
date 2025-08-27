@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.responses import JSONResponse
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
@@ -50,23 +50,14 @@ app = FastAPI(
 )
 
 # ---------- CORS ----------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        # 로컬
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://frontend:3000",
-        # 프로덕션
-        "https://taeheonai.com",
-        "http://taeheonai.com",
-        "https://www.taeheonai.com",
-        "http://www.taeheonai.com",
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # ✅ PATCH 추가
-    allow_headers=["*"],
-)
+# 🚨 CORS 제거: Gateway에서만 CORS 처리 (브라우저가 직접 호출하지 않음)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[...],
+#     allow_credentials=True,
+#     allow_methods=[...],
+#     allow_headers=[...],
+# )
 
 # ---------- 라우터 ----------
 app.include_router(auth_router) # prefix 제거 (auth_router에 이미 있음)
@@ -156,7 +147,7 @@ async def database_test():
 
 # ---------- 요청 로깅 미들웨어 ----------
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_requests(request, call_next):
     start = datetime.now().timestamp()
     client = request.client.host if request.client else "unknown"
     logger.info(f"📥 요청: {request.method} {request.url.path} (클라이언트: {client})")

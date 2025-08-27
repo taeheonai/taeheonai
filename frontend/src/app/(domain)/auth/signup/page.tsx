@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { postSignupPayload } from '@/lib/api';
+import { postSignupPayload, fetchCorporations } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
-import axios from 'axios';
 
 // 데이터베이스 스키마에 맞춘 타입
 interface Corporation {
@@ -47,92 +46,16 @@ export default function SignupPage() {
   const router = useRouter();
 
   // 기업 목록
-  const fetchCorporations = async () => {
+  const fetchCorporationsData = async () => {
     try {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // 🚨 Gateway를 통한 corporations 서비스 API 호출 (CORS 문제 해결)
-      let apiUrl = 'https://taeheonai-production-2130.up.railway.app/api/v1/corporations?limit=1000';
-      
-      // 🚨 URL 검증: HTTP가 포함되어 있는지 확인하고 HTTPS로 강제 변환
-      if (apiUrl.includes('http://')) {
-        console.error('❌ HTTP URL 감지! 강제로 HTTPS로 변환');
-        apiUrl = apiUrl.replace('http://', 'https://');
-        console.log('✅ 변환된 URL:', apiUrl);
-      } else {
-        console.log('✅ HTTPS URL 확인됨');
-      }
-      
-      // 🚨 추가 검증: URL이 실제로 HTTPS인지 확인
-      if (!apiUrl.startsWith('https://')) {
-        console.error('❌ URL이 여전히 HTTPS가 아님! 강제 변환');
-        apiUrl = apiUrl.replace(/^http:\/\//, 'https://');
-        console.log('✅ 최종 변환된 URL:', apiUrl);
-      }
-      
-      // 🚨 최종 URL 검증
-      console.log('🔍 최종 API URL 검증:', apiUrl);
-      if (apiUrl.startsWith('https://')) {
-        console.log('✅ HTTPS URL 최종 확인 완료');
-      } else {
-        throw new Error(`URL이 여전히 안전하지 않음: ${apiUrl}`);
-      }
-      
-      console.log('🔍 API 요청 URL:', apiUrl);
-      
-      // 🚨 axios 요청 전 최종 URL 검증
-      const finalUrl = new URL(apiUrl);
-      if (finalUrl.protocol !== 'https:') {
-        throw new Error(`프로토콜이 안전하지 않음: ${finalUrl.protocol}`);
-      }
-      console.log('✅ URL 프로토콜 검증 완료:', finalUrl.protocol);
-      
-      // 🚨 axios 요청 직전 최종 URL 상태 로깅
-      console.log('🚨 === axios 요청 직전 최종 URL 상태 ===');
-      console.log('🚨 apiUrl 변수 값:', JSON.stringify(apiUrl));
-      console.log('🚨 apiUrl 타입:', typeof apiUrl);
-      console.log('🚨 apiUrl 길이:', apiUrl.length);
-      console.log('🚨 apiUrl 첫 10글자:', apiUrl.substring(0, 10));
-      console.log('🚨 apiUrl 마지막 10글자:', apiUrl.substring(apiUrl.length - 10));
-      console.log('🚨 === axios 요청 직전 최종 URL 상태 끝 ===');
-      
-      // 🚨 URL이 여전히 HTTP인지 최종 확인
-      if (apiUrl.includes('http://')) {
-        console.error('❌ 최종 확인에서도 HTTP 발견! 강제 수정');
-        apiUrl = apiUrl.replace(/http:\/\//g, 'https://');
-        console.log('✅ 강제 수정된 URL:', apiUrl);
-      }
-      
-      // 🚨 최종 URL 검증
-      if (!apiUrl.startsWith('https://')) {
-        console.error('❌ 최종 URL 검증 실패!', apiUrl);
-        throw new Error(`URL이 여전히 안전하지 않음: ${apiUrl}`);
-      }
-      
-      console.log('✅ 최종 URL 검증 통과:', apiUrl);
-      
-      const response = await axios.get(apiUrl, {
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      // 🚨 axios 요청 후 URL 상태 확인
-      console.log('🚨 === axios 요청 후 URL 상태 확인 ===');
-      console.log('🚨 원본 apiUrl:', apiUrl);
-      console.log('🚨 response.config.url:', response.config.url);
-      console.log('🚨 response.config.baseURL:', response.config.baseURL);
-      console.log('🚨 response.request.responseURL:', response.request.responseURL);
-      console.log('🚨 === axios 요청 후 URL 상태 확인 끝 ===');
+      // 🚨 api.ts의 fetchCorporations 함수 사용 (일관성 유지)
+      const response = await fetchCorporations(1000);
       
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
-      
-      // Gateway를 사용하므로 리다이렉트 처리가 불필요
-      console.log('✅ Gateway를 통한 요청, 리다이렉트 없음');
       
       const data = response.data;
       console.log('🔍 API 응답 데이터:', data);
@@ -204,7 +127,7 @@ export default function SignupPage() {
   };
 
   useEffect(() => {
-    fetchCorporations();
+    fetchCorporationsData();
   }, []);
 
   const handleChange = (

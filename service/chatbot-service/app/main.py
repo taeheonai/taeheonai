@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.middleware.cors import CORSMiddleware  # 🚨 CORS 제거로 인해 불필요
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
 import logging
+import os
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -14,20 +16,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS 설정
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://taeheonai.com",
-        "https://www.taeheonai.com",
-        "https://taeheonai-production-2130.up.railway.app",
-        "https://chatbot-service-production.up.railway.app",
-        "https://*.vercel.app"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 🚨 CORS 제거: Gateway에서만 CORS 처리 (브라우저가 직접 호출하지 않음)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[...],
+#     allow_credentials=True,
+#     allow_methods=[...],
+#     allow_headers=[...],
+# )
 
 # APIRouter 정의
 chatbot_router = APIRouter()
@@ -102,7 +98,6 @@ app.include_router(chatbot_router)
 
 if __name__ == "__main__":
     import uvicorn
-    import os
     
     port = int(os.getenv("PORT", 8001))
     uvicorn.run(app, host="0.0.0.0", port=port) 

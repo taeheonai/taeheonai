@@ -1,5 +1,4 @@
 from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 import uvicorn
@@ -18,16 +17,14 @@ app = FastAPI(
     version="1.0.0",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://taeheonai.com",
-        "http://taeheonai.com",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 🚨 CORS 제거: Gateway에서만 CORS 처리 (브라우저가 직접 호출하지 않음)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[...],
+#     allow_credentials=True,
+#     allow_methods=[...],
+#     allow_headers=[...],
+# )
 
 # APIRouter 정의
 survey_router = APIRouter()
