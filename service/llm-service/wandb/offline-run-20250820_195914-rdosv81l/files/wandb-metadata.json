@@ -1,0 +1,62 @@
+{
+    "os": "Windows-10-10.0.26100-SP0",
+    "python": "3.11.13",
+    "heartbeatAt": "2025-08-20T10:59:14.643763",
+    "startedAt": "2025-08-20T10:59:14.513765",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--epochs",
+        "1",
+        "--batch",
+        "1",
+        "--max-seq-len",
+        "1024",
+        "--lr",
+        "2e-4"
+    ],
+    "state": "running",
+    "program": "C:\\Users\\bit\\taeheonai\\service\\slm-service\\run_training.py",
+    "codePathLocal": "run_training.py",
+    "codePath": "service\\slm-service\\run_training.py",
+    "git": {
+        "remote": "https://github.com/taeheonai/taeheonai.git",
+        "commit": "97142fc47d65e676fe66213b045ca04a95e01919"
+    },
+    "email": "oheth9@gmail.com",
+    "root": "C:/Users/bit/taeheonai",
+    "host": "bitcamp",
+    "username": "bit",
+    "executable": "C:\\Users\\bit\\.conda\\envs\\sllm\\python.exe",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3000.0,
+        "min": 0.0,
+        "max": 3000.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3000.0,
+            "min": 0.0,
+            "max": 3000.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 237.67229843139648,
+            "used": 153.31114959716797
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 2080",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 2080",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 31.779579162597656
+    }
+}
