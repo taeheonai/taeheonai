@@ -8,7 +8,6 @@ class CorporationBase(BaseModel):
     corp_code: str = Field(..., description="기업 코드")
     market: Optional[str] = Field(None, description="시장 구분 (KOSPI, KOSDAQ 등)")
     dart_code: Optional[str] = Field(None, description="DART 코드")
-    industry: Optional[str] = Field(None, description="산업 분야")
 
 class CorporationCreate(CorporationBase):
     """기업 정보 생성 스키마"""
@@ -20,7 +19,6 @@ class CorporationUpdate(BaseModel):
     corp_code: Optional[str] = Field(None, description="기업 코드")
     market: Optional[str] = Field(None, description="시장 구분")
     dart_code: Optional[str] = Field(None, description="DART 코드")
-    industry: Optional[str] = Field(None, description="산업 분야")
 
 class CorporationResponse(CorporationBase):
     """기업 정보 응답 스키마"""
