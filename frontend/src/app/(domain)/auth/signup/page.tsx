@@ -200,11 +200,31 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
-    if (!form.auth_id.trim() || !form.auth_pw.trim()) {
-      setError('아이디와 비밀번호를 입력하세요.');
+    // 클라이언트 사이드 validation
+    if (!form.auth_id.trim()) {
+      setError('아이디를 입력하세요.');
       setLoading(false);
       return;
     }
+    
+    if (form.auth_id.trim().length < 3) {
+      setError('아이디는 최소 3자 이상이어야 합니다.');
+      setLoading(false);
+      return;
+    }
+    
+    if (!form.auth_pw.trim()) {
+      setError('비밀번호를 입력하세요.');
+      setLoading(false);
+      return;
+    }
+    
+    if (form.auth_pw.trim().length < 4) {
+      setError('비밀번호는 최소 4자 이상이어야 합니다.');
+      setLoading(false);
+      return;
+    }
+    
     if (!form.corporation_id) {
       setError('기업명을 선택하세요.');
       setLoading(false);
@@ -212,6 +232,7 @@ export default function SignupPage() {
     }
 
     const payload: SignupPayload = {
+      company_name: form.company_name,        // 백엔드에서 필수로 요구하는 필드 추가
       corporation_id: form.corporation_id,
       industry: form.industry || null,
       email: form.email || null,
@@ -274,7 +295,7 @@ export default function SignupPage() {
             {/* 기업명 - 타입어헤드 */}
             <div className="relative" ref={containerRef}>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                기업명 (company_name) *
+                기업명 (company_name) * <span className="text-red-500">필수</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -314,6 +335,9 @@ export default function SignupPage() {
                   </div>
                 )}
               </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                기업명을 입력하고 목록에서 선택해주세요
+              </p>
 
               {showSearchResults && (
                 <div
@@ -420,27 +444,41 @@ export default function SignupPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">아이디 (auth_id)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                  아이디 (auth_id) *
+                </label>
                 <input
                   name="auth_id"
                   value={form.auth_id}
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="로그인에 사용할 아이디"
+                  placeholder="로그인에 사용할 아이디 (최소 3자)"
+                  minLength={3}
+                  required
                   disabled={loading}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  최소 3자 이상 입력해주세요
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">비밀번호 (auth_pw)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                  비밀번호 (auth_pw) *
+                </label>
                 <input
                   type="password"
                   name="auth_pw"
                   value={form.auth_pw}
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="••••••••"
+                  placeholder="•••••••• (최소 4자)"
+                  minLength={4}
+                  required
                   disabled={loading}
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  최소 4자 이상 입력해주세요
+                </p>
               </div>
             </div>
 
