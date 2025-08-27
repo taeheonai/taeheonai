@@ -166,6 +166,42 @@ class ResponseFactory:
 async def health_check():
     return {"status": "healthy", "service": "gateway", "timestamp": datetime.utcnow().isoformat() + "Z", "version": "0.1.0"}
 
+# ✅ /api/v1/{service} 형태 지원 (예: /api/v1/corporations)
+@gateway_router.get("/{service}", summary="GET 프록시 (root)")
+async def proxy_get_root(service: ServiceType, request: Request):
+    try:
+        factory = ServiceProxyFactory(service_type=service)
+        resp = await factory.request(
+            method="GET",
+            path="",  # ← 빈 path로 업스트림 접두사만 붙여 /v1/{service}
+            headers=dict(request.headers),
+            params=dict(request.query_params),
+        )
+        return ResponseFactory.create_response(resp)
+    except HTTPException as he:
+        return JSONResponse(content={"detail": he.detail}, status_code=he.status_code)
+    except Exception as e:
+        logger.error(f"Error in GET proxy (root): {e}", exc_info=True)
+        return JSONResponse(content={"detail": f"Error processing request: {e}"}, status_code=500)
+
+# ✅ /api/v1/{service}/ 형태 지원 (예: /api/v1/corporations/)
+@gateway_router.get("/{service}/", summary="GET 프록시 (root with slash)")
+async def proxy_get_root_slash(service: ServiceType, request: Request):
+    try:
+        factory = ServiceProxyFactory(service_type=service)
+        resp = await factory.request(
+            method="GET",
+            path="",  # ← 빈 path로 업스트림 접두사만 붙여 /v1/{service}
+            headers=dict(request.headers),
+            params=dict(request.query_params),
+        )
+        return ResponseFactory.create_response(resp)
+    except HTTPException as he:
+        return JSONResponse(content={"detail": he.detail}, status_code=he.status_code)
+    except Exception as e:
+        logger.error(f"Error in GET proxy (root with slash): {e}", exc_info=True)
+        return JSONResponse(content={"detail": f"Error processing request: {e}"}, status_code=500)
+
 @gateway_router.get("/{service}/{path:path}", summary="GET 프록시")
 async def proxy_get(service: ServiceType, path: str, request: Request):
     try:
