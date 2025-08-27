@@ -28,7 +28,7 @@ class ServiceProxyFactory:
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            ServiceType.corporations: os.getenv("CORPORATION_SERVICE_URL", "http://corporation-service-production.up.railway.app"),
+            ServiceType.corporations: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
         }
         
         # corporations는 독립 서비스로 처리
