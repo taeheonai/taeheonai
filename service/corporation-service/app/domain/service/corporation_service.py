@@ -9,17 +9,17 @@ from app.domain.schema.corporation_schema import (
 )
 from app.domain.entity.corporation_entity import Corporation
 
-class corporationervice:
+class CorporationService:
     """기업 정보 비즈니스 로직 계층"""
     
     def __init__(self, db: AsyncSession):
         self.repo = CorporationRepository(db)
     
-    async def get_all_corporation(self, skip: int = 0, limit: int = 100) -> CorporationListResponse:
+    async def get_all_corporations(self, skip: int = 0, limit: int = 100) -> CorporationListResponse:
         """모든 기업 정보 조회"""
         try:
-            corporation, total = await self.repo.get_all(skip, limit)
-            corporation_responses = [CorporationResponse.model_validate(corp) for corp in corporation]
+            corporations, total = await self.repo.get_all(skip, limit)
+            corporation_responses = [CorporationResponse.model_validate(corp) for corp in corporations]
             
             return CorporationListResponse(
                 success=True,
@@ -56,11 +56,11 @@ class corporationervice:
         except Exception as e:
             raise Exception(f"기업 코드로 조회 실패: {str(e)}")
     
-    async def search_corporation(self, query: str, limit: int = 20) -> List[CorporationResponse]:
+    async def search_corporations(self, query: str, limit: int = 20) -> List[CorporationResponse]:
         """기업명으로 검색"""
         try:
-            corporation = await self.repo.search_by_name(query, limit)
-            return [CorporationResponse.model_validate(corp) for corp in corporation]
+            corporations = await self.repo.search_by_name(query, limit)
+            return [CorporationResponse.model_validate(corp) for corp in corporations]
             
         except Exception as e:
             raise Exception(f"기업 검색 실패: {str(e)}")

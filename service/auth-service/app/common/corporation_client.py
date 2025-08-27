@@ -21,7 +21,7 @@ class CorporationClient:
     async def validate_corporation_exists(self, corporation_id: int) -> bool:
         """기업 ID가 유효한지 검증"""
         try:
-            url = f"{self.base_url}/v1/corporation/validate/{corporation_id}"
+            url = f"{self.base_url}/v1/corporations/validate/{corporation_id}"
             response = await self.client.get(url)
             
             if response.status_code == 200:
@@ -40,7 +40,7 @@ class CorporationClient:
     async def get_corporation_by_id(self, corporation_id: int) -> Optional[Dict[str, Any]]:
         """ID로 기업 정보 조회"""
         try:
-            url = f"{self.base_url}/v1/corporation/{corporation_id}"
+            url = f"{self.base_url}/v1/corporations/{corporation_id}"
             response = await self.client.get(url)
             
             if response.status_code == 200:
@@ -58,7 +58,7 @@ class CorporationClient:
     async def get_corporation_by_code(self, corp_code: str) -> Optional[Dict[str, Any]]:
         """기업 코드로 기업 정보 조회"""
         try:
-            url = f"{self.base_url}/v1/corporation/code/{corp_code}"
+            url = f"{self.base_url}/v1/corporations/code/{corp_code}"
             response = await self.client.get(url)
             
             if response.status_code == 200:
@@ -73,10 +73,10 @@ class CorporationClient:
             logger.error(f"기업 코드로 조회 중 오류 발생: {e}")
             return None
     
-    async def get_all_corporation(self, skip: int = 0, limit: int = 100) -> Optional[Dict[str, Any]]:
+    async def get_all_corporations(self, skip: int = 0, limit: int = 100) -> Optional[Dict[str, Any]]:
         """모든 기업 정보 조회 (회원가입 시 드롭다운용)"""
         try:
-            url = f"{self.base_url}/v1/corporation?skip={skip}&limit={limit}"
+            url = f"{self.base_url}/v1/corporations?skip={skip}&limit={limit}"
             response = await self.client.get(url)
             
             if response.status_code == 200:

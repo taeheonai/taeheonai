@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { postSignupPayload, fetchcorporation } from '@/lib/api';
+import { postSignupPayload, fetchCorporations } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
 
 // 데이터베이스 스키마에 맞춘 타입
@@ -41,18 +41,18 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [corporation, setcorporation] = useState<Corporation[]>([]);
-  const [loadingcorporation, setLoadingcorporation] = useState(false);
+  const [corporations, setCorporations] = useState<Corporation[]>([]);
+  const [loadingCorporations, setLoadingCorporations] = useState(false);
   const router = useRouter();
 
   // 기업 목록
-  const fetchcorporationData = async () => {
+  const fetchCorporationsData = async () => {
     try {
-      setLoadingcorporation(true);
+      setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
-      // 🚨 api.ts의 fetchcorporation 함수 사용 (일관성 유지)
-      const response = await fetchcorporation(1000);
+      // 🚨 api.ts의 fetchCorporations 함수 사용 (일관성 유지)
+      const response = await fetchCorporations(1000);
       
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
@@ -82,7 +82,7 @@ export default function SignupPage() {
       console.log('🔍 파싱된 기업 목록:', list);
       console.log('🔍 기업 목록 길이:', list.length);
       
-      setcorporation(list);
+      setCorporations(list);
       console.log('✅ 기업 목록 가져오기 성공:', list.length, '개');
       console.log('🚀 === 기업 목록 가져오기 완료 ===');
     } catch (e) {
@@ -122,12 +122,12 @@ export default function SignupPage() {
       
       console.error('🚨 === 기업 목록 가져오기 실패 ===');
     } finally {
-      setLoadingcorporation(false);
+      setLoadingCorporations(false);
     }
   };
 
   useEffect(() => {
-    fetchcorporationData();
+    fetchCorporationsData();
   }, []);
 
   const handleChange = (
@@ -138,7 +138,7 @@ export default function SignupPage() {
 
     // 회사명 선택 시 corporation_id 동기화 (id를 FK로 저장)
     if (name === 'company_name') {
-      const selected = corporation.find(c => c.companyname === value);
+      const selected = corporations.find(c => c.companyname === value);
       setForm((prev) => ({ ...prev, corporation_id: selected ? selected.id : null }));
       // 선택된 회사의 industry를 기본값으로 넣고 싶다면 아래 주석 해제
       // setForm((prev) => ({ ...prev, industry: selected?.industry ?? '' }));
@@ -236,12 +236,12 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
-                disabled={loading || loadingcorporation}
+                disabled={loading || loadingCorporations}
               >
                 <option value="">
-                  {loadingcorporation ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
+                  {loadingCorporations ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
                 </option>
-                {corporation.map((corp) => (
+                {corporations.map((corp) => (
                   <option key={corp.id} value={corp.companyname}>
                     {corp.companyname} ({corp.corp_code})
                   </option>
