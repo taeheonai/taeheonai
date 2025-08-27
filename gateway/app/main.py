@@ -14,9 +14,17 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
+
+# 🚨 Starlette 버전 호환성을 위한 대안 처리
+try:
+    from starlette.middleware import ProxyHeadersMiddleware
+    PROXY_HEADERS_AVAILABLE = True
+    logger.info("✅ ProxyHeadersMiddleware 사용 가능")
+except ImportError:
+    PROXY_HEADERS_AVAILABLE = False
+    logger.warning("⚠️ ProxyHeadersMiddleware 사용 불가, 수동 처리로 대체")
 
 from dotenv import load_dotenv
 from app.domain.model.service_factory import ServiceProxyFactory, ServiceType
@@ -448,7 +456,7 @@ if __name__ == "__main__":
         host="0.0.0.0", 
         port=port, 
         reload=True,
-        # 🚨 프록시 헤더 신뢰 옵션 추가
+        # 🚨 프록시 헤더 신뢰 옵션 추가 (Starlette 버전 독립)
         proxy_headers=True,
         forwarded_allow_ips="*"
     )
