@@ -88,30 +88,29 @@ export default function SignupPage() {
       }
       console.log('✅ URL 프로토콜 검증 완료:', finalUrl.protocol);
       
-      // 🚨 axios 요청 직전 최종 확인
-      console.log('🚨 === axios 요청 직전 최종 확인 ===');
-      console.log('🚨 apiUrl 변수:', apiUrl);
+      // 🚨 axios 요청 직전 최종 URL 상태 로깅
+      console.log('🚨 === axios 요청 직전 최종 URL 상태 ===');
+      console.log('🚨 apiUrl 변수 값:', JSON.stringify(apiUrl));
       console.log('🚨 apiUrl 타입:', typeof apiUrl);
-      console.log('🚨 apiUrl startsWith https:', apiUrl.startsWith('https://'));
-      console.log('🚨 finalUrl.protocol:', finalUrl.protocol);
-      console.log('🚨 === axios 요청 직전 최종 확인 끝 ===');
+      console.log('🚨 apiUrl 길이:', apiUrl.length);
+      console.log('🚨 apiUrl 첫 10글자:', apiUrl.substring(0, 10));
+      console.log('🚨 apiUrl 마지막 10글자:', apiUrl.substring(apiUrl.length - 10));
+      console.log('🚨 === axios 요청 직전 최종 URL 상태 끝 ===');
       
-      // 🚨 마지막 안전장치: URL을 직접 문자열로 검증
-      if (typeof apiUrl !== 'string' || !apiUrl.startsWith('https://')) {
-        throw new Error(`최종 검증 실패: URL이 안전하지 않음 - ${apiUrl}`);
+      // 🚨 URL이 여전히 HTTP인지 최종 확인
+      if (apiUrl.includes('http://')) {
+        console.error('❌ 최종 확인에서도 HTTP 발견! 강제 수정');
+        apiUrl = apiUrl.replace(/http:\/\//g, 'https://');
+        console.log('✅ 강제 수정된 URL:', apiUrl);
       }
       
-      // 🚨 URL 객체 재검증
-      try {
-        const urlObj = new URL(apiUrl);
-        if (urlObj.protocol !== 'https:') {
-          throw new Error(`URL 객체 검증 실패: ${urlObj.protocol}`);
-        }
-        console.log('✅ URL 객체 검증 완료');
-      } catch (urlError) {
-        console.error('❌ URL 객체 검증 실패:', urlError);
-        throw new Error(`잘못된 URL 형식: ${apiUrl}`);
+      // 🚨 최종 URL 검증
+      if (!apiUrl.startsWith('https://')) {
+        console.error('❌ 최종 URL 검증 실패!', apiUrl);
+        throw new Error(`URL이 여전히 안전하지 않음: ${apiUrl}`);
       }
+      
+      console.log('✅ 최종 URL 검증 통과:', apiUrl);
       
       const response = await axios.get(apiUrl, {
         timeout: 10000,

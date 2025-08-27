@@ -103,6 +103,24 @@ api.interceptors.request.use(
     console.log('  - url:', config.url);
     console.log('  - 최종 URL:', `${config.baseURL}${config.url}`);
     
+    // 🚨 URL 프로토콜 상세 분석
+    if (config.baseURL) {
+      console.log('🔍 baseURL 프로토콜 분석:');
+      console.log('  - 원본:', config.baseURL);
+      console.log('  - 프로토콜:', new URL(config.baseURL).protocol);
+      console.log('  - startsWith https:', config.baseURL.startsWith('https://'));
+      console.log('  - startsWith http:', config.baseURL.startsWith('http://'));
+      console.log('  - includes http://:', config.baseURL.includes('http://'));
+    }
+    
+    if (config.url) {
+      console.log('🔍 url 프로토콜 분석:');
+      console.log('  - 원본:', config.url);
+      console.log('  - startsWith https:', config.url.startsWith('https://'));
+      console.log('  - startsWith http:', config.url.startsWith('http://'));
+      console.log('  - includes http://:', config.url.includes('http://'));
+    }
+    
     // 🚨 잘못된 URL 감지 시 경고
     if (config.baseURL && config.baseURL.includes('disciplined-imagination-production-d5c.up.railway.app')) {
       console.error('❌ 잘못된 API URL 감지! Auth Service로 직접 요청 중');
