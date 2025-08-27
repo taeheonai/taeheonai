@@ -14,7 +14,7 @@ from app.common.database import get_db
 logger = logging.getLogger(__name__)
 
 # 기업 정보 라우터 생성
-corporation_router = APIRouter(prefix="/v1/corporations", tags=["corporations"])
+corporation_router = APIRouter(prefix="/v1/corporation", tags=["corporation"])
 
 # CorporationController 인스턴스 생성
 corporation_controller = CorporationController()
