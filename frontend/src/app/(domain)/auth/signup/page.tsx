@@ -10,7 +10,7 @@ import { SignupPayload } from '@/types/user';
 interface Corporation {
   id: number;
   corp_code: string;
-  companyname: string;  // 기업명 (데이터베이스 컬럼명과 일치)
+  companyname: string;  // ✅ company_name → companyname (DB와 일치)
   market: string;
   dart_code: string;
 }
@@ -26,7 +26,7 @@ interface ApiResponse<T> {
 
 type SignupFormState = {
   id: string;
-  company_name: string;          // 표시용
+  companyname: string;          // ✅ company_name → companyname
   corporation_id: number | null; // 실제 저장할 FK
   industry: string;
   email: string;
@@ -39,7 +39,7 @@ type SignupFormState = {
 export default function SignupPage() {
   const [form, setForm] = useState<SignupFormState>({
     id: '',
-    company_name: '',
+    companyname: '',
     corporation_id: null,
     industry: '',
     email: '',
@@ -175,7 +175,7 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
 
     // 다른 필드들은 그대로 두고, company_name만 별도로 처리
-    if (name === 'company_name') {
+    if (name === 'companyname') {
       setSearchQuery(value);
       setForm((prev) => ({ ...prev, corporation_id: null })); // 입력이 바뀌면 FK 초기화
       setShowSearchResults(!!value.trim());
@@ -185,7 +185,7 @@ export default function SignupPage() {
   const handleCorporationSelect = (corp: Corporation) => {
     setForm(prev => ({
       ...prev,
-      company_name: corp.companyname,
+      companyname: corp.companyname,
       corporation_id: corp.id,
     }));
     setSearchQuery(corp.companyname);
@@ -232,7 +232,7 @@ export default function SignupPage() {
     }
 
     const payload: SignupPayload = {
-      company_name: form.company_name,        // 백엔드에서 필수로 요구하는 필드 추가
+      companyname: form.companyname,        // ✅ company_name → companyname
       corporation_id: form.corporation_id,
       industry: form.industry || null,
       email: form.email || null,
@@ -300,7 +300,7 @@ export default function SignupPage() {
               <div className="mt-1 relative">
                 <input
                   type="text"
-                  name="company_name"
+                  name="companyname"
                   value={searchQuery}
                   autoComplete="off"
                   onChange={handleChange}
