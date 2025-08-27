@@ -32,7 +32,7 @@ class UserRepository:
         
         # UserEntity 생성
         user_entity = UserEntity(
-            company_id=signup_data.company_id,
+            corporation_id=signup_data.corporation_id,  # ✅ company_id → corporation_id
             industry=signup_data.industry,
             email=signup_data.email,
             name=signup_data.name,
@@ -117,7 +117,7 @@ class UserRepository:
         """
         return {
             "id": str(user_entity.id),
-            "company_id": user_entity.company_id,
+            "corporation_id": user_entity.corporation_id,  # ✅ company_id → corporation_id
             "industry": user_entity.industry,
             "email": user_entity.email,
             "name": user_entity.name,
