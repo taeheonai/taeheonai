@@ -39,26 +39,26 @@ docker run -p 8009:8009 corporation-service
 ## 📡 API 엔드포인트
 
 ### 기업 목록 조회
-- `GET /v1/corporation?skip=0&limit=100`
+- `GET /v1/corporations?skip=0&limit=100`
 
 ### 기업 정보 조회
-- `GET /v1/corporation/{corporation_id}`
-- `GET /v1/corporation/code/{corp_code}`
+- `GET /v1/corporations/{corporation_id}`
+- `GET /v1/corporations/code/{corp_code}`
 
 ### 기업 검색
-- `GET /v1/corporation/search?query=삼성&limit=20`
+- `GET /v1/corporations/search?query=삼성&limit=20`
 
 ### 기업 정보 생성
-- `POST /v1/corporation`
+- `POST /v1/corporations`
 
 ### 기업 정보 수정
-- `PUT /v1/corporation/{corporation_id}`
+- `PUT /v1/corporations/{corporation_id}`
 
 ### 기업 정보 삭제
-- `DELETE /v1/corporation/{corporation_id}`
+- `DELETE /v1/corporations/{corporation_id}`
 
 ### 기업 ID 유효성 검증
-- `GET /v1/corporation/validate/{corporation_id}`
+- `GET /v1/corporations/validate/{corporation_id}`
 
 ## 🗄️ 데이터베이스
 
@@ -89,8 +89,8 @@ DATABASE_URL=postgresql+asyncpg://username:password@host:port/database
 ### 프론트엔드에서 기업 목록 조회
 ```typescript
 // 회원가입 시 기업 드롭다운용
-const response = await fetch('/api/v1/corporation?limit=1000');
-const corporation = await response.json();
+const response = await fetch('/api/v1/corporations?limit=1000');
+const corporations = await response.json();
 ```
 
 ### auth-service에서 기업 ID 검증

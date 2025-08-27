@@ -266,8 +266,8 @@ export async function postLoginPayload(payload: {
 }
 
 // ===== 기업 관련 API =====
-export async function fetchcorporation() {
-  // ✅ corporation 서비스가 없으므로 auth 서비스로 요청
-  // Gateway에서 corporation → auth로 라우팅
-  return api.get(`/v1/corporation`);
+export async function fetchCorporations() {
+  // ✅ corporations 서비스가 없으므로 auth 서비스로 요청
+  // Gateway에서 corporations → auth로 라우팅
+  return api.get(`/v1/corporations`);
 }
