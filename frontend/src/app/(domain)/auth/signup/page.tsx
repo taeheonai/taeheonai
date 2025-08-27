@@ -121,6 +121,20 @@ export default function SignupPage() {
       }
       
       console.error('🚨 === 기업 목록 가져오기 실패 ===');
+      
+      // 🚨 502 에러 특별 처리 (Corporation Service 다운)
+      if (e && typeof e === 'object' && 'response' in e) {
+        const axiosError = e as { response?: { status?: number } };
+        if (axiosError.response?.status === 502) {
+          console.error('🚨 Corporation Service가 응답하지 않습니다. Railway 대시보드에서 서비스 상태를 확인하세요.');
+          setError('기업 목록을 가져올 수 없습니다. 잠시 후 다시 시도해주세요.');
+        }
+        // 🚨 500 에러 특별 처리 (Corporation Service 내부 에러)
+        else if (axiosError.response?.status === 500) {
+          console.error('🚨 Corporation Service에서 내부 에러가 발생했습니다. 서비스 로그를 확인하세요.');
+          setError('기업 목록을 가져오는 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+        }
+      }
     } finally {
       setLoadingCorporations(false);
     }

@@ -35,10 +35,10 @@ async def get_all_corporations_no_slash(
         return result
         
     except Exception as e:
-        logger.error(f"❌ 기업 목록 조회 실패 (슬래시 없음): {e}")
+        logger.exception("❌ 기업 목록 조회 실패 (슬래시 없음)")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 목록 조회 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.get("/", summary="기업 목록 조회 (슬래시 있음)", response_model=CorporationListResponse)
@@ -57,10 +57,10 @@ async def get_all_corporations_with_slash(
         return result
         
     except Exception as e:
-        logger.error(f"❌ 기업 목록 조회 실패 (슬래시 있음): {e}")
+        logger.exception("❌ 기업 목록 조회 실패 (슬래시 있음)")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 목록 조회 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.get("/{corporation_id}", summary="기업 정보 조회", response_model=CorporationResponse)
@@ -80,10 +80,10 @@ async def get_corporation(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 기업 정보 조회 실패: ID={corporation_id}, 오류={e}")
+        logger.exception(f"❌ 기업 정보 조회 실패: ID={corporation_id}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 정보 조회 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.get("/code/{corp_code}", summary="기업 코드로 조회", response_model=CorporationResponse)
@@ -103,10 +103,10 @@ async def get_corporation_by_code(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 기업 코드로 조회 실패: 코드={corp_code}, 오류={e}")
+        logger.exception(f"❌ 기업 코드로 조회 실패: 코드={corp_code}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 정보 조회 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.get("/search", summary="기업 검색", response_model=list[CorporationResponse])
@@ -125,10 +125,10 @@ async def search_corporations(
         return result
         
     except Exception as e:
-        logger.error(f"❌ 기업 검색 실패: 쿼리={query}, 오류={e}")
+        logger.exception(f"❌ 기업 검색 실패: 쿼리={query}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 검색 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.post("/", summary="기업 정보 생성", response_model=CorporationResponse)
@@ -146,10 +146,10 @@ async def create_corporation(
         return result
         
     except Exception as e:
-        logger.error(f"❌ 기업 정보 생성 실패: {e}")
+        logger.exception("❌ 기업 정보 생성 실패")  # ← 스택까지 기록
         raise HTTPException(
             status_code=400, 
-            detail=f"기업 정보 생성 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.put("/{corporation_id}", summary="기업 정보 수정", response_model=CorporationResponse)
@@ -170,10 +170,10 @@ async def update_corporation(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 기업 정보 수정 실패: ID={corporation_id}, 오류={e}")
+        logger.exception(f"❌ 기업 정보 수정 실패: ID={corporation_id}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=400, 
-            detail=f"기업 정보 수정 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.delete("/{corporation_id}", summary="기업 정보 삭제")
@@ -193,10 +193,10 @@ async def delete_corporation(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 기업 정보 삭제 실패: ID={corporation_id}, 오류={e}")
+        logger.exception(f"❌ 기업 정보 삭제 실패: ID={corporation_id}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
-            detail=f"기업 정보 삭제 중 오류가 발생했습니다: {str(e)}"
+            detail={"error": str(e), "type": type(e).__name__}
         )
 
 @corporation_router.get("/validate/{corporation_id}", summary="기업 ID 유효성 검증")
