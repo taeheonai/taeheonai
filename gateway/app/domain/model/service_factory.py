@@ -14,7 +14,7 @@ class ServiceType(str, Enum):
     materiality = "materiality"
     grireport = "grireport"
     auth = "auth"
-    # corporations 제거: auth-service에서 corporation 정보 처리
+    corporations = "corporations"
 
 
 class ServiceProxyFactory:
@@ -28,13 +28,11 @@ class ServiceProxyFactory:
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
-            # corporations 제거: auth-service에서 corporation 정보 처리
+            ServiceType.corporations: os.getenv("CORPORATION_SERVICE_URL", "http://corpration-service-production.up.railway.app"),
         }
         
-        # ✅ corporations 요청을 auth 서비스로 리다이렉트
-        self.service_redirects = {
-            "corporations": ServiceType.auth
-        }
+        # corporations는 독립 서비스로 처리
+        self.service_redirects = {}
         
         # Railway 환경 감지
         self.is_railway = os.getenv("RAILWAY_ENVIRONMENT") in ["true", "production"]
@@ -54,7 +52,7 @@ class ServiceProxyFactory:
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
             ServiceType.grireport: "/v1/grireport",
-            # corporations 제거: auth-service에서 corporation 정보 처리
+            ServiceType.corporations: "/v1/corporations",
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:
@@ -84,12 +82,9 @@ class ServiceProxyFactory:
         params: Optional[dict] = None,
         data: Optional[dict] = None,
     ) -> httpx.Response:
-        # ✅ corporations 서비스 요청을 auth 서비스로 리다이렉트
-        if self.service_type == "corporations":
-            logger.info(f"🔄 corporations → auth 서비스로 리다이렉트: {path}")
-            # auth 서비스로 요청 처리
-            auth_factory = ServiceProxyFactory(ServiceType.auth)
-            return await auth_factory.request(method, path, headers, body, files, params, data)
+        # corporations는 독립 서비스로 처리
+        if self.service_type == ServiceType.corporations:
+            logger.info(f"🏢 corporations 서비스 요청: {path}")
         
         base_url = self.base_urls.get(self.service_type)
         if not base_url:

@@ -18,6 +18,7 @@ services:
     depends_on:
       - auth-service
       - chatbot-service
+      - corporation-service
       - gri-service
       - materiality-service
       - grireport-service
@@ -77,6 +78,30 @@ services:
       - taeheonai-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  corporation-service:
+    build:
+      context: ./service/corporation-service
+      dockerfile: Dockerfile
+    ports:
+      - "8009:8009"
+    volumes:
+      - ./service/corporation-service/app:/app/app
+      - ./service/corporation-service/requirements.txt:/app/requirements.txt
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8009
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+    restart: always
+    networks:
+      - taeheonai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
       interval: 30s
       timeout: 10s
       retries: 3
