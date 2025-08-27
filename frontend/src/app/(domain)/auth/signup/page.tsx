@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { postSignupPayload, fetchCorporations } from '@/lib/api';
+import { postSignupPayload, fetchCorporations, searchCorporations } from '@/lib/api';
 import { SignupPayload } from '@/types/user';
 
 // 데이터베이스 스키마에 맞춘 타입
@@ -43,16 +43,20 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [corporations, setCorporations] = useState<Corporation[]>([]);
   const [loadingCorporations, setLoadingCorporations] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Corporation[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const router = useRouter();
 
-  // 기업 목록
+  // 기업 목록 (초기 로딩용)
   const fetchCorporationsData = async () => {
     try {
       setLoadingCorporations(true);
       console.log('🚀 === 기업 목록 가져오기 시작 ===');
       
       // 🚨 api.ts의 fetchCorporations 함수 사용 (일관성 유지)
-      const response = await fetchCorporations();
+      const response = await fetchCorporations(1000);  // 1000개 기업 가져오기
       
       console.log('🔍 API 응답 상태:', response.status, response.statusText);
       console.log('🔍 API 응답 헤더:', response.headers);
@@ -118,7 +122,7 @@ export default function SignupPage() {
         if (typeof errorMessage === 'string' && errorMessage.includes('Mixed Content')) {
           console.error('🚨 Mixed Content 오류 감지! HTTPS 강제 변환 필요');
         }
-      }
+        }
       
       console.error('🚨 === 기업 목록 가져오기 실패 ===');
       
@@ -140,8 +144,76 @@ export default function SignupPage() {
     }
   };
 
+  // 기업 검색 함수
+  const handleSearchCorporations = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      console.log('🔍 기업 검색 시작:', query);
+      
+      const response = await searchCorporations(query, 20);
+      const data = response.data;
+      
+      let results: Corporation[] = [];
+      if (Array.isArray(data)) {
+        results = data;
+      } else if (data && typeof data === 'object' && 'data' in data) {
+        results = Array.isArray(data.data) ? data.data : [];
+      }
+      
+      console.log('🔍 검색 결과:', results);
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (e) {
+      console.error('❌ 기업 검색 오류:', e);
+      setSearchResults([]);
+      setShowSearchResults(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 검색 입력 처리 (디바운싱)
+  const handleSearchInputChange = (value: string) => {
+    setSearchQuery(value);
+    setForm(prev => ({ ...prev, company_name: value, corporation_id: null }));
+    
+    // 입력값이 변경되면 검색 결과 숨기기
+    if (!value.trim()) {
+      setShowSearchResults(false);
+      return;
+    }
+    
+    // 디바운싱: 300ms 후 검색 실행
+    const timeoutId = setTimeout(() => {
+      handleSearchCorporations(value);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  };
+
   useEffect(() => {
     fetchCorporationsData();
+  }, []);
+
+  // 외부 클릭 시 검색 결과 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.relative')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleChange = (
@@ -157,6 +229,17 @@ export default function SignupPage() {
       // 선택된 회사의 industry를 기본값으로 넣고 싶다면 아래 주석 해제
       // setForm((prev) => ({ ...prev, industry: selected?.industry ?? '' }));
     }
+  };
+
+  // 기업 선택 처리
+  const handleCorporationSelect = (corporation: Corporation) => {
+    setForm(prev => ({
+      ...prev,
+      company_name: corporation.companyname,
+      corporation_id: corporation.id
+    }));
+    setSearchQuery(corporation.companyname);
+    setShowSearchResults(false);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -242,26 +325,55 @@ export default function SignupPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업명 (company_name) *</label>
-              <select
-                name="company_name"
-                value={form.company_name}
-                onChange={handleChange}
-                className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                disabled={loading || loadingCorporations}
-              >
-                <option value="">
-                  {loadingCorporations ? '기업 목록 로딩 중...' : '기업을 선택하세요'}
-                </option>
-                {corporations.map((corp) => (
-                  <option key={corp.id} value={corp.companyname}>
-                    {corp.companyname} ({corp.corp_code})
-                  </option>
-                ))}
-              </select>
-            </div>
+                         <div className="relative">
+               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업명 (company_name) *</label>
+               <div className="mt-1 relative search-container">
+                 <input
+                   type="text"
+                   name="company_name"
+                   value={searchQuery}
+                   onChange={(e) => handleSearchInputChange(e.target.value)}
+                   className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   placeholder="기업명을 입력하세요 (예: 삼성전자, 현대자동차)"
+                   required
+                   disabled={loading}
+                 />
+                 {isSearching && (
+                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                   </div>
+                 )}
+               </div>
+               
+               {/* 검색 결과 드롭다운 */}
+               {showSearchResults && searchResults.length > 0 && (
+                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                   {searchResults.map((corp) => (
+                     <div
+                       key={corp.id}
+                       onClick={() => handleCorporationSelect(corp)}
+                       className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0"
+                     >
+                       <div className="font-medium text-gray-900 dark:text-white">
+                         {corp.companyname}
+                       </div>
+                       <div className="text-sm text-gray-500 dark:text-gray-400">
+                         코드: {corp.corp_code} | 시장: {corp.market || 'N/A'}
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+               
+               {/* 검색 결과가 없을 때 */}
+               {showSearchResults && searchResults.length === 0 && searchQuery.trim() && !isSearching && (
+                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg">
+                   <div className="px-3 py-2 text-gray-500 dark:text-gray-400 text-center">
+                     검색 결과가 없습니다
+                   </div>
+                 </div>
+               )}
+             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">기업 ID (company_id)</label>
