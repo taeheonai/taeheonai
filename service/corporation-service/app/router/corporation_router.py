@@ -23,7 +23,7 @@ corporation_controller = CorporationController()
 async def get_all_corporations_no_slash(
     db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
-    limit: int = Query(1000, ge=1, le=10000, description="가져올 개수")
+    limit: int = Query(3000, ge=1, le=10000, description="가져올 개수")
 ):
     """모든 기업 정보를 조회합니다. (슬래시 없음)"""
     try:
@@ -45,7 +45,7 @@ async def get_all_corporations_no_slash(
 async def get_all_corporations_with_slash(
     db: AsyncSession = Depends(get_db),
     skip: int = Query(0, ge=0, description="건너뛸 개수"),
-    limit: int = Query(1000, ge=1, le=10000, description="가져올 개수")
+    limit: int = Query(3000, ge=1, le=10000, description="가져올 개수")
 ):
     """모든 기업 정보를 조회합니다. (슬래시 있음)"""
     try:

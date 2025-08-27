@@ -269,7 +269,7 @@ export async function postLoginPayload(payload: {
 export async function fetchCorporations(limit?: number) {
   // ✅ corporation 서비스로 요청
   // Gateway에서 corporation → corporation-service로 라우팅
-  const params = limit ? `?limit=${limit}` : '?limit=1000';  // 기본값 1000개
+  const params = limit ? `?limit=${limit}` : '?limit=3000';  // 기본값 3000개
   return api.get(`/v1/corporation${params}`);
 }
 
