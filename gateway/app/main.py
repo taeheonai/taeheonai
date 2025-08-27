@@ -111,8 +111,12 @@ else:
 # 4-1) 프록시 스킴 교정 → CORS 순서
 if HAVE_PROXY_HEADERS:
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+    logger.info("✅ ProxyHeadersMiddleware 추가됨 (프록시 헤더 신뢰)")
 else:
     app.add_middleware(XForwardedProtoMiddleware)
+    logger.info("✅ XForwardedProtoMiddleware 추가됨 (수동 스킴 교정)")
+
+logger.info("🔒 미들웨어 순서: 프록시 스킴 교정 → CORS (CORS가 가장 바깥)")
 
 app.add_middleware(
     CORSMiddleware,
@@ -124,11 +128,24 @@ app.add_middleware(
     expose_headers=["*"],
 )
 logger.info("✅ CORS 미들웨어 적용 완료")
+logger.info(f"🔒 CORS 보안: allow_credentials=True, 프리플라이트 가드 활성화")
+logger.info(f"🌐 CORS Origins: {ALLOW_ORIGINS}")
+if ALLOW_ORIGIN_REGEX:
+    logger.info(f"🔒 CORS Regex: {ALLOW_ORIGIN_REGEX}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5) 서비스 프록시
 # ─────────────────────────────────────────────────────────────────────────────
 from app.domain.model.service_factory import ServiceProxyFactory, ServiceType
+
+# ✅ 프리플라이트 가드: 게이트웨이가 OPTIONS를 200으로 '종단 응답'
+from starlette.responses import Response
+
+@app.options("/{path:path}")
+def _cors_preflight_guard():
+    """CORS 프리플라이트 요청을 게이트웨이에서 확실히 종단 처리"""
+    logger.info("🔄 CORS 프리플라이트 가드 동작: OPTIONS 요청 차단")
+    return Response(status_code=200)
 
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 
