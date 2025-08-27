@@ -375,6 +375,11 @@ app.include_router(gateway_router)
 @app.middleware("http")
 async def force_https_redirect(request: Request, call_next):
     """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
+    # 🚨 CORS preflight 요청은 리다이렉트하지 않음
+    if request.method == "OPTIONS":
+        logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
+        return await call_next(request)
+    
     # Railway 환경에서 HTTPS 강제 적용
     if request.url.scheme == "http":
         # HTTPS URL로 리다이렉트
