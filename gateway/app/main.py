@@ -89,41 +89,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# CORS 요청 로깅을 위한 미들웨어 추가
-@app.middleware("http")
-async def log_cors_requests(request: Request, call_next):
-    origin = request.headers.get("origin")
-    logger.info(f"🌐 CORS 요청 감지: {request.method} {request.url.path} from {origin}")
-    
-    if origin:
-        if origin in cors_origins:
-            logger.info(f"✅ CORS 허용된 origin: {origin}")
-        else:
-            logger.warning(f"⚠️ CORS 허용되지 않은 origin: {origin}")
-    
-    # CORS preflight 요청 처리
-    if request.method == "OPTIONS":
-        logger.info(f"🔄 CORS preflight 요청 처리: {origin}")
-        response = Response()
-        if origin and origin in cors_origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            logger.info(f"✅ CORS preflight 응답 헤더 설정 완료")
-        return response
-    
-    # 일반 요청 처리
-    response = await call_next(request)
-    
-    # CORS 헤더 강제 추가
-    if origin and origin in cors_origins:
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        logger.info(f"✅ CORS 헤더 추가 완료: {origin}")
-    
-    return response
-
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 
 # 파일필수 서비스(없다면 빈 세트 유지)
@@ -372,28 +337,45 @@ async def root():
 # 라우터를 앱에 포함 (generic proxy만 사용)
 app.include_router(gateway_router)
 
-@app.middleware("http")
-async def force_https_redirect(request: Request, call_next):
-    """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
-    # 🚨 CORS preflight 요청은 리다이렉트하지 않음
-    if request.method == "OPTIONS":
-        logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
-        return await call_next(request)
-    
-    # Railway 환경에서 HTTPS 강제 적용
-    if request.url.scheme == "http":
-        # HTTPS URL로 리다이렉트
-        https_url = str(request.url).replace("http://", "https://", 1)
-        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트: {request.url} → {https_url}")
-        return Response(
-            status_code=307,
-            headers={"Location": https_url},
-            content="HTTPS required"
-        )
-    
-    return await call_next(request)
+# 🚨 미들웨어 순서 중요: CORS → 로깅 → HTTPS 리다이렉트
 
-# 모든 요청 로깅 미들웨어 추가
+# 1. CORS 요청 로깅 및 처리 미들웨어 (가장 먼저 실행)
+@app.middleware("http")
+async def log_cors_requests(request: Request, call_next):
+    origin = request.headers.get("origin")
+    logger.info(f"🌐 === CORS 미들웨어 시작 === {request.method} {request.url.path} from {origin}")
+    
+    if origin:
+        if origin in cors_origins:
+            logger.info(f"✅ CORS 허용된 origin: {origin}")
+        else:
+            logger.warning(f"⚠️ CORS 허용되지 않은 origin: {origin}")
+    
+    # CORS preflight 요청 처리
+    if request.method == "OPTIONS":
+        logger.info(f"🔄 CORS preflight 요청 처리: {origin}")
+        response = Response()
+        if origin and origin in cors_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            logger.info(f"✅ CORS preflight 응답 헤더 설정 완료")
+        return response
+    
+    # 일반 요청 처리
+    response = await call_next(request)
+    
+    # CORS 헤더 강제 추가
+    if origin and origin in cors_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        logger.info(f"✅ CORS 헤더 추가 완료: {origin}")
+    
+    logger.info(f"🌐 === CORS 미들웨어 끝 === {response.status_code}")
+    return response
+
+# 2. 모든 요청 로깅 미들웨어
 @app.middleware("http")
 async def log_all_requests(request: Request, call_next):
     start_time = datetime.now()
@@ -416,6 +398,28 @@ async def log_all_requests(request: Request, call_next):
     except Exception as e:
         logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
         raise
+
+# 3. HTTPS 리다이렉트 미들웨어 (마지막에 실행)
+@app.middleware("http")
+async def force_https_redirect(request: Request, call_next):
+    """HTTP 요청을 HTTPS로 리다이렉트하는 미들웨어"""
+    # 🚨 CORS preflight 요청은 리다이렉트하지 않음
+    if request.method == "OPTIONS":
+        logger.info(f"🔄 CORS preflight 요청 감지, 리다이렉트 건너뜀: {request.url.path}")
+        return await call_next(request)
+    
+    # Railway 환경에서 HTTPS 강제 적용
+    if request.url.scheme == "http":
+        # HTTPS URL로 리다이렉트
+        https_url = str(request.url).replace("http://", "https://", 1)
+        logger.warning(f"🔄 HTTP → HTTPS 리다이렉트: {request.url} → {https_url}")
+        return Response(
+            status_code=307,
+            headers={"Location": https_url},
+            content="HTTPS required"
+        )
+    
+    return await call_next(request)
 
 # ✅ uvicorn 실행 경로 단순화
 if __name__ == "__main__":
