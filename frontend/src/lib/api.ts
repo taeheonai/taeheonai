@@ -64,7 +64,8 @@ const getApiBaseUrl = () => {
   
   // 3. 로컬 개발 환경
   console.log('🔍 로컬 개발 환경으로 판단, localhost:8080 사용');
-  return 'http://localhost:8080/api';
+  // 🚨 HTTP 대신 HTTPS 사용 (Mixed Content 방지)
+  return 'https://localhost:8080/api';
 };
 
 // axios 인스턴스를 동적으로 생성하는 함수
