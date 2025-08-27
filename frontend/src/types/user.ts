@@ -17,6 +17,7 @@ export interface LoginResponse {
 }
 
 export interface SignupPayload {
+  company_name: string;        // 백엔드에서 필수로 요구하는 필드
   corporation_id?: number | null;
   industry?: string | null;
   email?: string | null;
