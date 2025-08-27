@@ -41,7 +41,7 @@ IS_RAILWAY = os.getenv("RAILWAY_ENVIRONMENT", "").lower() in ("true", "productio
 #   - allow_credentials=True 상황에선 "*" 금지
 #   - *.vercel.app / *.railway.app 는 allow_origin_regex로 처리
 # ─────────────────────────────────────────────────────────────────────────────
-if IS_PROD:
+if IS_PROD or IS_RAILWAY:
     ALLOW_ORIGINS = [
         "https://taeheonai.com",
         "https://www.taeheonai.com",
