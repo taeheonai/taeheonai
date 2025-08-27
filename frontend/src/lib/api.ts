@@ -146,6 +146,38 @@ api.interceptors.request.use(
   }
 );
 
+// 강력한 HTTPS 강제 적용 인터셉터
+api.interceptors.request.use(
+  (config) => {
+    // 🚨 모든 HTTP URL을 HTTPS로 강제 변환
+    if (config.url && config.url.startsWith('http://')) {
+      console.warn(`🚨 HTTP URL 감지! 강제 변환: ${config.url}`);
+      config.url = config.url.replace('http://', 'https://');
+      console.log(`✅ HTTPS로 변환됨: ${config.url}`);
+    }
+    
+    // 🚨 baseURL도 HTTPS 강제 적용
+    if (config.baseURL && config.baseURL.startsWith('http://')) {
+      console.warn(`🚨 HTTP baseURL 감지! 강제 변환: ${config.baseURL}`);
+      config.baseURL = config.baseURL.replace('http://', 'https://');
+      console.log(`✅ baseURL HTTPS로 변환됨: ${config.baseURL}`);
+    }
+    
+    // 🚨 최종 URL 검증
+    const finalUrl = config.url || config.baseURL;
+    if (finalUrl && !finalUrl.startsWith('https://')) {
+      console.error(`❌ 최종 URL이 여전히 안전하지 않음: ${finalUrl}`);
+      throw new Error(`보안상 HTTPS가 필요합니다: ${finalUrl}`);
+    }
+    
+    return config;
+  },
+  (error) => {
+    console.error('🚨 HTTPS 강제 적용 중 오류:', error);
+    return Promise.reject(error);
+  }
+);
+
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
