@@ -411,7 +411,7 @@ export default function GRIIntakePage() {
                     )}
 
                     {/* 🔧 윤문 결과가 없을 때만 PolishResult 컴포넌트 렌더링 (API 호출 방지) */}
-                    {(!result?.polished_text || status === 'idle') && selectedItem && sessionKey && (
+                    {selectedItem && sessionKey && (
                       <div className="mt-12">
                         <PolishResult 
                           sessionKey={sessionKey} 
