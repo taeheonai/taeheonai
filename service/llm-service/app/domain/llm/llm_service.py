@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 # ===== 데이터 모델 =====
 @dataclass
 class RequirementItem:
-    requirement_key: str  # 'a' | 'b' | 'c' | 'd' ...
-    input_text: str      # 사용자 원문(정제 전/후 텍스트)
+    question_id: int     # 질문 ID
+    key_alpha: str       # 'a' | 'b' | 'c' | 'd' ...
+    text: str           # 사용자 원문
 
 @dataclass
 class PolishResult:

@@ -27,15 +27,16 @@ SLM_API_KEY = os.getenv("SLM_API_KEY", "changeme-secret")
 
 # 요청/응답 스키마
 class RequirementItemIn(BaseModel):
-    requirement_key: str
-    input_text: str
+    question_id: int
+    key_alpha: str
+    text: str
 
 class PolishRequest(BaseModel):
+    session_key: str
     gri_index: str
-    items: List[RequirementItemIn]
-    style: str = "중립"
-    audience: str = "실무자"
-    extra_instructions: Optional[str] = None
+    item_title: str
+    answers: List[RequirementItemIn]
+    prompt_profile: Optional[str] = None
 
 class PolishResponse(BaseModel):
     polished_text: str

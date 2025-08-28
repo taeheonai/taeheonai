@@ -20,6 +20,7 @@ export default function GRIIntakePage() {
     setSessionKey, 
     setAnswer, 
     answers,
+    setPolished,
     lastSavedAt 
   } = useGriStore();
 
@@ -109,7 +110,7 @@ export default function GRIIntakePage() {
   ).length || 0;
   const completionRate = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
-  // 답변 저장 + 윤문
+  // 답변 저장
   const saveAnswers = async () => {
     if (!sessionKey || !selectedItem) return;
     
@@ -117,7 +118,6 @@ export default function GRIIntakePage() {
     setMessage('');
     
     try {
-      // 1. 답변 저장
       const savePromises = selectedItem.questions
         .filter((q: GRIQuestion) => answers[q.id.toString()] && answers[q.id.toString()].trim() !== '')
         .map((q: GRIQuestion) => {
@@ -130,9 +130,26 @@ export default function GRIIntakePage() {
         });
 
       await Promise.all(savePromises);
+      setMessage('답변이 성공적으로 저장되었습니다.');
+      
+    } catch (error) {
+      console.error('답변 저장 중 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '답변 저장 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      // 2. 윤문 요청 (임시로 주석 처리)
-      /*const polishRes = await GRIApiService.polish({
+  // 답변 윤문
+  const polishAnswers = async () => {
+    if (!sessionKey || !selectedItem) return;
+    
+    setIsLoading(true);
+    setMessage('');
+    
+    try {
+      const polishRes = await GRIApiService.polish({
         session_key: sessionKey,
         gri_index: selectedItem.index_no,
         item_title: selectedItem.title,
@@ -142,16 +159,16 @@ export default function GRIIntakePage() {
             question_id: q.id,
             key_alpha: q.key_alpha,
             text: answers[q.id.toString()].trim()
-          }))
+          })),
+        prompt_profile: "kor_gri_v1"
       }) as { polished_text: string };
 
-      setPolished(selectedItem.index_no, polishRes.polished_text);*/
-      
-      setMessage('답변이 성공적으로 저장되었습니다.');
+      setPolished(selectedItem.index_no, polishRes.polished_text);
+      setMessage('윤문이 완료되었습니다.');
       
     } catch (error) {
-      console.error('답변 저장 중 오류:', error);
-      const errorMessage = error instanceof Error ? error.message : '답변 저장 중 오류가 발생했습니다.';
+      console.error('윤문 중 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '윤문 중 오류가 발생했습니다.';
       setMessage(errorMessage);
     } finally {
       setIsLoading(false);
@@ -385,8 +402,8 @@ export default function GRIIntakePage() {
                         </div>
                       ))}
 
-                      {/* 저장 버튼 */}
-                      <div className="flex justify-end pt-4 border-t">
+                      {/* 저장 및 윤문 버튼 */}
+                      <div className="flex justify-end pt-4 border-t space-x-3">
                         <button
                           onClick={saveAnswers}
                           disabled={isLoading || answeredQuestions === 0}
@@ -405,6 +422,27 @@ export default function GRIIntakePage() {
                             <div className="flex items-center space-x-2">
                               <span>💾</span>
                               <span>답변 저장하기</span>
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          onClick={polishAnswers}
+                          disabled={isLoading || answeredQuestions === 0}
+                          className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                            isLoading || answeredQuestions === 0
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>윤문 중...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <span>✨</span>
+                              <span>인덱스 윤문하기</span>
                             </div>
                           )}
                         </button>
