@@ -1,7 +1,7 @@
 'use client';
 
 import { usePolishStore } from '@/store/polishStore';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 interface PolishResultProps {
   sessionKey: string;
@@ -18,11 +18,19 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     fetchPolishResult: s.fetchPolishResult,
   }));
 
-  useEffect(() => {
+  // 🔧 무한 루프 방지: useCallback으로 함수 안정화
+  const stableFetchPolishResult = useCallback(async () => {
     if (sessionKey && griIndex) {
-      fetchPolishResult(sessionKey, griIndex);
+      await fetchPolishResult(sessionKey, griIndex);
     }
   }, [sessionKey, griIndex, fetchPolishResult]);
+
+  useEffect(() => {
+    // 🔧 이미 결과가 있거나 로딩 중이면 API 호출하지 않음
+    if (sessionKey && griIndex && status === 'idle' && !result) {
+      stableFetchPolishResult();
+    }
+  }, [sessionKey, griIndex, status, result, stableFetchPolishResult]);
 
   if (status === 'loading') {
     return (
