@@ -48,8 +48,6 @@ class PolishResponse(BaseModel):
     sources: List[Dict[str, Any]]
     model: str
     prompt_hash: str
-    input_tokens: int
-    output_tokens: int
 
 @app.get("/health")
 async def health_check():
@@ -90,8 +88,6 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-
                     "text": result.polished_text,
                     "model": result.model,
                     "prompt_hash": result.prompt_hash,
-                    "input_tokens": result.input_tokens,
-                    "output_tokens": result.output_tokens,
                     "created_at": datetime.utcnow().isoformat()
                 },
                 "model": result.model

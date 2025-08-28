@@ -47,8 +47,6 @@ class PolishResult:
     sources: List[Dict[str, Any]]     # [{"requirement":"a","hash":"..."}]
     model: str
     prompt_hash: str
-    input_tokens: int
-    output_tokens: int
     created_at_utc: str
 
 # ===== 유틸 =====
@@ -177,16 +175,6 @@ class GriPolisher:
             chain = prompt | self.llm
             ai_msg = chain.invoke({"human_input": human})
 
-            # 토큰 사용량 계산
-            usage = {}
-            if hasattr(ai_msg, "usage_metadata") and isinstance(ai_msg.usage_metadata, dict):
-                usage = ai_msg.usage_metadata
-            elif hasattr(ai_msg, "response_metadata") and isinstance(ai_msg.response_metadata, dict):
-                usage = ai_msg.response_metadata.get("token_usage", {})
-
-            input_tokens = int(usage.get("input_tokens", usage.get("prompt_tokens", 0)) or 0)
-            output_tokens = int(usage.get("output_tokens", usage.get("completion_tokens", 0)) or 0)
-
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
             p_hash = self._prompt_hash(
                 system=self.system_tmpl,
@@ -202,8 +190,6 @@ class GriPolisher:
                 sources=sources,
                 model=self.model_name,
                 prompt_hash=p_hash,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
                 created_at_utc=datetime.utcnow().isoformat()
             )
 
@@ -252,16 +238,6 @@ class GriPolisher:
             chain = prompt | self.llm
             ai_msg = await chain.ainvoke({"human_input": human})
 
-            # 토큰 사용량 계산
-            usage = {}
-            if hasattr(ai_msg, "usage_metadata") and isinstance(ai_msg.usage_metadata, dict):
-                usage = ai_msg.usage_metadata
-            elif hasattr(ai_msg, "response_metadata") and isinstance(ai_msg.response_metadata, dict):
-                usage = ai_msg.response_metadata.get("token_usage", {})
-
-            input_tokens = int(usage.get("input_tokens", usage.get("prompt_tokens", 0)) or 0)
-            output_tokens = int(usage.get("output_tokens", usage.get("completion_tokens", 0)) or 0)
-
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
             p_hash = self._prompt_hash(
                 system=self.system_tmpl,
@@ -277,8 +253,6 @@ class GriPolisher:
                 sources=sources,
                 model=self.model_name,
                 prompt_hash=p_hash,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
                 created_at_utc=datetime.utcnow().isoformat()
             )
 
