@@ -55,7 +55,7 @@ async def health_check():
         "timestamp": datetime.now().isoformat()
     }
 
-@app.post("/v1/polish", response_model=PolishResponse)
+@app.post("/v1/polish")
 async def polish(req: PolishRequest, x_api_key: str = Header(None)):
     """GRI 답변 윤문 엔드포인트"""
     if x_api_key != SLM_API_KEY:
@@ -78,14 +78,20 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None)):
         )
         
         logger.info(f"Polish completed using model: {result.model}")
-        return PolishResponse(
-            polished_text=result.polished_text,
-            sources=result.sources,
-            model=result.model,
-            prompt_hash=result.prompt_hash,
-            input_tokens=result.input_tokens,
-            output_tokens=result.output_tokens,
-        )
+        return {
+            "status": "success",
+            "data": {
+                "polished_text": {
+                    "text": result.polished_text,
+                    "model": result.model,
+                    "prompt_hash": result.prompt_hash,
+                    "input_tokens": result.input_tokens,
+                    "output_tokens": result.output_tokens,
+                    "created_at": datetime.utcnow().isoformat()
+                },
+                "model": result.model
+            }
+        }
         
     except Exception as e:
         logger.error(f"Polish error: {str(e)}")
