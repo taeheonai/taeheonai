@@ -1,1 +1,1 @@
-# Common Package
+# common 패키지 초기화

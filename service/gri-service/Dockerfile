@@ -12,8 +12,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Railway에서 제공하는 PORT 환경변수 사용
-ENV PORT=8003
+# 서비스 설정
+ENV SERVICE_NAME=gri-service \
+    VERSION=1.0.0 \
+    PORT=8003
+
+# LLM 서비스 설정 (기본값, 실행 시 오버라이드 가능)
+ENV LLM_SERVICE_URL=http://llm-service:8002 \
+    LLM_SERVICE_TIMEOUT=30.0
+
+# 데이터베이스 설정 (기본값, 실행 시 오버라이드 필수)
+ENV DATABASE_URL=postgresql+asyncpg://user:pass@postgres:5432/gri_db
+
 EXPOSE 8003
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
