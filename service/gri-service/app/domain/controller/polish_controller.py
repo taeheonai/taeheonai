@@ -6,7 +6,8 @@ from fastapi import HTTPException
 from app.domain.service.polish_service import PolishService
 from app.domain.schema.polish_schema import (
     PolishRequest,
-    PolishResult
+    PolishResult,
+    PolishCreate
 )
 from app.common.config import get_settings
 
@@ -85,7 +86,6 @@ class PolishController:
                 gri_index=request.gri_index,
                 polished_text={
                     "text": llm_result["data"]["polished_text"],
-                    "sources": llm_result["data"]["sources"],
                     "model": llm_result["data"]["model"],
                     "created_at": llm_result["data"]["created_at"]
                 },
@@ -97,8 +97,7 @@ class PolishController:
 
             # PolishResult로 변환하여 반환
             result = PolishResult(
-                polished_text=saved.polished_text["text"],
-                sources=saved.polished_text["sources"],
+                polished_text=saved.polished_text,
                 model=saved.model,
                 created_at=saved.polished_text["created_at"],
                 session_key=saved.session_key,
