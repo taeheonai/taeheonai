@@ -9,6 +9,7 @@ class PolishEntity(Base):
     __tablename__ = "gri_polish"
 
     id = Column(Integer, primary_key=True, index=True)
+    key_alpha = Column(String(20), nullable=False, index=True)
     session_key = Column(String(100), nullable=False, index=True)
     model = Column(String(50), nullable=False, index=True)
     gri_index = Column(String(20), nullable=False, index=True)
