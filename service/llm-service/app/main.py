@@ -23,7 +23,7 @@ def require_openai_key() -> str:
     return key
 
 # 보안 키 (Gateway → llm-service 호출 시 필요)
-SLM_API_KEY = os.getenv("SLM_API_KEY", "changeme-secret")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "changeme-secret")
 
 # 요청/응답 스키마
 class RequirementItemIn(BaseModel):
@@ -58,7 +58,7 @@ async def health_check():
 @app.post("/v1/polish")
 async def polish(req: PolishRequest, x_api_key: str = Header(None)):
     """GRI 답변 윤문 엔드포인트"""
-    if x_api_key != SLM_API_KEY:
+    if x_api_key != OPENAI_API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     try:
