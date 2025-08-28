@@ -23,10 +23,28 @@ export class GRIApiService {
   // 카테고리 목록 조회
   static async getCategories(): Promise<{ categories: GRICategory[]; count: number }> {
     try {
+      // 🚨 디버깅 로그 추가
+      console.log('🔍 카테고리 조회 시작');
+      console.log('🔗 API URL:', api.defaults.baseURL);
+      
       const response = await api.get('/v1/gri/categories');
+      
+      // 🚨 응답 로깅
+      console.log('✅ 카테고리 조회 성공:', response.data);
       return response.data;
+      
     } catch (error) {
-      console.error('카테고리 조회 오류:', error);
+      // 🚨 상세 에러 로깅
+      console.error('❌ 카테고리 조회 오류:', error);
+      console.error('❌ 에러 상태:', (error as any)?.response?.status);
+      console.error('❌ 에러 데이터:', (error as any)?.response?.data);
+      
+      // 502 에러 특별 처리
+      if ((error as any)?.response?.status === 502) {
+        console.error('❌ Gateway 오류 감지');
+        throw new Error('서비스 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
         status: (error as { response?: { status: number } }).response?.status
