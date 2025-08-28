@@ -46,10 +46,12 @@ async def startup_event():
         logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
 
 # APIRouter 정의
-from app.router import gri_router
+from app.router.answer_router import router as answer_router
+from app.router.polish_router import router as polish_router
 
 # 라우터를 앱에 포함
-app.include_router(gri_router)
+app.include_router(answer_router)
+app.include_router(polish_router)
 
 # 루트 경로 핸들러 (Railway 호환성)
 @app.get("/", summary="루트 경로")
