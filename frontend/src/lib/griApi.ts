@@ -69,6 +69,16 @@ export interface PolishRequest {
   prompt_profile?: string;
 }
 
+// 즉시 윤문 응답
+export interface PolishResponse {
+  polished_text: string;
+  model: string;
+  prompt_hash: string;
+  input_tokens?: number;
+  output_tokens?: number;
+}
+
+// 윤문 결과 조회 응답
 export interface PolishResult {
   status: string;
   data: {
@@ -206,7 +216,7 @@ export class GRIApiService {
   }
 
   // 답변 윤문
-  static async polish(request: PolishRequest): Promise<PolishResult> {
+  static async polish(request: PolishRequest): Promise<PolishResponse> {
     try {
       const response = await api.post('/v1/gri/polish', request);
       return response.data;
