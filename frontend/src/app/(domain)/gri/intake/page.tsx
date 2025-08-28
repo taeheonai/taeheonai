@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGriStore } from '@/store/useGriStore';
 import { usePolishStore } from '@/store/polishStore';
 import { PolishResult } from '@/components/PolishResult';
-import type { GRIQuestion } from '@/types/gri';
+import type { GRIQuestion, GRICategory } from '@/types/gri';
+import { GRIApiService } from '@/lib/griApi';
 
 export default function GRIIntakePage() {
   const user = useAuthStore((s) => s.user);
@@ -15,6 +16,25 @@ export default function GRIIntakePage() {
   const { status, result, polish } = usePolishStore();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [categories, setCategories] = useState<GRICategory[]>([]);
+  
+  // 카테고리 데이터 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setIsLoading(true);
+        const response = await GRIApiService.getCategories();
+        setCategories(response.categories);
+      } catch (error) {
+        console.error('카테고리 로드 오류:', error);
+        setMessage('카테고리 데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
   const answeredQuestions = selectedItem?.questions?.filter(
     (q: GRIQuestion) => answers[q.id.toString()]?.trim() !== ''
   ).length ?? 0;
