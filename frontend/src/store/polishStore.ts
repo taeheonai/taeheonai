@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GRIApiService, type PolishResponse, type PolishRequest } from '@/lib/griApi';
+import { GRIApiService, type PolishResponse, type PolishRequest, type APIError } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -20,10 +20,12 @@ export const usePolishStore = create<PolishState>((set) => ({
     set({ status: 'loading', error: undefined });
     try {
       const data = await GRIApiService.polish(args);
-      // ✅ 결과 저장 → 리렌더 트리거
       set({ status: 'success', result: data });
-    } catch (e: any) {
-      set({ status: 'error', error: e?.message ?? 'unknown error' });
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as APIError)?.message ?? '알 수 없는 오류가 발생했습니다';
+      set({ status: 'error', error: errorMessage });
     }
   },
 
