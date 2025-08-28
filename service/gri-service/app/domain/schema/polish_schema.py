@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -14,21 +14,41 @@ class PolishRequest(BaseModel):
     """GRI 답변 윤문 요청"""
     session_key: str
     gri_index: str
-    item_title: str
     answers: List[AnswerItem]
-    style: Optional[str] = "중립"
-    audience: Optional[str] = "실무자"
     extra_instructions: Optional[str] = None
+
+
+class PolishCreate(BaseModel):
+    """윤문 결과 생성 모델"""
+    session_key: str
+    gri_index: str
+    polished_text: PolishedContent
+    model: str
+
+
+class PolishUpdate(BaseModel):
+    """윤문 결과 업데이트 모델"""
+    polished_text: Optional[PolishedContent] = None
+    model: Optional[str] = None
+
+
+class PolishResponse(BaseModel):
+    """윤문 결과 응답 모델"""
+    id: int
+    session_key: str
+    gri_index: str
+    polished_text: PolishedContent
+    model: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class PolishResult(BaseModel):
     """윤문 결과 모델 (LLM 서비스와 동일한 구조)"""
-    polished_text: str
+    polished_text: PolishedContent
     sources: List[Dict[str, Any]]  # [{"requirement": "a", "hash": "..."}]
     model: str
-    prompt_hash: str
-    created_at: str  # ISO 형식의 UTC 시간
-
+    created_at_utc: str  # ISO 형식의 UTC 시간
     # GRI 서비스 추가 필드
     session_key: str
     gri_index: str

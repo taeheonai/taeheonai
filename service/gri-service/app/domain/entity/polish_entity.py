@@ -12,6 +12,7 @@ class PolishEntity(Base):
     session_key = Column(String(100), nullable=False, index=True)
     model = Column(String(50), nullable=False, index=True)
     gri_index = Column(String(20), nullable=False, index=True)
+    text = Column(Text, nullable=False)
     polished_text = Column(MutableDict.as_mutable(JSONB), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

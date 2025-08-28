@@ -59,14 +59,12 @@ export interface ProgressResponse {
 export interface PolishRequest {
   session_key: string;
   gri_index: string;
-  item_title: string;
   answers: Array<{
     question_id: number;
     key_alpha: string;
-    text: string;
+    polished_text: string;
   }>;
   style?: string;
-  audience?: string;
   extra_instructions?: string;
   prompt_profile?: string;
 }
@@ -76,7 +74,6 @@ export interface PolishResponse {
   data: {
     polished_text: string;
     model?: string;
-    prompt_hash?: string;
     created_at?: string;
   };
 }

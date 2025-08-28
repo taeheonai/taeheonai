@@ -25,10 +25,10 @@ async def call_llm(payload: dict) -> dict:
             response.raise_for_status()
             return response.json()
     except httpx.HTTPStatusError as e:
-        logger.error(f"LLM 서비스 오류: {e.response.status_code} - {e.response.text}")
+        logger.error(f"LLM 서비스 오류: {e.response.status_code} - {e.response.polished_text}")
         raise HTTPException(
             status_code=e.response.status_code,
-            detail=f"LLM 서비스 오류: {e.response.text}"
+            detail=f"LLM 서비스 오류: {e.response.polished_text}"
         )
     except httpx.RequestError as e:
         logger.error(f"LLM 서비스 연결 오류: {str(e)}")
@@ -61,7 +61,7 @@ class PolishController:
                 {
                     "question_id": answer.question_id,
                     "key_alpha": answer.key_alpha,
-                    "text": answer.text
+                    "plolished_text": answer.text
                 }
                 for answer in request.answers
             ]
@@ -69,10 +69,7 @@ class PolishController:
             payload = {
                 "session_key": request.session_key,
                 "gri_index": request.gri_index,
-                "item_title": request.item_title,
                 "answers": answers_data,
-                "style": request.style,
-                "audience": request.audience,
                 "extra_instructions": request.extra_instructions
             }
             
@@ -83,13 +80,11 @@ class PolishController:
             logger.info(f"LLM 서비스 응답: {llm_result}")
             
             # LLM 서비스 응답을 PolishResult로 변환
-            polished_data = llm_result.get("data", {}).get("polished_text", {})
             result = PolishResult(
-                polished_text=polished_data.get("text", ""),
-                sources=llm_result.get("data", {}).get("sources", []),
-                model=polished_data.get("model", ""),
-                prompt_hash=polished_data.get("prompt_hash", ""),
-                created_at=polished_data.get("created_at", datetime.utcnow().isoformat()),
+                polished_text=llm_result["polished_text"],
+                sources=llm_result["sources"],
+                model=llm_result["model"],
+                created_at_utc=llm_result["created_at"],  # created_at -> created_at_utc로 변경
                 session_key=request.session_key,
                 gri_index=request.gri_index
             )

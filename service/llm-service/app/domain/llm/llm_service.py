@@ -46,7 +46,6 @@ class PolishResult:
     polished_text: str
     sources: List[Dict[str, Any]]     # [{"requirement":"a","hash":"..."}]
     model: str
-    prompt_hash: str
     created_at_utc: str
 
 # ===== 유틸 =====
@@ -103,8 +102,7 @@ class GriPolisher:
         self.human_tmpl = (
             "### 메타\n"
             "- GRI 인덱스: {gri_index}\n"
-            "- 톤: {style}\n"
-            "- 독자: {audience}\n\n"
+            "- 톤: {style}\n\n"
             "### 참고 예시\n"
             "gri_all.jsonl 파일에서 GRI {gri_index} 인덱스의 예시를 참고하여 작성하세요.\n"
             "특히 다음 요소들을 주의 깊게 살펴보세요:\n"
@@ -129,18 +127,12 @@ class GriPolisher:
             lines.append(f"- ({it.key_alpha}) {it.text}")
         return "\n".join(lines)
 
-    def _prompt_hash(self, **kwargs) -> str:
-        """프롬프트 해시 생성"""
-        to_hash = json.dumps(kwargs, ensure_ascii=False, sort_keys=True)
-        return _sha256(to_hash)
-
     def polish(
         self,
         *,
         gri_index: str,
         items: List[RequirementItem],
         style: str = "중립",
-        audience: str = "실무자",
         extra_instructions: Optional[str] = None,
     ) -> PolishResult:
         """
@@ -158,7 +150,6 @@ class GriPolisher:
             human = self.human_tmpl.format(
                 gri_index=gri_index,
                 style=style,
-                audience=audience,
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             
@@ -176,20 +167,11 @@ class GriPolisher:
             ai_msg = chain.invoke({"human_input": human})
 
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
-            p_hash = self._prompt_hash(
-                system=self.system_tmpl,
-                human=self.human_tmpl,
-                gri_index=gri_index,
-                style=style,
-                audience=audience,
-                model=self.model_name
-            )
 
             return PolishResult(
                 polished_text=str(ai_msg.content).strip(),
                 sources=sources,
                 model=self.model_name,
-                prompt_hash=p_hash,
                 created_at_utc=datetime.utcnow().isoformat()
             )
 
@@ -203,7 +185,6 @@ class GriPolisher:
         gri_index: str,
         items: List[RequirementItem],
         style: str = "중립",
-        audience: str = "실무자",
         extra_instructions: Optional[str] = None,
     ) -> PolishResult:
         """
@@ -221,7 +202,6 @@ class GriPolisher:
             human = self.human_tmpl.format(
                 gri_index=gri_index,
                 style=style,
-                audience=audience,
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             
@@ -239,20 +219,11 @@ class GriPolisher:
             ai_msg = await chain.ainvoke({"human_input": human})
 
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
-            p_hash = self._prompt_hash(
-                system=self.system_tmpl,
-                human=self.human_tmpl,
-                gri_index=gri_index,
-                style=style,
-                audience=audience,
-                model=self.model_name
-            )
 
             return PolishResult(
                 polished_text=str(ai_msg.content).strip(),
                 sources=sources,
                 model=self.model_name,
-                prompt_hash=p_hash,
                 created_at_utc=datetime.utcnow().isoformat()
             )
 
