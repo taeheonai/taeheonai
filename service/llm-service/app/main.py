@@ -37,17 +37,13 @@ class RequirementItemIn(BaseModel):
 class PolishRequest(BaseModel):
     session_key: str
     gri_index: str
-    item_title: str
     answers: List[RequirementItemIn]
-    style: Optional[str] = None
-    audience: Optional[str] = None
     extra_instructions: Optional[str] = None
 
 class PolishResponse(BaseModel):
     polished_text: str
     sources: List[Dict[str, Any]]
     model: str
-    prompt_hash: str
 
 @app.get("/health")
 async def health_check():
@@ -76,22 +72,15 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-
             gri_index=req.gri_index,
             items=[RequirementItem(**it.model_dump()) for it in req.answers],  # items -> answers
             style=req.style,
-            audience=req.audience,
             extra_instructions=req.extra_instructions,
         )
         
         logger.info(f"Polish completed using model: {result.model}")
         return {
-            "status": "success",
-            "data": {
-                "polished_text": {
-                    "text": result.polished_text,
-                    "model": result.model,
-                    "prompt_hash": result.prompt_hash,
-                    "created_at": datetime.utcnow().isoformat()
-                },
-                "model": result.model
-            }
+            "polished_text": result.polished_text,
+            "sources": result.sources,
+            "model": result.model,
+            "created_at": datetime.utcnow().isoformat()
         }
         
     except Exception as e:
