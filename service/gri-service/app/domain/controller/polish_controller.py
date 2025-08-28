@@ -99,7 +99,7 @@ class PolishController:
             result = PolishResult(
                 polished_text=saved.polished_text,
                 model=saved.model,
-                created_at=saved.polished_text["created_at"],
+                created_at=saved.created_at,
                 session_key=saved.session_key,
                 gri_index=saved.gri_index
             )
