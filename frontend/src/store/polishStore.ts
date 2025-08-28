@@ -1,30 +1,31 @@
 import { create } from 'zustand';
-import { GRIApiService, type PolishResult } from '@/lib/griApi';
+import { runPolish, type PolishResponse, type PolishRequest } from '@/lib/gri';
 
-interface PolishStore {
-  polishResult: PolishResult | null;
-  isLoading: boolean;
-  error: string | null;
-  fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
-  clearPolishResult: () => void;
-}
+type Status = 'idle' | 'loading' | 'success' | 'error';
 
-export const usePolishStore = create<PolishStore>((set) => ({
-  polishResult: null,
-  isLoading: false,
-  error: null,
+type PolishState = {
+  status: Status;
+  result?: PolishResponse;
+  error?: string;
+  run: (args: PolishRequest) => Promise<void>;
+  reset: () => void;
+};
 
-  fetchPolishResult: async (sessionKey: string, griIndex: string) => {
+export const usePolishStore = create<PolishState>((set) => ({
+  status: 'idle',
+  result: undefined,
+  error: undefined,
+
+  run: async (args) => {
+    set({ status: 'loading', error: undefined });
     try {
-      set({ isLoading: true, error: null });
-      const result = await GRIApiService.getPolishResult(sessionKey, griIndex);
-      set({ polishResult: result, isLoading: false });
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : '윤문 결과를 불러오는데 실패했습니다', isLoading: false });
+      const data = await runPolish(args);
+      // ✅ 결과 저장 → 리렌더 트리거
+      set({ status: 'success', result: data });
+    } catch (e: any) {
+      set({ status: 'error', error: e?.message ?? 'unknown error' });
     }
   },
 
-  clearPolishResult: () => {
-    set({ polishResult: null, error: null });
-  },
+  reset: () => set({ status: 'idle', result: undefined, error: undefined }),
 }));
