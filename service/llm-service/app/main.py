@@ -38,7 +38,6 @@ class PolishRequest(BaseModel):
     session_key: str
     gri_index: str
     answers: List[RequirementItemIn]
-    style: Optional[str] = "중립"  # 스타일 필드 추가
     extra_instructions: Optional[str] = None
 
 class PolishResponse(BaseModel):
@@ -67,11 +66,10 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
         logger.info(f"Polish request for GRI index: {req.gri_index}")
         
         from app.domain.llm.llm_service import GriPolisher, RequirementItem
-        polisher = GriPolisher()
+        polisher = GriPolisher(model="gpt-3.5-turbo")
         result = await polisher.apolish(
             gri_index=req.gri_index,
             items=[RequirementItem(**it.model_dump()) for it in req.answers],  # items -> answers
-            style=req.style,
             extra_instructions=req.extra_instructions,
         )
         
