@@ -7,7 +7,6 @@ import type {
   AnswerResponse,
   ProgressResponse,
   PolishRequest,
-  PolishResponse,
   APIError
 } from '@/types/gri';
 
@@ -132,7 +131,25 @@ export class GRIApiService {
   }
 
   // 안전한 정규화기
-  private static normalizePolish(raw: any) {
+  private static normalizePolish(raw: {
+    polished_text?: string;
+    data?: {
+      polished_text?: string;
+    };
+    result?: string;
+    session_key?: string;
+    gri_index?: string;
+    model?: string;
+    created_at?: string;
+  }): {
+    polished_text: string;
+    meta: {
+      session_key?: string;
+      gri_index?: string;
+      model?: string;
+      created_at?: string;
+    };
+  } {
     return {
       polished_text: raw?.polished_text ?? raw?.data?.polished_text ?? raw?.result ?? '',
       meta: {
@@ -147,13 +164,13 @@ export class GRIApiService {
   // ✅ 실행(POST): 답변과 함께 윤문을 돌림
   static async runPolish(request: PolishRequest) {
     try {
-      const response = await api.post('/v1/gri/polish', request);
-      return this.normalizePolish(response.data);
-    } catch (error) {
+      const { data } = await api.post('/v1/gri/polish', request);
+      return this.normalizePolish(data);
+    } catch (error: unknown) {
       console.error('윤문 요청 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '윤문 요청 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        status: (error as { response?: { status: number } })?.response?.status
       };
       throw apiError;
     }
@@ -162,16 +179,16 @@ export class GRIApiService {
   // 📖 조회(GET): 저장/캐시된 윤문을 불러옴
   static async getPolishResult(sessionKey: string, griIndex: string) {
     try {
-      const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
-      return this.normalizePolish(response.data);
-    } catch (error) {
-      if ((error as any)?.response?.status === 404) {
+      const { data } = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
+      return this.normalizePolish(data);
+    } catch (error: unknown) {
+      if ((error as { response?: { status: number } })?.response?.status === 404) {
         return null; // 데이터가 없는 경우
       }
       console.error('윤문 결과 조회 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '윤문 결과를 가져오는데 실패했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        status: (error as { response?: { status: number } })?.response?.status
       };
       throw apiError;
     }
