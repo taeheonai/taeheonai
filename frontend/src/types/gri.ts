@@ -65,6 +65,9 @@ export interface PolishRequest {
     key_alpha: string;
     text: string;
   }>;
+  style?: string;
+  audience?: string;
+  extra_instructions?: string;
   prompt_profile?: string;
 }
 
