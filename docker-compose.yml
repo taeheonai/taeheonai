@@ -215,27 +215,12 @@ services:
     volumes:
       - ./service/llm-service/app:/app/app
       - ./service/llm-service/requirements.txt:/app/requirements.txt
-      # 데이터와 로그는 필요한 경우에만 마운트
-      - ./service/llm-service/data:/app/data
-      - ./service/llm-service/logs:/app/logs
+    env_file:
+      - ./service/llm-service/.env
     environment:
       - ENVIRONMENT=development
       - PORT=8005
       - PYTHONUNBUFFERED=1
-      - MODEL_NAME=beomi/KoAlpaca-Polyglot-5.8B
-      - DATA_PATH=./data/gri_all.jsonl
-      - OUTPUT_DIR=./outputs/srlm-koalpaca-5.8b-qlora
-      - MAX_SEQ_LEN=1536
-      - LR=2e-4
-      - EPOCHS=2
-      - BATCH=1
-      - GRAD_ACC=8
-      - LORA_R=16
-      - LORA_ALPHA=32
-      - LORA_DROPOUT=0.05
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-    runtime: nvidia
     restart: always
     networks:
       - taeheonai-network

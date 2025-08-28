@@ -4,25 +4,25 @@ from typing import List, Optional, Dict, Any
 import os
 import logging
 from datetime import datetime
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-# .env 파일 로드
-load_dotenv()
-
-# OpenAI API 키 설정
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not found in environment variables")
-
-from app.domain.llm.llm_service import GriPolisher, RequirementItem
+# 로컬 개발 편의: .env 있으면 로드, 없으면 무시(컨테이너/운영엔 .env 없음)
+load_dotenv(find_dotenv(usecwd=True), override=False)
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("llm")
 
 app = FastAPI(title="llm-service", version="1.0.0")
 
-# 보안 키 (Gateway → slm-service 호출 시 필요)
+def require_openai_key() -> str:
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        logger.error("OPENAI_API_KEY missing")
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY missing")
+    return key
+
+# 보안 키 (Gateway → llm-service 호출 시 필요)
 SLM_API_KEY = os.getenv("SLM_API_KEY", "changeme-secret")
 
 # 요청/응답 스키마
@@ -61,8 +61,12 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     try:
+        # OpenAI API 키 확인
+        _ = require_openai_key()
+
         logger.info(f"Polish request for GRI index: {req.gri_index}")
         
+        from app.domain.llm.llm_service import GriPolisher, RequirementItem
         polisher = GriPolisher()
         result = await polisher.apolish(
             gri_index=req.gri_index,
