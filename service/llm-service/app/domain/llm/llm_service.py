@@ -17,9 +17,8 @@ def load_gri_examples() -> Dict[str, Dict[str, Any]]:
     """GRI 예시 데이터를 로드하는 함수"""
     examples = {}
     try:
-        # 현재 파일 기준으로 상대 경로 계산
-        current_dir = Path(__file__).parent.parent.parent.parent
-        jsonl_path = current_dir / "data" / "gri_all.jsonl"
+        # Docker 컨테이너 내 경로: /app/data/gri_all.jsonl
+        jsonl_path = Path("/app/data/gri_all.jsonl")
         
         with open(jsonl_path, 'r', encoding='utf-8') as f:
             for line in f:
