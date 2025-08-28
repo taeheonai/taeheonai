@@ -3,6 +3,15 @@ import { GRIApiService } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
+// 🔧 에러 응답 타입 정의
+interface ErrorResponse {
+  response?: {
+    status: number;
+    data?: unknown;
+  };
+  message?: string;
+}
+
 type PolishState = {
   status: Status;
   result?: {
@@ -57,10 +66,10 @@ export const usePolishStore = create<PolishState>((set, get) => ({
     } catch (e: unknown) {
       console.error('윤문 결과 조회 실패:', e);
       
-      // 🔧 404 에러는 정상적인 상황으로 처리
+      // 🔧 404 에러는 정상적인 상황으로 처리 (타입 안전하게)
       if (e && typeof e === 'object' && 'response' in e) {
-        const response = (e as any).response;
-        if (response?.status === 404) {
+        const errorResponse = e as ErrorResponse;
+        if (errorResponse.response?.status === 404) {
           set({ status: 'error', error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.' });
           return;
         }
