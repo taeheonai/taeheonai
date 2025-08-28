@@ -99,21 +99,21 @@ class PolishController:
             
             # 결과 매핑
             polish_data.polished_text = PolishedText(
-                        text=llm_result["data"]["polished_text"],
-                        model=llm_result["data"]["model"],
-                        prompt_hash=llm_result["data"].get("prompt_hash"),
-                        input_tokens=llm_result["data"]["input_tokens"],
-                        output_tokens=llm_result["data"]["output_tokens"],
-                        created_at=llm_result["data"]["created_at"]
-                    )
-                    polish_data.model = llm_result["data"]["model"]
-                    
-            except httpx.HTTPError as e:
-                logger.error(f"LLM 서비스 호출 실패: {str(e)}")
-                raise Exception(f"LLM 서비스 호출 중 오류 발생: {str(e)}")
-            except Exception as e:
-                logger.error(f"예상치 못한 오류: {str(e)}")
-                raise
+                text=llm_result["data"]["polished_text"],
+                model=llm_result["data"]["model"],
+                prompt_hash=llm_result["data"].get("prompt_hash"),
+                input_tokens=llm_result["data"]["input_tokens"],
+                output_tokens=llm_result["data"]["output_tokens"],
+                created_at=llm_result["data"]["created_at"]
+            )
+            polish_data.model = llm_result["data"]["model"]
+
+        except httpx.HTTPError as e:
+            logger.error(f"LLM 서비스 호출 실패: {str(e)}")
+            raise Exception(f"LLM 서비스 호출 중 오류 발생: {str(e)}")
+        except Exception as e:
+            logger.error(f"예상치 못한 오류: {str(e)}")
+            raise
 
             # 결과 저장
             result = await self.service.create_polish(polish_data)
