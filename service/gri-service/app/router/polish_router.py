@@ -6,8 +6,8 @@ from app.domain.schema.polish_schema import PolishRequest
 
 logger = logging.getLogger(__name__)
 
-# 동일한 /v1/gri 프리픽스 유지하되 태그만 구분
-polish_router = APIRouter(prefix="/v1/gri", tags=["gri-polish"])
+# GRI 서비스의 윤문 관련 라우터
+polish_router = APIRouter(prefix="/v1/gri", tags=["polish"])
 polish_controller = PolishController()
 
 
@@ -83,3 +83,37 @@ async def clear_polish_results(session_key: str):
     except Exception as e:
         logger.error(f"❌ 세션 윤문 결과 삭제 실패: {e}")
         raise HTTPException(status_code=500, detail=f"윤문 결과 삭제 중 오류가 발생했습니다: {str(e)}")
+
+
+# ===== 헬스체크 =====
+
+@polish_router.get("/health", include_in_schema=False)
+async def health():
+    """기본 헬스체크"""
+    return {
+        "status": "ok",
+        "service": "polish-service",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@polish_router.get("/", summary="윤문 서비스 정보")
+async def service_info():
+    """윤문 서비스 정보 및 엔드포인트"""
+    return {
+        "service": "Polish Service",
+        "version": "1.0.0",
+        "description": "GRI Answer Polish Service",
+        "status": "running",
+        "endpoints": {
+            "polish": {
+                "create": "POST /v1/gri/polish",
+                "get": "GET /v1/gri/polish/{session_key}/{gri_index}",
+                "list": "GET /v1/gri/polish/{session_key}",
+                "clear": "DELETE /v1/gri/polish/{session_key}"
+            },
+            "health": {
+                "check": "GET /v1/gri/health"
+            }
+        }
+    }
