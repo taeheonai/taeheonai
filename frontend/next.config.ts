@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   // SPA 라우팅을 위한 설정
   trailingSlash: false,
   
+  // RSC 관련 설정
+  experimental: {
+    serverActions: true,
+  },
+  
   // API 프록시 설정 - Railway 서비스들로 연결
   async rewrites() {
     return [
@@ -71,6 +76,11 @@ const nextConfig: NextConfig = {
       {
         source: '/materiality',
         destination: '/materiality'
+      },
+      // RSC 요청 처리
+      {
+        source: '/:path*/_rsc/:params*',
+        destination: '/:path*/:params*'
       }
     ];
   },
