@@ -3,8 +3,7 @@ from app.domain.schema.polish_schema import (
     PolishRequest,
     PolishCreate,
     PolishUpdate,
-    PolishResponse,
-    PolishResult
+    PolishResponse
 )
 
 __all__ = [
@@ -13,6 +12,5 @@ __all__ = [
     'PolishRequest',
     'PolishCreate',
     'PolishUpdate',
-    'PolishResponse',
-    'PolishResult'
+    'PolishResponse'
 ]
