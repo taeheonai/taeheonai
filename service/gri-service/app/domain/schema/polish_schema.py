@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class AnswerItem(BaseModel):
@@ -21,56 +21,14 @@ class PolishRequest(BaseModel):
     extra_instructions: Optional[str] = None
 
 
-class PolishSource(BaseModel):
-    """윤문 소스 정보"""
-    requirement: str
-    hash: str
-
-
-class PolishedText(BaseModel):
-    """윤문 텍스트 데이터 모델"""
-    text: str
-    model: str
-    prompt_hash: Optional[str] = None
-    input_tokens: int
-    output_tokens: int
-    created_at: Optional[str] = None
-
-class PolishBase(BaseModel):
-    """윤문 기본 모델"""
-    id: Optional[int] = None
-    session_key: str
-    model: str
-    gri_index: str
-    polished_text: PolishedText
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-
-class PolishCreate(PolishBase):
-    """윤문 생성 모델"""
-    created_at: Optional[datetime] = Field(default_factory=datetime.now)
-    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
-
-
-class PolishUpdate(BaseModel):
-    """윤문 업데이트 모델"""
-    polished_text: Optional[Dict[str, Any]] = None
-    model: Optional[str] = None
-
-
-class PolishResponse(PolishBase):
-    """윤문 응답 모델"""
-    pass
-
-
 class PolishResult(BaseModel):
-    """윤문 결과 래퍼"""
-    status: str = "success"
-    data: PolishResponse
+    """윤문 결과 모델 (LLM 서비스와 동일한 구조)"""
+    polished_text: str
+    sources: List[Dict[str, Any]]  # [{"requirement": "a", "hash": "..."}]
+    model: str
+    prompt_hash: str
+    created_at: str  # ISO 형식의 UTC 시간
+
+    # GRI 서비스 추가 필드
+    session_key: str
+    gri_index: str

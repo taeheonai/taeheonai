@@ -77,8 +77,6 @@ export interface PolishResponse {
     polished_text: string;
     model?: string;
     prompt_hash?: string;
-    input_tokens?: number;
-    output_tokens?: number;
     created_at?: string;
   };
 }
