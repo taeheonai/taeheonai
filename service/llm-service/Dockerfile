@@ -1,39 +1,25 @@
 FROM python:3.11-slim
 
-# 환경 변수 설정
-ENV PYTHONUNBUFFERED=1
-
-# 시스템 패키지 업데이트 및 설치 (최소한으로 유지)
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# pip 업그레이드
-RUN python -m pip install --upgrade pip
+# 런타임 품질/속도용 기본 ENV
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# Python 의존성 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 1) 의존성 레이어 고정(캐시 효율 ↑)
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+# torch가 필요해지는 경우에만 CPU 전용으로 설치:
+# RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
-# PyTorch CPU 버전 설치
-RUN pip install --no-cache-dir torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/cpu
+# 2) 앱만 복사(전체 COPY 금지)
+COPY app ./app
 
-# 애플리케이션 코드 복사
-COPY . .
-
-# 출력 디렉토리 생성
-RUN mkdir -p outputs data
-
-# Railway에서 제공하는 PORT 환경변수 사용
+# 3) 포트/시작 커맨드
 ENV PORT=8005
 EXPOSE 8005
 
-# 헬스체크
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8005/health || exit 1
-
-# 기본 명령어 (FastAPI 서버)
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# exec-form로 신호/종료 처리 정확하게, ENV 확장은 sh -c로
+CMD ["sh","-c","uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
