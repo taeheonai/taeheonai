@@ -12,7 +12,12 @@ import type {
 } from '@/types/gri';
 
 // Re-export types that are used in other files
-export type { GRIQuestion, GRIItem } from '@/types/gri';
+export type { 
+  GRIQuestion, 
+  GRIItem,
+  PolishRequest,
+  PolishResponse 
+} from '@/types/gri';
 
 // GRI API 서비스 클래스
 export class GRIApiService {
