@@ -1,6 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { GRIItem } from '@/types/gri';
 
 type Answers = Record<string /*question_id*/, string>;
 type Polished = Record<string /*gri_index*/, string>;
@@ -9,6 +10,7 @@ type GriState = {
   sessionKey: string | null;
   selectedCategoryId: number | null;
   selectedItemId: number | null;
+  selectedItem: GRIItem | null;
   answers: Answers;
   polishedByIndex: Polished;
   lastSavedAt?: string;
@@ -28,6 +30,7 @@ export const useGriStore = create<GriState>()(
       sessionKey: null,
       selectedCategoryId: null,
       selectedItemId: null,
+      selectedItem: null,
       answers: {},
       polishedByIndex: {},
       lastSavedAt: undefined,
@@ -50,7 +53,8 @@ export const useGriStore = create<GriState>()(
       resetAll: () => set({ 
         sessionKey: null, 
         selectedCategoryId: null, 
-        selectedItemId: null, 
+        selectedItemId: null,
+        selectedItem: null,
         answers: {}, 
         polishedByIndex: {},
         lastSavedAt: undefined
@@ -63,6 +67,7 @@ export const useGriStore = create<GriState>()(
         sessionKey: state.sessionKey,
         selectedCategoryId: state.selectedCategoryId,
         selectedItemId: state.selectedItemId,
+        selectedItem: state.selectedItem,
         answers: state.answers,
         polishedByIndex: state.polishedByIndex,
         lastSavedAt: state.lastSavedAt,

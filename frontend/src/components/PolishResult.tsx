@@ -6,13 +6,15 @@ import { useEffect } from 'react';
 interface PolishResultProps {
   sessionKey: string;
   griIndex: string;
+  showSaveHint?: boolean;
 }
 
-export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex }) => {
-  const { status, result, error, fetchPolishResult } = usePolishStore((s) => ({
+export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex, showSaveHint = false }) => {
+  const { status, result, error, savedAt, fetchPolishResult } = usePolishStore((s) => ({
     status: s.status,
     result: s.result,
     error: s.error,
+    savedAt: s.savedAt,
     fetchPolishResult: s.fetchPolishResult,
   }));
 
@@ -49,11 +51,18 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
       <div className="prose max-w-none">
         <div className="whitespace-pre-wrap">{result.data.polished_text}</div>
       </div>
-      <div className="mt-4 text-sm text-gray-500">
-        {result.data.created_at && (
-          <p>작성 시간: {new Date(result.data.created_at).toLocaleString()}</p>
+      <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
+        <div>
+          {savedAt && (
+            <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>
+          )}
+          {result.data.model && <p>모델: {result.data.model}</p>}
+        </div>
+        {showSaveHint && (
+          <p className="text-blue-600">
+            * 저장 후 GRI Report 페이지에서 확인할 수 있습니다
+          </p>
         )}
-        {result.data.model && <p>모델: {result.data.model}</p>}
       </div>
     </div>
   );
