@@ -1,4 +1,4 @@
-import api from './api';
+import api from './api';  // axios.ts 대신 api.ts 사용
 
 // GRI 데이터 타입 정의
 export interface GRICategory {
@@ -69,19 +69,6 @@ export interface PolishRequest {
   prompt_profile?: string;
 }
 
-// 새로운 통합 윤문 응답 타입
-export interface PolishResponse {
-  draft: string;                 // 윤문 결과 본문
-  citations?: string[];          // 선택
-  meta: {
-    session_key: string;
-    gri_index: string;
-    prompt_profile?: string;
-    model?: string;
-    created_at?: string;
-  };
-}
-
 export interface APIError {
   message: string;
   status?: number;
@@ -97,7 +84,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('카테고리 조회 오류:', error);
-      throw this.createError(error, '카테고리 조회 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -108,7 +99,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('GRI 데이터 조회 오류:', error);
-      throw this.createError(error, 'GRI 데이터 조회 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : 'GRI 데이터 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -119,7 +114,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 생성 오류:', error);
-      throw this.createError(error, '답변 생성 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 생성 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -130,7 +129,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('진행률 조회 오류:', error);
-      throw this.createError(error, '진행률 조회 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '진행률 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -146,7 +149,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 목록 조회 오류:', error);
-      throw this.createError(error, '답변 목록 조회 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 목록 조회 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -157,7 +164,11 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 수정 오류:', error);
-      throw this.createError(error, '답변 수정 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 수정 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
@@ -168,12 +179,16 @@ export class GRIApiService {
       return response.data;
     } catch (error) {
       console.error('답변 삭제 오류:', error);
-      throw this.createError(error, '답변 삭제 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '답변 삭제 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
   // 답변 윤문
-  static async polish(request: PolishRequest): Promise<PolishResponse> {
+  static async polish(request: PolishRequest): Promise<{ polished_text: string }> {
     try {
       const response = await api.post('/v1/gri/polish', request);
       
@@ -184,29 +199,56 @@ export class GRIApiService {
         throw new Error('Unexpected polish response shape');
       }
 
-      // 기존 응답을 새로운 형식으로 변환
       return {
-        draft: data.polished_text,
-        meta: {
-          session_key: request.session_key,
-          gri_index: request.gri_index,
-          model: data.model,
-          created_at: new Date().toISOString(),
-        }
+        polished_text: data.polished_text
       };
     } catch (error) {
       console.error('윤문 요청 오류:', error);
-      throw this.createError(error, '윤문 요청 중 오류가 발생했습니다.');
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 요청 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
     }
   }
 
-  // 에러 생성 헬퍼 메서드
-  private static createError(error: unknown, defaultMessage: string): APIError {
-    return {
-      message: error instanceof Error ? error.message : defaultMessage,
-      status: (error as { response?: { status: number } }).response?.status,
-      detail: error instanceof Error ? error.stack : undefined
-    };
+  /**
+   * 특정 GRI 인덱스의 윤문 결과를 조회합니다.
+   * @param sessionKey - 세션 키
+   * @param griIndex - GRI 인덱스 (예: "2-1", "3-2")
+   */
+  static async getPolishResult(sessionKey: string, griIndex: string): Promise<{ polished_text: string }> {
+    try {
+      const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
+      return {
+        polished_text: response.data.polished_text
+      };
+    } catch (error) {
+      console.error('윤문 결과 조회 오류:', error);
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 결과를 가져오는데 실패했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  /**
+   * 세션의 모든 윤문 결과 목록을 조회합니다.
+   * @param sessionKey - 세션 키
+   */
+  static async listPolishResults(sessionKey: string) {
+    try {
+      const response = await api.get(`/v1/gri/polish/${sessionKey}`);
+      return response.data;
+    } catch (error) {
+      console.error('윤문 결과 목록 조회 오류:', error);
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 결과 목록을 가져오는데 실패했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
+    }
   }
 }
 
