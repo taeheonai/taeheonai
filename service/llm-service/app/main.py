@@ -4,6 +4,15 @@ from typing import List, Optional, Dict, Any
 import os
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
+
+# OpenAI API 키 설정
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY not found in environment variables")
 
 from app.domain.llm.llm_service import GriPolisher, RequirementItem
 
