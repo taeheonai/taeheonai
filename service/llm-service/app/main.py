@@ -77,10 +77,13 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-
         
         logger.info(f"Polish completed using model: {result.model}")
         return {
-            "polished_text": result.polished_text,
-            "sources": result.sources,
-            "model": result.model,
-            "created_at": datetime.utcnow().isoformat()
+            "status": "success",
+            "data": {
+                "polished_text": result.polished_text,
+                "sources": result.sources,
+                "model": result.model,
+                "created_at": datetime.utcnow().isoformat()
+            }
         }
         
     except Exception as e:

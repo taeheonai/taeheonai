@@ -61,7 +61,7 @@ class PolishController:
                 {
                     "question_id": answer.question_id,
                     "key_alpha": answer.key_alpha,
-                    "plolished_text": answer.text
+                    "polished_text": answer.text
                 }
                 for answer in request.answers
             ]
@@ -81,10 +81,10 @@ class PolishController:
             
             # LLM 서비스 응답을 PolishResult로 변환
             result = PolishResult(
-                polished_text=llm_result["polished_text"],
-                sources=llm_result["sources"],
-                model=llm_result["model"],
-                created_at_utc=llm_result["created_at"],  # created_at -> created_at_utc로 변경
+                polished_text=llm_result["data"]["polished_text"],
+                sources=llm_result["data"]["sources"],
+                model=llm_result["data"]["model"],
+                created_at_utc=llm_result["data"]["created_at"],
                 session_key=request.session_key,
                 gri_index=request.gri_index
             )
