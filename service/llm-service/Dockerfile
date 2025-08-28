@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # 2) 앱만 복사(전체 COPY 금지)
 COPY app ./app
+COPY data ./data
 
 # 3) 포트/시작 커맨드
 ENV PORT=8005

@@ -45,11 +45,16 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     return null;
   }
 
+  // polished_text가 객체인 경우 문자열로 변환
+  const polishedText = typeof result.polished_text === 'string' 
+    ? result.polished_text 
+    : JSON.stringify(result.polished_text, null, 2);
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
       <div className="prose max-w-none">
-        <div className="whitespace-pre-wrap">{result.polished_text}</div>
+        <div className="whitespace-pre-wrap">{polishedText}</div>
       </div>
       <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
         <div>
