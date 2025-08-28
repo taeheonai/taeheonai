@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/lib/constants';
+import api from './api';
 
 export interface PolishResult {
   status: string;
@@ -27,18 +27,8 @@ export interface PolishResult {
  */
 export const getPolishResult = async (sessionKey: string, griIndex: string): Promise<PolishResult> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/v1/gri/polish/${sessionKey}/${griIndex}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`윤문 결과 조회 실패: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
+    const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
+    return response.data;
   } catch (error) {
     throw new Error(`윤문 결과를 가져오는데 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
   }
@@ -52,18 +42,8 @@ export const getPolishResult = async (sessionKey: string, griIndex: string): Pro
  */
 export const listPolishResults = async (sessionKey: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/v1/gri/polish/${sessionKey}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`윤문 결과 목록 조회 실패: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
+    const response = await api.get(`/v1/gri/polish/${sessionKey}`);
+    return response.data;
   } catch (error) {
     throw new Error(`윤문 결과 목록을 가져오는데 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
   }
