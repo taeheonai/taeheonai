@@ -8,12 +8,15 @@ import logging
 
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
+from app.domain.schema.polish_schema import PolishRequest
+from app.domain.llm.llm_service import GriPolisher
 from app.common.database import get_db
 
 logger = logging.getLogger(__name__)
 
 gri_router = APIRouter(prefix="/v1/gri", tags=["gri"])
 answer_controller = AnswerController()
+gri_polisher = GriPolisher()
 
 # ===== GRI 데이터 조회 엔드포인트들 =====
 
@@ -308,6 +311,47 @@ async def delete_answer(answer_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"GRI 답변 삭제 중 오류가 발생했습니다: {str(e)}")
 
 
+# ===== GRI 답변 윤문 엔드포인트 =====
+
+@gri_router.post("/polish", summary="GRI 답변 윤문")
+async def polish_answers(request: PolishRequest):
+    """GRI 답변 윤문 처리"""
+    try:
+        logger.info(f"📝 GRI 답변 윤문 요청: gri_index={request.gri_index}")
+        
+        result = await gri_polisher.apolish(
+            gri_index=request.gri_index,
+            items=[{
+                "question_id": answer.question_id,
+                "key_alpha": answer.key_alpha,
+                "text": answer.text
+            } for answer in request.answers],
+            style=request.style or "중립",
+            audience=request.audience or "실무자",
+            extra_instructions=request.extra_instructions
+        )
+        
+        logger.info(f"✅ GRI 답변 윤문 성공: {len(request.answers)}개 답변")
+        
+        return {
+            "status": "success",
+            "data": {
+                "polished_text": result.polished_text,
+                "sources": result.sources,
+                "model": result.model,
+                "tokens": {
+                    "input": result.input_tokens,
+                    "output": result.output_tokens
+                },
+                "created_at": result.created_at_utc
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ GRI 답변 윤문 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"GRI 답변 윤문 중 오류가 발생했습니다: {str(e)}")
+
+
 # ===== 헬스체크/상태 =====
 
 @gri_router.get("/db-status")
@@ -373,6 +417,7 @@ async def gri_service_info():
             "update_answer": "PUT /v1/gri/answers/{id}",
             "delete_answer": "DELETE /v1/gri/answers/{id}",
             "progress": "GET /v1/gri/progress/{session_key}",
+            "polish": "POST /v1/gri/polish",
             "health": "GET /v1/gri/health"
         },
         "base_url": "/v1/gri"
