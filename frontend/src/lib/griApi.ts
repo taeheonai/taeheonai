@@ -57,6 +57,26 @@ export interface ProgressResponse {
 }
 
 // API 에러 타입 정의
+export interface PolishRequest {
+  session_key: string;
+  gri_index: string;
+  item_title: string;
+  answers: Array<{
+    question_id: number;
+    key_alpha: string;
+    text: string;
+  }>;
+  prompt_profile?: string;
+}
+
+export interface PolishResponse {
+  polished_text: string;
+  model: string;
+  prompt_hash: string;
+  input_tokens?: number;
+  output_tokens?: number;
+}
+
 export interface APIError {
   message: string;
   status?: number;
@@ -169,6 +189,21 @@ export class GRIApiService {
       console.error('답변 삭제 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '답변 삭제 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  // 답변 윤문
+  static async polish(request: PolishRequest): Promise<PolishResponse> {
+    try {
+      const response = await api.post('/v1/gri/polish', request);
+      return response.data;
+    } catch (error) {
+      console.error('윤문 요청 오류:', error);
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 요청 중 오류가 발생했습니다.',
         status: (error as { response?: { status: number } }).response?.status
       };
       throw apiError;
