@@ -19,8 +19,6 @@ async def call_llm(payload: dict) -> dict:
     """LLM 서비스 호출 함수"""
     s = get_settings()
     headers = {"Content-Type": "application/json"}
-    if s.openai_api_key:
-        headers["x-api-Key"] = s.openai_api_key  # Authorization 대신 X-API-Key 사용
     try:
         async with httpx.AsyncClient(base_url=str(s.llm_service_url), timeout=s.llm_service_timeout) as client:
             response = await client.post("/v1/polish", json=payload, headers=headers)
