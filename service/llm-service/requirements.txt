@@ -4,9 +4,7 @@ uvicorn==0.24.0
 pydantic==2.5.0
 python-multipart==0.0.6
 
-# LLM 필수 의존성
+# LLM 필수 의존성 (CPU 전용)
 transformers>=4.35.0,<4.40.0
-peft>=0.6.0,<0.8.0
-accelerate>=0.24.0,<0.27.0
-sentencepiece>=0.1.99
 tokenizers>=0.14.0,<0.16.0
+sentencepiece>=0.1.99

@@ -11,7 +11,8 @@ WORKDIR /app
 # 1) 의존성 레이어 고정(캐시 효율 ↑)
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
-# torch가 필요해지는 경우에만 CPU 전용으로 설치:
+
+# CPU 전용 PyTorch 설치 (필요한 경우에만 주석 해제)
 # RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
 # 2) 앱만 복사(전체 COPY 금지)
