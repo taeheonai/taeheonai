@@ -187,7 +187,7 @@ class GriPolisher:
             input_tokens = int(usage.get("input_tokens", usage.get("prompt_tokens", 0)) or 0)
             output_tokens = int(usage.get("output_tokens", usage.get("completion_tokens", 0)) or 0)
 
-            sources = [{"requirement": it.requirement_key, "hash": _hash_item(it)} for it in items]
+            sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
             p_hash = self._prompt_hash(
                 system=self.system_tmpl,
                 human=self.human_tmpl,
@@ -262,7 +262,7 @@ class GriPolisher:
             input_tokens = int(usage.get("input_tokens", usage.get("prompt_tokens", 0)) or 0)
             output_tokens = int(usage.get("output_tokens", usage.get("completion_tokens", 0)) or 0)
 
-            sources = [{"requirement": it.requirement_key, "hash": _hash_item(it)} for it in items]
+            sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
             p_hash = self._prompt_hash(
                 system=self.system_tmpl,
                 human=self.human_tmpl,
