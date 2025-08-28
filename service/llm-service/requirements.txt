@@ -3,8 +3,14 @@ fastapi==0.104.1
 uvicorn==0.24.0
 pydantic==2.5.0
 python-multipart==0.0.6
+python-dotenv>=1.0.0
 
-# LLM 필수 의존성 (CPU 전용)
+# LLM 필수 의존성
 transformers>=4.35.0,<4.40.0
 tokenizers>=0.14.0,<0.16.0
 sentencepiece>=0.1.99
+
+# LangChain 의존성
+langchain>=0.1.0
+langchain-openai>=0.0.5
+openai>=1.0.0
