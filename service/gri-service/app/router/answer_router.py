@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from datetime import datetime
@@ -6,12 +7,13 @@ import logging
 
 from app.domain.controller.answer_controller import AnswerController
 from app.domain.schema.answer_schema import AnswerCreate
-from app.common.database import get_db
+from app.common.database import get_db, check_database_connection
 
 logger = logging.getLogger(__name__)
 
 # 동일한 /v1/gri 프리픽스 유지하되 태그만 구분
-answer_router = APIRouter(prefix="/v1/gri", tags=["gri-answers"])
+# GRI 서비스의 답변 관련 라우터
+answer_router = APIRouter(prefix="/v1/gri", tags=["answers"])
 answer_controller = AnswerController()
 
 
@@ -92,6 +94,64 @@ async def delete_answer(answer_id: int, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"❌ GRI 답변 삭제 실패: {e}")
         raise HTTPException(status_code=500, detail=f"GRI 답변 삭제 중 오류가 발생했습니다: {str(e)}")
+
+
+# ===== 헬스체크 =====
+
+@answer_router.get("/health", include_in_schema=False)
+async def health():
+    """기본 헬스체크 - DB 연결 없이"""
+    return {
+        "status": "ok",
+        "service": "answer-service",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+@answer_router.get("/health/db", include_in_schema=False)
+async def health_db(db: AsyncSession = Depends(get_db)):
+    """DB 연결 상태 진단"""
+    try:
+        result = await db.execute(select(1))
+        test_value = result.scalar()
+        if test_value == 1:
+            return {
+                "status": "ok",
+                "service": "answer-service",
+                "db": "connected",
+                "timestamp": datetime.now().isoformat()
+            }
+        raise HTTPException(status_code=503, detail="DB_QUERY_FAILED")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"DB health check failed: {e}")
+        raise HTTPException(status_code=503, detail="DB_UNAVAILABLE")
+
+
+@answer_router.get("/", summary="답변 서비스 정보")
+async def service_info():
+    """답변 서비스 정보 및 엔드포인트"""
+    return {
+        "service": "Answer Service",
+        "version": "1.0.0",
+        "description": "GRI Answer Management Service",
+        "status": "running",
+        "endpoints": {
+            "answers": {
+                "create": "POST /v1/gri/answers",
+                "get": "GET /v1/gri/answers/{id}",
+                "list": "GET /v1/gri/answers",
+                "update": "PUT /v1/gri/answers/{id}",
+                "delete": "DELETE /v1/gri/answers/{id}",
+                "progress": "GET /v1/gri/progress/{session_key}"
+            },
+            "health": {
+                "check": "GET /v1/gri/health",
+                "db": "GET /v1/gri/health/db"
+            }
+        }
+    }
 
 
 @answer_router.get("/progress/{session_key}", summary="세션별 답변 진행률 조회")
