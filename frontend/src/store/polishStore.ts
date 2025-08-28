@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { runPolish, type PolishResponse, type PolishRequest } from '@/lib/gri';
+import { GRIApiService, type PolishResponse, type PolishRequest } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -19,7 +19,7 @@ export const usePolishStore = create<PolishState>((set) => ({
   run: async (args) => {
     set({ status: 'loading', error: undefined });
     try {
-      const data = await runPolish(args);
+      const data = await GRIApiService.polish(args);
       // ✅ 결과 저장 → 리렌더 트리거
       set({ status: 'success', result: data });
     } catch (e: any) {
