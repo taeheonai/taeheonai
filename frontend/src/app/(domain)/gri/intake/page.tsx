@@ -161,9 +161,10 @@ export default function GRIIntakePage() {
             text: answers[q.id.toString()].trim()
           })),
         prompt_profile: "kor_gri_v1"
-      }) as { polished_text: string };
+      });
 
-      setPolished(selectedItem.index_no, polishRes.polished_text);
+      // 윤문된 텍스트를 store에 저장
+      setPolished(selectedItem.index_no, polishRes.data.polished_text);
       setMessage('윤문이 완료되었습니다.');
       
     } catch (error) {
