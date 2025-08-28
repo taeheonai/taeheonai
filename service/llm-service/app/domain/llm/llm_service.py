@@ -56,7 +56,7 @@ def _sha256(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
 def _hash_item(item: RequirementItem) -> str:
-    return _sha256(json.dumps({"k": item.requirement_key, "t": item.input_text}, ensure_ascii=False))
+    return _sha256(json.dumps({"k": item.key_alpha, "t": item.text}, ensure_ascii=False))
 
 class GriPolisher:
     """
@@ -127,8 +127,8 @@ class GriPolisher:
     def _build_items_block(self, items: List[RequirementItem]) -> str:
         """요구사항 목록을 문자열로 변환"""
         lines = []
-        for it in sorted(items, key=lambda x: x.requirement_key):
-            lines.append(f"- ({it.requirement_key}) {it.input_text}")
+        for it in sorted(items, key=lambda x: x.key_alpha):
+            lines.append(f"- ({it.key_alpha}) {it.text}")
         return "\n".join(lines)
 
     def _prompt_hash(self, **kwargs) -> str:
