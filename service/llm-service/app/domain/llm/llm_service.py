@@ -55,7 +55,7 @@ class GriPolisher:
     """
     def __init__(
         self,
-        model: Optional[str] = None,
+        model: str,
         temperature: float = 0.2,
         timeout: int = 60,
     ):
