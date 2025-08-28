@@ -3,24 +3,31 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useGriStore } from '@/store/useGriStore';
 import GRIApiService, { 
   GRICategory, 
   GRIQuestion, 
   GRIItem, 
   GRICompleteData,
-  AnswerCreate 
+  AnswerCreate
 } from '@/lib/griApi';
 
 export default function GRIIntakePage() {
-  const { user } = useAuth();
-  
+  const user = useAuthStore((s) => s.user);
+  const { 
+    sessionKey, 
+    setSessionKey, 
+    setAnswer, 
+    answers,
+    lastSavedAt 
+  } = useGriStore();
+
   // 상태 관리
   const [categories, setCategories] = useState<GRICategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<GRICategory | null>(null);
   const [selectedItem, setSelectedItem] = useState<GRIItem | null>(null);
   const [griData, setGriData] = useState<GRICompleteData | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [message, setMessage] = useState('');
@@ -29,9 +36,15 @@ export default function GRIIntakePage() {
   const [showCategoryList, setShowCategoryList] = useState(true);
   const [showDisclosureList, setShowDisclosureList] = useState(true);
   const [showRequirements, setShowRequirements] = useState(true);
-  
-  // 세션 키 생성 (사용자별 고유 식별자)
-  const sessionKey = user?.id ? `user_${user.id}_${Date.now()}` : `session_${Date.now()}`;
+
+  // 세션 키 초기화 (최초 1회)
+  useEffect(() => {
+    if (!sessionKey) {
+      const k = user?.id ? `user_${user.id}_${new Date().toISOString().slice(0,10)}` 
+                        : `session_${Date.now()}`;
+      setSessionKey(k);
+    }
+  }, [sessionKey, setSessionKey, user?.id]);
 
   // 컴포넌트 마운트 시 카테고리 데이터 로드
   useEffect(() => {
@@ -96,38 +109,45 @@ export default function GRIIntakePage() {
   ).length || 0;
   const completionRate = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
 
-  // 답변 저장 함수
+  // 답변 저장 + 윤문
   const saveAnswers = async () => {
-    if (!selectedItem || !selectedItem.questions) return;
-
+    if (!sessionKey || !selectedItem) return;
+    
     setIsLoading(true);
     setMessage('');
     
     try {
+      // 1. 답변 저장
       const savePromises = selectedItem.questions
         .filter((q: GRIQuestion) => answers[q.id.toString()] && answers[q.id.toString()].trim() !== '')
-        .map(async (question: GRIQuestion) => {
+        .map((q: GRIQuestion) => {
           const answerData: AnswerCreate = {
-            question_id: question.id,
+            question_id: q.id,
             session_key: sessionKey,
-            answer_text: answers[question.id.toString()],
-            answer_json: undefined
+            answer_text: answers[q.id.toString()].trim()
           };
-
-          try {
-            const response = await GRIApiService.createAnswer(answerData);
-            console.log('답변 저장 성공:', response);
-            return response;
-          } catch {
-            throw new Error(`Failed to save answer for ${question.id}`);
-          }
+          return GRIApiService.createAnswer(answerData);
         });
 
       await Promise.all(savePromises);
-      setMessage('답변이 성공적으로 저장되었습니다.');
+
+      // 2. 윤문 요청 (임시로 주석 처리)
+      /*const polishRes = await GRIApiService.polish({
+        session_key: sessionKey,
+        gri_index: selectedItem.index_no,
+        item_title: selectedItem.title,
+        answers: selectedItem.questions
+          .filter((q: GRIQuestion) => answers[q.id.toString()] && answers[q.id.toString()].trim() !== '')
+          .map((q: GRIQuestion) => ({
+            question_id: q.id,
+            key_alpha: q.key_alpha,
+            text: answers[q.id.toString()].trim()
+          }))
+      }) as { polished_text: string };
+
+      setPolished(selectedItem.index_no, polishRes.polished_text);*/
       
-      // 답변 저장 후 진행률 확인
-      checkProgress();
+      setMessage('답변이 성공적으로 저장되었습니다.');
       
     } catch (error) {
       console.error('답변 저장 중 오류:', error);
@@ -138,35 +158,15 @@ export default function GRIIntakePage() {
     }
   };
 
-  // 진행률 확인
-  const checkProgress = async () => {
-    try {
-      const progressData = await GRIApiService.getProgress(sessionKey);
-      console.log('진행률:', progressData);
-    } catch (error) {
-      console.error('진행률 확인 오류:', error);
-    }
-  };
-
-  // 답변 업데이트 함수
-  const updateAnswer = (questionId: string, value: string) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
-  };
-
   // 카테고리 선택 핸들러
   const handleCategorySelect = (category: GRICategory) => {
     setSelectedCategory(category);
     setSelectedItem(null);
-    setAnswers({});
   };
 
   // 아이템 선택 핸들러
   const handleItemSelect = (item: GRIItem) => {
     setSelectedItem(item);
-    setAnswers({});
   };
 
   if (isLoadingData) {
@@ -195,6 +195,11 @@ export default function GRIIntakePage() {
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900">GRI 보고서 작성</h1>
               <p className="text-gray-600 mt-2">Global Reporting Initiative 표준에 따른 지속가능성 보고서 작성</p>
+              {lastSavedAt && (
+                <p className="text-sm text-gray-500 mt-1">
+                  마지막 저장: {new Date(lastSavedAt).toLocaleString()}
+                </p>
+              )}
             </div>
 
             {/* 메시지 표시 */}
@@ -366,9 +371,7 @@ export default function GRIIntakePage() {
                               <textarea
                                 placeholder="답변을 입력해주세요..."
                                 value={answers[question.id.toString()] || ''}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
-                                  updateAnswer(question.id.toString(), e.target.value)
-                                }
+                                onChange={(e) => setAnswer(question.id.toString(), e.target.value)}
                                 className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                               {answers[question.id.toString()] && answers[question.id.toString()].trim() !== '' && (

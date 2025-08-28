@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { postLoginPayload } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/store/useAuthStore';
 
 type LoginFormState = {
   auth_id: string;
@@ -11,10 +12,11 @@ type LoginFormState = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+  const setUser = useAuthStore((s) => s.setUser);
   const [form, setForm] = useState<LoginFormState>({ auth_id: '', auth_pw: '' });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -26,14 +28,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    // 환경변수 상태 확인 로깅 추가
-    console.log('🔍 === 환경변수 상태 확인 ===');
-    console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-    console.log('NEXT_PUBLIC_ENVIRONMENT:', process.env.NEXT_PUBLIC_ENVIRONMENT);
-    console.log('🔍 === 환경변수 상태 끝 ===');
-
-    // 간단한 클라이언트 측 검증 (DB 저장/호출 없음)
+    // 간단한 클라이언트 측 검증
     if (!form.auth_id.trim() || !form.auth_pw.trim()) {
       setError('아이디와 비밀번호를 입력하세요.');
       setLoading(false);
@@ -41,11 +36,9 @@ export default function LoginPage() {
     }
     
     try {
-      // api.ts의 함수 사용
       const response = await postLoginPayload(form);
       console.log('Login successful:', response.data);
       
-      // 로그인 성공 시 AuthContext 사용
       if (response.data) {
         const userData = {
           id: response.data.id || form.auth_id,
@@ -54,13 +47,15 @@ export default function LoginPage() {
           email: response.data.email || `${form.auth_id}@company.com`
         };
         
-        // AuthContext의 login 함수 사용
-        login(response.data.access_token || 'dummy-token', userData);
+        // Zustand store에 사용자 정보 저장
+        setUser(userData);
+        
+        // 대시보드로 이동
+        router.push('/dashboard');
       }
     } catch (err: unknown) {
       console.error('login failed', err);
       
-      // 에러 메시지 처리
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosError = err as { response?: { data?: { detail?: string } } };
         if (axiosError.response?.data?.detail) {
@@ -133,5 +128,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
