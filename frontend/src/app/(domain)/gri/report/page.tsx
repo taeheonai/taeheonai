@@ -6,6 +6,7 @@ import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGriStore } from '@/store/useGriStore';
+import { PolishResult } from '@/components/PolishResult';
 
 export default function GriReportPage() {
   const user = useAuthStore((s) => s.user);
@@ -73,11 +74,9 @@ export default function GriReportPage() {
               {indices.map((idx) => (
                 <section key={idx} className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">인덱스 {idx}</h2>
-                  <div className="prose max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-800">
-                      {polishedByIndex[idx] || '윤문 결과 로딩 중...'}
-                    </div>
-                  </div>
+                  {sessionKey && (
+                    <PolishResult sessionKey={sessionKey} griIndex={idx} />
+                  )}
                 </section>
               ))}
             </div>
