@@ -2,8 +2,6 @@ import api from './api';
 
 import type {
   GRICategory,
-  GRIQuestion,
-  GRIItem,
   GRICompleteData,
   AnswerCreate,
   AnswerResponse,
@@ -12,6 +10,9 @@ import type {
   PolishResponse,
   APIError
 } from '@/types/gri';
+
+// Re-export types that are used in other files
+export type { GRIQuestion, GRIItem } from '@/types/gri';
 
 // GRI API 서비스 클래스
 export class GRIApiService {
