@@ -1,61 +1,51 @@
-# Python
+# 모델 파일과 출력
+outputs/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# 캐시와 임시 파일
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-
-# Build artifacts
-build/
-dist/
-wheels/
-.eggs/
-*.egg-info/
-*.egg
-MANIFEST
-
-# Virtual env
-.env
-.venv/
-venv/
-ENV/
-env/
-env.bak/
-venv.bak/
-
-# IDE / OS
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Git
-.git/
-
-# Logs
+.Python
 *.log
 logs/
 
-# 모델/체크포인트/아티팩트
-outputs/
-data/
-wandb/
-**/*.safetensors
-**/*.pt
-**/*.bin
-**/*.ckpt
-*.ipynb_checkpoints
+# 개발 환경
+.env
+.venv
+env/
+venv/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# Test / lint caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
+# 데이터
+data/
+*.jsonl
+*.json
+*.csv
+*.xlsx
+
+# 문서
+*.md
+docs/
+
+# Docker 관련
+Dockerfile
+.dockerignore
+
+# 학습 관련
+wandb/
+tensorboard/
+*.wandb
+
+# 기타
+.DS_Store
+Thumbs.db
