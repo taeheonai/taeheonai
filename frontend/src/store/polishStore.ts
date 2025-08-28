@@ -1,13 +1,14 @@
 import { create } from 'zustand';
-import { GRIApiService, type PolishResponse, type PolishRequest, type APIError } from '@/lib/griApi';
+import { GRIApiService, type PolishRequest } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 type PolishState = {
   status: Status;
-  result?: PolishResponse;
+  result?: { polished_text: string };
   error?: string;
-  run: (args: PolishRequest) => Promise<void>;
+  fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
+  polish: (args: PolishRequest) => Promise<void>;
   reset: () => void;
 };
 
@@ -16,7 +17,20 @@ export const usePolishStore = create<PolishState>((set) => ({
   result: undefined,
   error: undefined,
 
-  run: async (args) => {
+  fetchPolishResult: async (sessionKey: string, griIndex: string) => {
+    set({ status: 'loading', error: undefined });
+    try {
+      const data = await GRIApiService.getPolishResult(sessionKey, griIndex);
+      set({ status: 'success', result: data });
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '윤문 결과를 불러오는데 실패했습니다';
+      set({ status: 'error', error: errorMessage });
+    }
+  },
+
+  polish: async (args) => {
     set({ status: 'loading', error: undefined });
     try {
       const data = await GRIApiService.polish(args);
@@ -24,7 +38,7 @@ export const usePolishStore = create<PolishState>((set) => ({
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? error.message 
-        : (error as APIError)?.message ?? '알 수 없는 오류가 발생했습니다';
+        : '윤문 요청 중 오류가 발생했습니다';
       set({ status: 'error', error: errorMessage });
     }
   },
