@@ -1,4 +1,4 @@
-import api from './axios';
+import api from './api';  // axios.ts 대신 api.ts 사용
 
 // GRI 데이터 타입 정의
 export interface GRICategory {
@@ -56,7 +56,7 @@ export interface ProgressResponse {
   progress_percentage: number;
 }
 
-// API 에러 타입 정의
+// 윤문 관련 인터페이스
 export interface PolishRequest {
   session_key: string;
   gri_index: string;
@@ -69,12 +69,22 @@ export interface PolishRequest {
   prompt_profile?: string;
 }
 
-export interface PolishResponse {
-  polished_text: string;
-  model: string;
-  prompt_hash: string;
-  input_tokens?: number;
-  output_tokens?: number;
+export interface PolishResult {
+  status: string;
+  data: {
+    session_key: string;
+    gri_index: string;
+    polished_text: string;
+    sources: Array<{
+      requirement: string;
+      hash: string;
+    }>;
+    model: string;
+    input_tokens: number;
+    output_tokens: number;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface APIError {
@@ -196,7 +206,7 @@ export class GRIApiService {
   }
 
   // 답변 윤문
-  static async polish(request: PolishRequest): Promise<PolishResponse> {
+  static async polish(request: PolishRequest): Promise<PolishResult> {
     try {
       const response = await api.post('/v1/gri/polish', request);
       return response.data;
@@ -204,6 +214,43 @@ export class GRIApiService {
       console.error('윤문 요청 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '윤문 요청 중 오류가 발생했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  /**
+   * 특정 GRI 인덱스의 윤문 결과를 조회합니다.
+   * @param sessionKey - 세션 키
+   * @param griIndex - GRI 인덱스 (예: "2-1", "3-2")
+   */
+  static async getPolishResult(sessionKey: string, griIndex: string): Promise<PolishResult> {
+    try {
+      const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
+      return response.data;
+    } catch (error) {
+      console.error('윤문 결과 조회 오류:', error);
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 결과를 가져오는데 실패했습니다.',
+        status: (error as { response?: { status: number } }).response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  /**
+   * 세션의 모든 윤문 결과 목록을 조회합니다.
+   * @param sessionKey - 세션 키
+   */
+  static async listPolishResults(sessionKey: string) {
+    try {
+      const response = await api.get(`/v1/gri/polish/${sessionKey}`);
+      return response.data;
+    } catch (error) {
+      console.error('윤문 결과 목록 조회 오류:', error);
+      const apiError: APIError = {
+        message: error instanceof Error ? error.message : '윤문 결과 목록을 가져오는데 실패했습니다.',
         status: (error as { response?: { status: number } }).response?.status
       };
       throw apiError;

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getPolishResult, listPolishResults, type PolishResult } from '@/lib/gri';
+import { GRIApiService, type PolishResult } from '@/lib/griApi';
 
 interface PolishStore {
   polishResult: PolishResult | null;
@@ -17,7 +17,7 @@ export const usePolishStore = create<PolishStore>((set) => ({
   fetchPolishResult: async (sessionKey: string, griIndex: string) => {
     try {
       set({ isLoading: true, error: null });
-      const result = await getPolishResult(sessionKey, griIndex);
+      const result = await GRIApiService.getPolishResult(sessionKey, griIndex);
       set({ polishResult: result, isLoading: false });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : '윤문 결과를 불러오는데 실패했습니다', isLoading: false });
