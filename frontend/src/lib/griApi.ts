@@ -10,6 +10,18 @@ import type {
   APIError
 } from '@/types/gri';
 
+// API 에러 응답 타입
+interface ErrorResponse {
+  response?: {
+    status: number;
+    data?: {
+      detail?: string;
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 // Re-export types that are used in other files
 export type { 
   GRIQuestion, 
@@ -33,21 +45,23 @@ export class GRIApiService {
       console.log('✅ 카테고리 조회 성공:', response.data);
       return response.data;
       
-    } catch (error) {
+    } catch (error: unknown) {
       // 🚨 상세 에러 로깅
       console.error('❌ 카테고리 조회 오류:', error);
-      console.error('❌ 에러 상태:', (error as any)?.response?.status);
-      console.error('❌ 에러 데이터:', (error as any)?.response?.data);
+      
+      const err = error as ErrorResponse;
+      console.error('❌ 에러 상태:', err.response?.status);
+      console.error('❌ 에러 데이터:', err.response?.data);
       
       // 502 에러 특별 처리
-      if ((error as any)?.response?.status === 502) {
+      if (err.response?.status === 502) {
         console.error('❌ Gateway 오류 감지');
         throw new Error('서비스 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.');
       }
       
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '알 수 없는 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -58,11 +72,13 @@ export class GRIApiService {
     try {
       const response = await api.get(`/v1/gri/complete/${categoryId}`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('GRI 데이터 조회 오류:', error);
+      
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : 'GRI 데이터 조회 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 데이터 조회 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -73,11 +89,12 @@ export class GRIApiService {
     try {
       const response = await api.post('/v1/gri/answers', answerData);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('답변 생성 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '답변 생성 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '답변 생성 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -88,11 +105,12 @@ export class GRIApiService {
     try {
       const response = await api.get(`/v1/gri/progress/${sessionKey}`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('진행률 조회 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '진행률 조회 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '진행률 조회 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -108,11 +126,12 @@ export class GRIApiService {
       
       const response = await api.get('/v1/gri/answers', { params });
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('답변 목록 조회 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '답변 목록 조회 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '답변 목록 조회 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -123,11 +142,12 @@ export class GRIApiService {
     try {
       const response = await api.put(`/v1/gri/answers/${answerId}`, answerData);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('답변 수정 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '답변 수정 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '답변 수정 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -138,11 +158,12 @@ export class GRIApiService {
     try {
       const response = await api.delete(`/v1/gri/answers/${answerId}`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('답변 삭제 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '답변 삭제 중 오류가 발생했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '답변 삭제 중 오류가 발생했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
@@ -220,11 +241,12 @@ export class GRIApiService {
     try {
       const response = await api.get(`/v1/gri/polish/${sessionKey}`);
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('윤문 결과 목록 조회 오류:', error);
+      const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: error instanceof Error ? error.message : '윤문 결과 목록을 가져오는데 실패했습니다.',
-        status: (error as { response?: { status: number } }).response?.status
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || '윤문 결과 목록을 가져오는데 실패했습니다.',
+        status: err.response?.status
       };
       throw apiError;
     }
