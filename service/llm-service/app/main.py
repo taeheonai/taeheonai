@@ -43,7 +43,7 @@ class PolishRequest(BaseModel):
 
 class PolishResponse(BaseModel):
     polished_text: str
-    sources: List[Dict[str, Any]]
+
     model: str
 
 @app.get("/health")
@@ -77,11 +77,10 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
         )
         
         logger.info(f"Polish completed using model: {result.model}")
-        return {
+                    return {
             "status": "success",
             "data": {
                 "polished_text": result.polished_text,
-                "sources": result.sources,
                 "model": result.model,
                 "created_at": datetime.utcnow().isoformat()
             }
