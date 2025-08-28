@@ -10,11 +10,8 @@ class PolishEntity(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     session_key = Column(String(100), nullable=False, index=True)
+    model = Column(String(50), nullable=False, index=True)
     gri_index = Column(String(20), nullable=False, index=True)
-    polished_text = Column(Text, nullable=False)
-    sources = Column(MutableList.as_mutable(ARRAY(JSON)), nullable=False)
-    model = Column(String(50), nullable=False)
-    input_tokens = Column(Integer, nullable=False)
-    output_tokens = Column(Integer, nullable=False)
+    polished_text = Column(MutableDict.as_mutable(JSONB), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

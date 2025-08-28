@@ -27,21 +27,27 @@ class PolishSource(BaseModel):
     hash: str
 
 
+class PolishedText(BaseModel):
+    """윤문 텍스트 데이터 모델"""
+    text: str
+    model: str
+    prompt_hash: Optional[str] = None
+    input_tokens: int
+    output_tokens: int
+    created_at: Optional[str] = None
+
 class PolishBase(BaseModel):
     """윤문 기본 모델"""
     id: Optional[int] = None
     session_key: str
-    gri_index: str
-    polished_text: str
-    sources: List[Dict[str, str]]  # [{requirement: str, hash: str}]
     model: str
-    input_tokens: int
-    output_tokens: int
+    gri_index: str
+    polished_text: PolishedText
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
@@ -55,11 +61,8 @@ class PolishCreate(PolishBase):
 
 class PolishUpdate(BaseModel):
     """윤문 업데이트 모델"""
-    polished_text: Optional[str] = None
-    sources: Optional[List[Dict[str, str]]] = None
+    polished_text: Optional[Dict[str, Any]] = None
     model: Optional[str] = None
-    input_tokens: Optional[int] = None
-    output_tokens: Optional[int] = None
 
 
 class PolishResponse(PolishBase):

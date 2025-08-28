@@ -7,7 +7,8 @@ from app.domain.schema.polish_schema import (
     PolishRequest,
     PolishCreate,
     PolishResult,
-    PolishResponse
+    PolishResponse,
+    PolishedText
 )
 from app.common.config import get_settings
 
@@ -35,11 +36,13 @@ class PolishController:
             polish_data = PolishCreate(
                 session_key=request.session_key,
                 gri_index=request.gri_index,
-                polished_text="",  # LLM 서비스에서 채워질 예정
-                sources=[],  # LLM 서비스에서 채워질 예정
-                model="gpt-4-turbo-preview",  # 기본값
-                input_tokens=0,  # LLM 서비스에서 채워질 예정
-                output_tokens=0,  # LLM 서비스에서 채워질 예정
+                model="gpt-3.5-turbo",  # 기본값
+                polished_text=PolishedText(
+                    text="",  # LLM 서비스에서 채워질 예정
+                    model="gpt-3.5-turbo",
+                    input_tokens=0,
+                    output_tokens=0
+                ),
                 created_at=datetime.now(),
                 updated_at=datetime.now()
             )
@@ -60,11 +63,15 @@ class PolishController:
                     llm_result = response.json()
                     
                     # 결과 매핑
-                    polish_data.polished_text = llm_result.get("polished_text", "")
-                    polish_data.sources = llm_result.get("sources", [])
-                    polish_data.model = llm_result.get("model", "gpt-3.5-turbo")
-                    polish_data.input_tokens = llm_result.get("input_tokens", 0)
-                    polish_data.output_tokens = llm_result.get("output_tokens", 0)
+                    polish_data.polished_text = PolishedText(
+                        text=llm_result["data"]["polished_text"],
+                        model=llm_result["data"]["model"],
+                        prompt_hash=llm_result["data"].get("prompt_hash"),
+                        input_tokens=llm_result["data"]["input_tokens"],
+                        output_tokens=llm_result["data"]["output_tokens"],
+                        created_at=llm_result["data"]["created_at"]
+                    )
+                    polish_data.model = llm_result["data"]["model"]
                     
             except httpx.HTTPError as e:
                 logger.error(f"LLM 서비스 호출 실패: {str(e)}")
