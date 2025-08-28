@@ -75,12 +75,12 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
             extra_instructions=req.extra_instructions,
         )
         
-        logger.info(f"Polish completed using model: {result.model}")
+        logger.info(f"Polish completed using model: {result['model']}")
         return {
             "status": "success",
             "data": {
-                "polished_text": result.polished_text,
-                "model": result.model,
+                "polished_text": result["polished_text"],
+                "model": result["model"],
                 "created_at": datetime.utcnow().isoformat()
             }
         }
