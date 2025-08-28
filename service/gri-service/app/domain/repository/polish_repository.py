@@ -1,5 +1,5 @@
 from typing import Optional, Dict, List, Any, Tuple
-from datetime import datetime, timezone
+from datetime import datetime
 import asyncio
 from app.domain.schema.polish_schema import PolishCreate, PolishUpdate, PolishEntity
 
@@ -14,7 +14,7 @@ class PolishRepository:
         """윤문 결과 저장"""
         async with self._lock:
             key = (data.session_key, data.gri_index)
-            now = datetime.now(timezone.utc)
+            now = datetime.now()
 
             if key in self._store:
                 ent = self._store[key]
@@ -57,7 +57,7 @@ class PolishRepository:
             if not ent:
                 return None
             
-            now = datetime.now(timezone.utc)
+            now = datetime.now()
             if data.polished_text is not None:
                 ent.polished_text = data.polished_text
             if data.model is not None:

@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Any, Union, Mapping
-from datetime import datetime, timezone
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID, uuid4
 
@@ -39,9 +39,9 @@ class PolishEntity(BaseModel):
     session_key: str
     gri_index: str
     polished_text: Dict[str, Any]
-    model: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    model: str
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
     model_config = ConfigDict(from_attributes=True)
 
 
