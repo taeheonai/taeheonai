@@ -168,7 +168,7 @@ export default function GRIIntakePage() {
   // 로딩 상태 표시
   if (isLoadingData) {
     return (
-          <ProtectedRoute children={
+          <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
         <div className="flex items-center justify-center h-[calc(100vh-100px)]">
@@ -178,13 +178,13 @@ export default function GRIIntakePage() {
           </div>
         </div>
       </div>
-    } />
+    </ProtectedRoute>
     );
   }
 
   // 답변 입력 폼 부분 수정
   return (
-    <ProtectedRoute children={
+    <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
         <div className="p-4">
