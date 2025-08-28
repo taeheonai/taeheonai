@@ -17,17 +17,17 @@ class PolishService:
     async def create_polish(self, data: PolishCreate) -> PolishResponse:
         """윤문 결과 생성"""
         saved = await self.repo.save(data)
-        return PolishResponse.model_validate(saved)
+        return PolishResponse.from_entity(saved)
 
     async def get_polish(self, session_key: str, gri_index: str) -> Optional[PolishResponse]:
         """세션과 GRI 인덱스로 윤문 결과 조회"""
         result = await self.repo.get(session_key, gri_index)
-        return PolishResponse.model_validate(result) if result else None
+        return PolishResponse.from_entity(result) if result else None
 
     async def list_by_session(self, session_key: str) -> list[PolishResponse]:
         """세션별 윤문 결과 목록 조회"""
         results = await self.repo.list_by_session(session_key)
-        return [PolishResponse.model_validate(r) for r in results]
+        return [PolishResponse.from_entity(r) for r in results]
 
     async def update_polish(
         self, 
@@ -37,7 +37,7 @@ class PolishService:
     ) -> Optional[PolishResponse]:
         """윤문 결과 업데이트"""
         updated = await self.repo.update(session_key, gri_index, data)
-        return PolishResponse.model_validate(updated) if updated else None
+        return PolishResponse.from_entity(updated) if updated else None
 
     async def delete_polish(self, session_key: str, gri_index: str) -> bool:
         """윤문 결과 삭제"""
