@@ -50,21 +50,21 @@ class PolishController:
             # LLM 서비스 호출하여 윤문 처리
             logger.info(f"LLM 서비스 호출: session_key={request.session_key}, gri_index={request.gri_index}")
             try:
-                # API 키 확인
-                openai_api_key = settings.openai_api_key
-                if not openai_api_key:
-                    logger.error("OPENAI_API_KEY not set")
-                    raise Exception("OpenAI API 키가 설정되지 않았습니다")
-
                 # LLM 서비스 URL 확인
                 llm_url = settings.llm_service_url.strip()
                 if not llm_url.startswith(("http://", "https://")):
                     logger.error(f"Invalid LLM_SERVICE_URL: {repr(llm_url)}")
                     raise Exception("LLM 서비스 URL이 올바르지 않습니다")
 
+                # API 키 확인
+                llm_api_key = settings.llm_api_key
+                if not llm_api_key:
+                    logger.error("LLM_API_KEY not set")
+                    raise Exception("LLM 서비스 API 키가 설정되지 않았습니다")
+
                 # API 호출 헤더 설정
                 headers = {
-                    "Authorization": f"Bearer {openai_api_key}",
+                    "x-api-key": llm_api_key,
                     "Content-Type": "application/json"
                 }
 
