@@ -144,6 +144,7 @@ class GriPolisher:
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             
+            # 예시 데이터가 있을 때만 추가
             if example_instruction and example_answer:
                 human += f"\n\n### GRI {gri_index} 참고 예시\n"
                 human += f"요구사항: {example_instruction}\n"
@@ -194,6 +195,7 @@ class GriPolisher:
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             
+            # 예시 데이터가 있을 때만 추가
             if example_instruction and example_answer:
                 human += f"\n\n### GRI {gri_index} 참고 예시\n"
                 human += f"요구사항: {example_instruction}\n"
