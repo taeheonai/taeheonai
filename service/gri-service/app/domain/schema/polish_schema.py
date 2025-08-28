@@ -58,4 +58,9 @@ class PolishResponse(BaseModel):
     # ✅ 중앙 매퍼(팩토리): 어디서든 이걸로 변환
     @classmethod
     def from_entity(cls, rec: "PolishEntity | Mapping[str, Any]") -> "PolishResponse":
-        return cls.model_validate(rec)
+        if hasattr(rec, 'model_dump'):
+            # Pydantic 모델인 경우 딕셔너리로 변환
+            return cls.model_validate(rec.model_dump())
+        else:
+            # 이미 딕셔너리인 경우
+            return cls.model_validate(rec)
