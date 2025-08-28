@@ -55,7 +55,18 @@ export const usePolishStore = create<PolishState>((set, get) => ({
       }
       set({ status: 'success', result: data });
     } catch (e: unknown) {
-      const error = e instanceof Error ? e.message : 'load failed';
+      console.error('윤문 결과 조회 실패:', e);
+      
+      // 🔧 404 에러는 정상적인 상황으로 처리
+      if (e && typeof e === 'object' && 'response' in e) {
+        const response = (e as any).response;
+        if (response?.status === 404) {
+          set({ status: 'error', error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.' });
+          return;
+        }
+      }
+      
+      const error = e instanceof Error ? e.message : '윤문 결과 조회에 실패했습니다.';
       set({ status: 'error', error });
     }
   },

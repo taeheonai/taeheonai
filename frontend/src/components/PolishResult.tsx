@@ -1,7 +1,7 @@
 'use client';
 
 import { usePolishStore } from '@/store/polishStore';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 
 interface PolishResultProps {
   sessionKey: string;
@@ -18,19 +18,41 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     fetchPolishResult: s.fetchPolishResult,
   }));
 
+  // 🔧 컴포넌트 마운트 상태 추적
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   // 🔧 무한 루프 방지: useCallback으로 함수 안정화
   const stableFetchPolishResult = useCallback(async () => {
-    if (sessionKey && griIndex) {
+    if (!isMounted.current || !sessionKey || !griIndex) return;
+    
+    try {
       await fetchPolishResult(sessionKey, griIndex);
+    } catch (error) {
+      // 🔧 컴포넌트가 언마운트된 경우 에러 무시
+      if (isMounted.current) {
+        console.error('윤문 결과 조회 실패:', error);
+      }
     }
   }, [sessionKey, griIndex, fetchPolishResult]);
 
   useEffect(() => {
     // 🔧 이미 결과가 있거나 로딩 중이면 API 호출하지 않음
-    if (sessionKey && griIndex && status === 'idle' && !result) {
+    if (sessionKey && griIndex && status === 'idle' && !result && isMounted.current) {
       stableFetchPolishResult();
     }
   }, [sessionKey, griIndex, status, result, stableFetchPolishResult]);
+
+  // 🔧 컴포넌트가 언마운트된 경우 아무것도 렌더링하지 않음
+  if (!isMounted.current) {
+    return null;
+  }
 
   if (status === 'loading') {
     return (
@@ -45,12 +67,20 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     return (
       <div className="p-4 bg-red-50 text-red-700 rounded-md">
         <p>오류: {error}</p>
+        {/* 🔧 404 에러일 때 사용자 친화적 메시지 */}
+        {error?.includes('404') && (
+          <p className="text-sm mt-2">아직 윤문 결과가 없습니다. 윤문을 실행해주세요.</p>
+        )}
       </div>
     );
   }
 
   if (status !== 'success' || !result?.polished_text) {
-    return null;
+    return (
+      <div className="p-4 bg-gray-50 text-gray-600 rounded-md">
+        <p>윤문 결과가 없습니다. 윤문을 실행해주세요.</p>
+      </div>
+    );
   }
 
   // polished_text가 객체인 경우 문자열로 변환
