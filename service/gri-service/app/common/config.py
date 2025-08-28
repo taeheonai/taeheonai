@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # LLM 서비스 설정
     llm_service_url: HttpUrl = Field(..., alias="LLM_SERVICE_URL")
     llm_service_timeout: float = Field(30.0, alias="LLM_SERVICE_TIMEOUT")
+    service_api_key: str = Field("default-service-key", alias="SERVICE_API_KEY")
     
     # CORS 설정
     cors_url: str | None = Field(None, alias="CORS_URL")

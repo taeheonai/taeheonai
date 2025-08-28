@@ -18,7 +18,10 @@ logger = logging.getLogger(__name__)
 async def call_llm(payload: dict) -> dict:
     """LLM 서비스 호출 함수"""
     s = get_settings()
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "X-Api-Key": s.service_api_key
+    }
     try:
         async with httpx.AsyncClient(base_url=str(s.llm_service_url), timeout=s.llm_service_timeout) as client:
             response = await client.post("/v1/polish", json=payload, headers=headers)
