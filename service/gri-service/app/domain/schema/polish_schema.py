@@ -30,7 +30,7 @@ class PolishCreate(BaseModel):
 class PolishUpdate(BaseModel):
     """윤문 결과 업데이트 모델"""
     polished_text: Optional[Dict[str, Any]] = None  # JSONB 데이터
-    model: Optional[str] = None
+    model: str
 
 
 # 저장/캐시 엔티티 (Repo가 반환)
