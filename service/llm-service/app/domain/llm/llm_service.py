@@ -7,7 +7,7 @@ import hashlib
 import logging
 from datetime import datetime
 
-from langchain.chat_models import ChatOpenAI  # 이전 버전 호환성 유지
+from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)

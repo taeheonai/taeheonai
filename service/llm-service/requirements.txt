@@ -12,4 +12,5 @@ sentencepiece>=0.1.99
 
 # LangChain 의존성
 langchain>=0.1.0
+langchain-community>=0.0.1
 openai>=1.0.0

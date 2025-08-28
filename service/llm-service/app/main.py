@@ -50,7 +50,7 @@ async def health_check():
     """헬스체크 엔드포인트"""
     return {
         "status": "healthy",
-        "service": "slm-service",
+        "service": "llm-service",
         "timestamp": datetime.now().isoformat()
     }
 
