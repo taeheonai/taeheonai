@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from datetime import datetime
@@ -15,6 +15,176 @@ logger = logging.getLogger(__name__)
 # GRI 서비스의 답변 관련 라우터
 answer_router = APIRouter(prefix="/v1/gri", tags=["answers"])
 answer_controller = AnswerController()
+
+
+@answer_router.get("/categories", summary="GRI 카테고리 목록 조회")
+async def get_categories(db: AsyncSession = Depends(get_db)):
+    """모든 GRI 카테고리 조회"""
+    try:
+        logger.info("📝 GRI 카테고리 목록 조회 요청")
+
+        query = text("""
+            SELECT id, code, title, display_order
+            FROM gri_category
+            ORDER BY display_order, id
+        """)
+        result = await db.execute(query)
+        categories = [dict(row) for row in result.mappings().all()]
+
+        logger.info(f"✅ GRI 카테고리 조회 성공: {len(categories)}개")
+
+        return {
+            "categories": categories,
+            "count": len(categories),
+            "source": "gri-service",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ GRI 카테고리 조회 실패: {e}")
+        if "does not exist" in str(e) or "relation" in str(e):
+            raise HTTPException(status_code=503, detail="DB_TABLE_NOT_FOUND")
+        elif "connection" in str(e).lower():
+            raise HTTPException(status_code=503, detail="DB_CONNECTION_FAILED")
+        else:
+            raise HTTPException(status_code=500, detail="CATEGORY_FETCH_FAILED")
+
+
+@answer_router.get("/categories/{category_id}/items", summary="카테고리별 GRI Index 목록 조회")
+async def get_category_items(category_id: int, db: AsyncSession = Depends(get_db)):
+    """특정 카테고리의 GRI Index 목록 조회"""
+    try:
+        logger.info(f"📝 GRI Index 목록 조회 요청: category_id={category_id}")
+
+        query = text("""
+            SELECT id, index_no, title, display_order
+            FROM gri_item
+            WHERE category_id = :category_id
+            ORDER BY display_order, index_no
+        """)
+        result = await db.execute(query, {"category_id": category_id})
+        items = [dict(row) for row in result.mappings().all()]
+
+        logger.info(f"✅ GRI Index 조회 성공: {len(items)}개")
+
+        return {
+            "category_id": category_id,
+            "items": items,
+            "count": len(items),
+            "source": "gri-service",
+        }
+
+    except Exception as e:
+        logger.error(f"❌ GRI Index 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"아이템 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@answer_router.get("/items/{item_id}/questions", summary="GRI Index별 질문 목록 조회")
+async def get_item_questions(item_id: int, db: AsyncSession = Depends(get_db)):
+    """특정 GRI Index의 질문 목록 조회"""
+    try:
+        logger.info(f"📝 GRI 질문 목록 조회 요청: item_id={item_id}")
+
+        query = text("""
+            SELECT id, key_alpha, question_text, reference_text, question_type, display_order, required
+            FROM gri_question
+            WHERE item_id = :item_id
+            ORDER BY display_order, key_alpha
+        """)
+        result = await db.execute(query, {"item_id": item_id})
+        questions = [dict(row) for row in result.mappings().all()]
+
+        logger.info(f"✅ GRI 질문 조회 성공: {len(questions)}개")
+
+        return {
+            "item_id": item_id,
+            "questions": questions,
+            "count": len(questions),
+            "source": "gri-service",
+        }
+
+    except Exception as e:
+        logger.error(f"❌ GRI 질문 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"질문 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@answer_router.get("/complete/{category_id}", summary="카테고리별 완전한 GRI 데이터 조회")
+async def get_complete_gri_data(category_id: int, db: AsyncSession = Depends(get_db)):
+    """카테고리별 완전한 GRI 데이터 (카테고리 + 아이템 + 질문)"""
+    try:
+        logger.info(f"📝 완전한 GRI 데이터 조회 요청: category_id={category_id}")
+
+        category_query = text("""
+            SELECT id, code, title
+            FROM gri_category
+            WHERE id = :category_id
+        """)
+        category_result = await db.execute(category_query, {"category_id": category_id})
+        category_row = category_result.mappings().first()
+        if not category_row:
+            raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다")
+
+        category = dict(category_row)
+
+        items_query = text("""
+            SELECT 
+                i.id as item_id,
+                i.index_no,
+                i.title as item_title,
+                q.id as question_id,
+                q.key_alpha,
+                q.question_text,
+                q.reference_text,
+                q.question_type,
+                q.required
+            FROM gri_item i
+            LEFT JOIN gri_question q ON i.id = q.item_id
+            WHERE i.category_id = :category_id
+            ORDER BY i.display_order, i.index_no, q.display_order, q.key_alpha
+        """)
+        items_result = await db.execute(items_query, {"category_id": category_id})
+
+        items = []
+        current_item = None
+
+        for row in items_result.mappings().all():
+            row_dict = dict(row)
+
+            if current_item is None or current_item["id"] != row_dict["item_id"]:
+                current_item = {
+                    "id": row_dict["item_id"],
+                    "index_no": row_dict["index_no"],
+                    "title": row_dict["item_title"],
+                    "questions": []
+                }
+                items.append(current_item)
+
+            if row_dict["question_id"]:
+                question = {
+                    "id": row_dict["question_id"],
+                    "key_alpha": row_dict["key_alpha"],
+                    "question_text": row_dict["question_text"],
+                    "reference_text": row_dict["reference_text"],
+                    "question_type": row_dict["question_type"],
+                    "required": row_dict["required"]
+                }
+                current_item["questions"].append(question)
+
+        logger.info(f"✅ 완전한 GRI 데이터 조회 성공: {len(items)}개 아이템")
+
+        return {
+            "category": category,
+            "items": items,
+            "item_count": len(items),
+            "source": "gri-service",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ 완전한 GRI 데이터 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"데이터 조회 중 오류가 발생했습니다: {str(e)}")
 
 
 @answer_router.post("/answers", summary="GRI 답변 생성")
