@@ -7,8 +7,10 @@ type PolishState = {
   status: Status;
   result?: PolishResponse;
   error?: string;
+  savedAt?: string;
   fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
   polish: (args: PolishRequest) => Promise<void>;
+  setSavedAt: (timestamp: string) => void;
   reset: () => void;
 };
 
@@ -16,6 +18,7 @@ export const usePolishStore = create<PolishState>((set) => ({
   status: 'idle',
   result: undefined,
   error: undefined,
+  savedAt: undefined,
 
   fetchPolishResult: async (sessionKey: string, griIndex: string) => {
     set({ status: 'loading', error: undefined });
@@ -43,5 +46,7 @@ export const usePolishStore = create<PolishState>((set) => ({
     }
   },
 
-  reset: () => set({ status: 'idle', result: undefined, error: undefined }),
+  setSavedAt: (timestamp: string) => set({ savedAt: timestamp }),
+  
+  reset: () => set({ status: 'idle', result: undefined, error: undefined, savedAt: undefined }),
 }));
