@@ -39,7 +39,9 @@ class PolishRequest(BaseModel):
     gri_index: str
     item_title: str
     answers: List[RequirementItemIn]
-    prompt_profile: Optional[str] = None
+    style: Optional[str] = None
+    audience: Optional[str] = None
+    extra_instructions: Optional[str] = None
 
 class PolishResponse(BaseModel):
     polished_text: str
@@ -74,7 +76,7 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-
         polisher = GriPolisher()
         result = await polisher.apolish(
             gri_index=req.gri_index,
-            items=[RequirementItem(**it.model_dump()) for it in req.items],
+            items=[RequirementItem(**it.model_dump()) for it in req.answers],  # items -> answers
             style=req.style,
             audience=req.audience,
             extra_instructions=req.extra_instructions,
