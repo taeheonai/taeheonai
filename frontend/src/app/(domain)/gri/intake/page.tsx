@@ -23,7 +23,8 @@ export default function GRIIntakePage() {
     answers, 
     setPolished, 
     setSelectedItem, 
-    setAnswers 
+    setAnswers,
+    setAnswer
   } = useGriStore();
   const { status, result, polish } = usePolishStore();
   
@@ -276,7 +277,58 @@ export default function GRIIntakePage() {
                 {selectedItem && selectedItem.questions && (
                   <>
                     <div className="bg-white rounded-lg shadow-md">
-                      {/* ... (기존 답변 입력 폼 내용 유지) ... */}
+                      <div className="p-4 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                          <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs">?</span>
+                          </div>
+                          <span>{selectedItem.index_no} 요구사항</span>
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">{selectedItem.title}</p>
+                      </div>
+                      <div className="p-6 space-y-6">
+                        {selectedItem.questions.map((question: GRIQuestion) => (
+                          <div key={question.id} className="space-y-3">
+                            <div className="flex items-start space-x-2">
+                              <span className="text-sm font-medium text-gray-700 mt-1">
+                                {question.key_alpha}.
+                              </span>
+                              <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <div className="whitespace-pre-wrap">
+                                    {question.question_text}
+                                  </div>
+                                  {question.required && (
+                                    <span className="text-red-500 ml-1">*</span>
+                                  )}
+                                </label>
+                                {question.reference_text && (
+                                  <div className="mb-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                                    <strong>참고:</strong> 
+                                    <div className="whitespace-pre-wrap mt-1">
+                                      {question.reference_text}
+                                    </div>
+                                  </div>
+                                )}
+                                <textarea
+                                  placeholder="답변을 입력해주세요..."
+                                  value={answers[question.id.toString()] || ''}
+                                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                                    setAnswer(question.id.toString(), e.target.value)
+                                  }
+                                  className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                {answers[question.id.toString()] && answers[question.id.toString()].trim() !== '' && (
+                                  <div className="flex items-center space-x-1 mt-2 text-green-600">
+                                    <span className="text-sm">✓</span>
+                                    <span className="text-sm">답변 완료</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
 
                       {/* 저장 및 윤문 버튼 */}
                       <div className="flex justify-end pt-4 border-t space-x-3">
