@@ -65,9 +65,7 @@ export interface PolishRequest {
     key_alpha: string;
     text: string;
   }>;
-  style?: string;
   extra_instructions?: string;
-  prompt_profile?: string;
 }
 
 export interface PolishResponse {

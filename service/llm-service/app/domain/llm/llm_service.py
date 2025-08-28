@@ -125,7 +125,6 @@ class GriPolisher:
         *,
         gri_index: str,
         items: List[RequirementItem],
-        style: str = "중립",
         extra_instructions: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -142,7 +141,6 @@ class GriPolisher:
             # 예시 데이터를 포함한 human 프롬프트 구성
             human = self.human_tmpl.format(
                 gri_index=gri_index,
-                style=style,
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             
@@ -177,7 +175,6 @@ class GriPolisher:
         *,
         gri_index: str,
         items: List[RequirementItem],
-        style: str = "중립",
         extra_instructions: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
@@ -194,7 +191,6 @@ class GriPolisher:
             # 예시 데이터를 포함한 human 프롬프트 구성
             human = self.human_tmpl.format(
                 gri_index=gri_index,
-                style=style,
                 items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
             )
             

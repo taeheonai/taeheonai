@@ -287,7 +287,7 @@ export async function polishGriAnswer(payload: {
     key_alpha: string;
     text: string;
   }>;
-  prompt_profile?: string;
+  
 }) {
   return api.post('/v1/gri/polish', payload);  // Gateway를 통한 요청
 }

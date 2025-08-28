@@ -139,8 +139,6 @@ export default function GRIIntakePage() {
             key_alpha: q.key_alpha,
             text: answers[q.id.toString()].trim()
           })),
-        style: "중립",
-        audience: "실무자",
         extra_instructions: "kor_gri_v1"  // prompt_profile을 extra_instructions로 변경
       });
 
