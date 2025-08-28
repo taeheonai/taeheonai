@@ -131,19 +131,24 @@ export class GRIApiService {
     }
   }
 
-  // 답변 윤문
-  static async polish(request: PolishRequest): Promise<PolishResponse> {
+  // 안전한 정규화기
+  private static normalizePolish(raw: any) {
+    return {
+      polished_text: raw?.polished_text ?? raw?.data?.polished_text ?? raw?.result ?? '',
+      meta: {
+        session_key: raw?.session_key,
+        gri_index: raw?.gri_index,
+        model: raw?.model,
+        created_at: raw?.created_at,
+      }
+    };
+  }
+
+  // ✅ 실행(POST): 답변과 함께 윤문을 돌림
+  static async runPolish(request: PolishRequest) {
     try {
       const response = await api.post('/v1/gri/polish', request);
-      
-      // 응답 데이터 검증 및 변환
-      const data = response.data;
-      if (!data || !data.status || !data.data || typeof data.data.polished_text !== 'string') {
-        console.debug('[polish] unexpected shape:', data);
-        throw new Error('Unexpected polish response shape');
-      }
-
-      return data;
+      return this.normalizePolish(response.data);
     } catch (error) {
       console.error('윤문 요청 오류:', error);
       const apiError: APIError = {
@@ -154,23 +159,15 @@ export class GRIApiService {
     }
   }
 
-  /**
-   * 특정 GRI 인덱스의 윤문 결과를 조회합니다.
-   * @param sessionKey - 세션 키
-   * @param griIndex - GRI 인덱스 (예: "2-1", "3-2")
-   */
-  static async getPolishResult(sessionKey: string, griIndex: string): Promise<PolishResponse> {
+  // 📖 조회(GET): 저장/캐시된 윤문을 불러옴
+  static async getPolishResult(sessionKey: string, griIndex: string) {
     try {
       const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
-      const data = response.data;
-      
-      if (!data || !data.status || !data.data || typeof data.data.polished_text !== 'string') {
-        console.debug('[getPolishResult] unexpected shape:', data);
-        throw new Error('Unexpected polish result shape');
-      }
-
-      return data;
+      return this.normalizePolish(response.data);
     } catch (error) {
+      if ((error as any)?.response?.status === 404) {
+        return null; // 데이터가 없는 경우
+      }
       console.error('윤문 결과 조회 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '윤문 결과를 가져오는데 실패했습니다.',
