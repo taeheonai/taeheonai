@@ -101,7 +101,31 @@ export default function GRIIntakePage() {
             {/* ... (기존 헤더 부분 유지) ... */}
 
             <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-              {/* ... (기존 카테고리, 공시 항목 패널 유지) ... */}
+              {/* 카테고리 목록 패널 */}
+              <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-auto">
+                <h2 className="text-lg font-semibold mb-4">GRI 카테고리</h2>
+                {categories.length > 0 ? (
+                  <ul className="space-y-2">
+                    {categories.map((category) => (
+                      <li
+                        key={category.id}
+                        className="p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          // TODO: 카테고리 선택 로직 구현
+                          console.log('Selected category:', category);
+                        }}
+                      >
+                        <div className="font-medium">{category.title}</div>
+                        <div className="text-sm text-gray-500">{category.code}</div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-gray-500 text-center py-4">
+                    {isLoading ? '카테고리를 불러오는 중...' : '카테고리가 없습니다.'}
+                  </div>
+                )}
+              </div>
 
               {/* 메인 콘텐츠 영역 */}
               <div className="col-span-6 space-y-4">
