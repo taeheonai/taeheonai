@@ -95,7 +95,7 @@ class GriPolisher:
         self.human_tmpl = (
             "### 메타\n"
             "- GRI 인덱스: {gri_index}\n"
-            "- 톤: {style}\n\n"
+            "- 톤: 중립\n\n"
             "### 참고 예시\n"
             "gri_all.jsonl 파일에서 GRI {gri_index} 인덱스의 예시를 참고하여 작성하세요.\n"
             "특히 다음 요소들을 주의 깊게 살펴보세요:\n"
