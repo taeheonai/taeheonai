@@ -5,7 +5,15 @@ type Status = 'idle' | 'loading' | 'success' | 'error';
 
 type PolishState = {
   status: Status;
-  result?: { polished_text: string; meta: any };
+  result?: {
+    polished_text: string;
+    meta: {
+      session_key?: string;
+      gri_index?: string;
+      model?: string;
+      created_at?: string;
+    };
+  };
   error?: string;
   savedAt?: string;
   // 실행(POST)
@@ -31,8 +39,9 @@ export const usePolishStore = create<PolishState>((set) => ({
         return;
       }
       set({ status: 'success', result: data });
-    } catch (e: any) {
-      set({ status: 'error', error: e?.message ?? 'load failed' });
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : 'load failed';
+      set({ status: 'error', error });
     }
   },
 
@@ -41,8 +50,9 @@ export const usePolishStore = create<PolishState>((set) => ({
     try {
       const data = await GRIApiService.runPolish(args);      // ✅ POST
       set({ status: 'success', result: data });
-    } catch (e: any) {
-      set({ status: 'error', error: e?.message ?? 'polish failed' });
+    } catch (e: unknown) {
+      const error = e instanceof Error ? e.message : 'polish failed';
+      set({ status: 'error', error });
     }
   },
 

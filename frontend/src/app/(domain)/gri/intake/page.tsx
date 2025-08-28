@@ -58,7 +58,7 @@ export default function GRIIntakePage() {
     if (griData && griData.items.length > 0) {
       setSelectedItem(griData.items[0]);
     }
-  }, [griData]);
+  }, [griData, setSelectedItem]);
 
   // 카테고리 목록 로드
   const loadCategories = async () => {
