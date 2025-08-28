@@ -59,10 +59,11 @@ export interface ProgressResponse {
 export interface PolishRequest {
   session_key: string;
   gri_index: string;
+  item_title: string;
   answers: Array<{
     question_id: number;
     key_alpha: string;
-    polished_text: string;
+    text: string;
   }>;
   style?: string;
   extra_instructions?: string;
