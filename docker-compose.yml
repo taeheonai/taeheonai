@@ -153,6 +153,7 @@ services:
       - LLM_SERVICE_URL=http://llm-service:8005  # llm-service 포트로 수정
       - LLM_SERVICE_TIMEOUT=30.0
       - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     restart: always
     networks:
       - taeheonai-network
