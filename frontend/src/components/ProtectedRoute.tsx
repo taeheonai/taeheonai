@@ -4,7 +4,11 @@ import { ReactNode, useEffect } from 'react';
 import { useHasHydrated } from '@/store/useHasHydrated';
 import { useAuthStore } from '@/store/useAuthStore';
 
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const hydrated = useHasHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
