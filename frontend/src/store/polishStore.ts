@@ -1,15 +1,17 @@
 import { create } from 'zustand';
-import { GRIApiService, type PolishRequest, type PolishResponse } from '@/lib/griApi';
+import { GRIApiService } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 type PolishState = {
   status: Status;
-  result?: PolishResponse;
+  result?: { polished_text: string; meta: any };
   error?: string;
   savedAt?: string;
+  // 실행(POST)
+  polish: (args: Parameters<typeof GRIApiService.runPolish>[0]) => Promise<void>;
+  // 조회(GET)
   fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
-  polish: (args: PolishRequest) => Promise<void>;
   setSavedAt: (timestamp: string) => void;
   reset: () => void;
 };
@@ -20,29 +22,27 @@ export const usePolishStore = create<PolishState>((set) => ({
   error: undefined,
   savedAt: undefined,
 
-  fetchPolishResult: async (sessionKey: string, griIndex: string) => {
+  fetchPolishResult: async (sessionKey, griIndex) => {
     set({ status: 'loading', error: undefined });
     try {
-      const data = await GRIApiService.getPolishResult(sessionKey, griIndex);
+      const data = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
+      if (!data) {
+        set({ status: 'error', error: '저장된 윤문 결과가 없습니다.' });
+        return;
+      }
       set({ status: 'success', result: data });
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : '윤문 결과를 불러오는데 실패했습니다';
-      set({ status: 'error', error: errorMessage });
+    } catch (e: any) {
+      set({ status: 'error', error: e?.message ?? 'load failed' });
     }
   },
 
   polish: async (args) => {
     set({ status: 'loading', error: undefined });
     try {
-      const data = await GRIApiService.polish(args);
+      const data = await GRIApiService.runPolish(args);      // ✅ POST
       set({ status: 'success', result: data });
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : '윤문 요청 중 오류가 발생했습니다';
-      set({ status: 'error', error: errorMessage });
+    } catch (e: any) {
+      set({ status: 'error', error: e?.message ?? 'polish failed' });
     }
   },
 

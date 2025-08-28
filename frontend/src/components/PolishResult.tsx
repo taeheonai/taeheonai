@@ -41,7 +41,7 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     );
   }
 
-  if (status !== 'success' || !result?.data) {
+  if (status !== 'success' || !result?.polished_text) {
     return null;
   }
 
@@ -49,14 +49,14 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
       <div className="prose max-w-none">
-        <div className="whitespace-pre-wrap">{result.data.polished_text}</div>
+        <div className="whitespace-pre-wrap">{result.polished_text}</div>
       </div>
       <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
         <div>
           {savedAt && (
             <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>
           )}
-          {result.data.model && <p>모델: {result.data.model}</p>}
+          {result.meta?.model && <p>모델: {result.meta.model}</p>}
         </div>
         {showSaveHint && (
           <p className="text-blue-600">

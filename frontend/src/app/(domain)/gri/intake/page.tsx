@@ -155,10 +155,10 @@ export default function GRIIntakePage() {
 
   // 윤문 결과 저장
   const savePolishResult = () => {
-    if (!result?.data?.polished_text || !selectedItem) return;
+    if (!result?.polished_text || !selectedItem) return;
     
     const timestamp = new Date().toISOString();
-    setPolished(selectedItem.index_no, result.data.polished_text);
+    setPolished(selectedItem.index_no, result.polished_text);
     usePolishStore.getState().setSavedAt(timestamp);
     setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
   };
@@ -378,7 +378,7 @@ export default function GRIIntakePage() {
                     </div>
 
                     {/* 윤문 결과 표시 */}
-                    {status === 'success' && result?.data && selectedItem && sessionKey && (
+                    {status === 'success' && result?.polished_text && selectedItem && sessionKey && (
                       <div className="relative">
                         <div className="absolute right-0 top-0 z-10 flex space-x-2 mb-4">
                           <button
