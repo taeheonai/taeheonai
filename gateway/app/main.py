@@ -44,8 +44,7 @@ IS_RAILWAY = os.getenv("RAILWAY_ENVIRONMENT", "").lower() in ("true", "productio
 if IS_PROD or IS_RAILWAY:
     ALLOW_ORIGINS = [
         "https://taeheonai.com",
-        "https://www.taeheonai.com",
-        "https://front-six-teal.vercel.app/"
+        "https://www.taeheonai.com"
     ]
     # vercel/railway 서브도메인을 모두 허용해야 할 때만 사용
     ALLOW_ORIGIN_REGEX = r"^https://([a-z0-9-]+\.)?(vercel\.app|railway\.app)$"

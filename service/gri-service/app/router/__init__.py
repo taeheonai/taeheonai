@@ -1,4 +1,1 @@
-from app.router.answer_router import answer_router
-from app.router.polish_router import polish_router
-
-__all__ = ['answer_router', 'polish_router']
+# 각 라우터를 직접 import하므로 __init__.py는 비워둡니다.
