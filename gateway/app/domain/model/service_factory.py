@@ -30,7 +30,7 @@ class ServiceProxyFactory:
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
-            ServiceType.llm: os.getenv("LLM_SERVICE_URL", "http://localhost:8005"),  # LLM 서비스 URL 추가
+            ServiceType.llm: os.getenv("LLM_SERVICE_URL", "https://llm-service-production-c83a.up.railway.app"),  # LLM 서비스 URL 추가
         }
         
         # corporation는 독립 서비스로 처리
