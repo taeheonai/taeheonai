@@ -24,7 +24,10 @@ const nextConfig: NextConfig = {
   
   // RSC 관련 설정
   experimental: {
-    serverActions: true,
+    serverActions: {
+      bodySizeLimit: '2mb',
+      allowedOrigins: ['taeheonai.com', 'localhost:3000']
+    },
   },
   
   // API 프록시 설정 - Railway 서비스들로 연결
