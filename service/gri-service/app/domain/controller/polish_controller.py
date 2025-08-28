@@ -51,12 +51,26 @@ class PolishController:
             logger.info(f"LLM 서비스 호출: session_key={request.session_key}, gri_index={request.gri_index}")
             try:
                 async with httpx.AsyncClient(timeout=30.0) as client:
+                    # Pydantic 모델을 dict로 변환하여 전송
+                    answers_data = [
+                        {
+                            "question_id": answer.question_id,
+                            "key_alpha": answer.key_alpha,
+                            "text": answer.text
+                        }
+                        for answer in request.answers
+                    ]
+                    
                     response = await client.post(
                         f"{settings.llm_service_url}/v1/polish",
                         json={
                             "session_key": request.session_key,
                             "gri_index": request.gri_index,
-                            "answers": request.answers
+                            "item_title": request.item_title,
+                            "answers": answers_data,
+                            "style": request.style,
+                            "audience": request.audience,
+                            "extra_instructions": request.extra_instructions
                         }
                     )
                     response.raise_for_status()
