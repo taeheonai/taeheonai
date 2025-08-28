@@ -153,6 +153,7 @@ services:
       - LLM_SERVICE_URL=http://llm-service:8005  # llm-service 포트로 수정
       - LLM_SERVICE_TIMEOUT=30.0
       - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+      - SERVICE_API_KEY=default-service-key  # LLM 서비스와 동일한 키 사용
     restart: always
     networks:
       - taeheonai-network
@@ -226,6 +227,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8005
       - PYTHONUNBUFFERED=1
+      - SERVICE_API_KEY=default-service-key
     restart: always
     networks:
       - taeheonai-network

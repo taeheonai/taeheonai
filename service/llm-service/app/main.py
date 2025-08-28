@@ -22,8 +22,11 @@ def require_openai_key() -> str:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY missing")
     return key
 
-# 보안 키 (Gateway → llm-service 호출 시 필요)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "changeme-secret")
+# OpenAI API 키 (LLM 호출용)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# 서비스 간 인증을 위한 API 키
+SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "default-service-key")
 
 # 요청/응답 스키마
 class RequirementItemIn(BaseModel):
@@ -56,10 +59,10 @@ async def health_check():
     }
 
 @app.post("/v1/polish")
-async def polish(req: PolishRequest, x_api_key: str = Header(None)):
+async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-Key")):
     """GRI 답변 윤문 엔드포인트"""
-    if x_api_key != OPENAI_API_KEY:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if x_api_key != SERVICE_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid service API key")
 
     try:
         # OpenAI API 키 확인
