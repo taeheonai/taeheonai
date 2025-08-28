@@ -41,13 +41,6 @@ class RequirementItem:
     key_alpha: str       # 'a' | 'b' | 'c' | 'd' ...
     text: str           # 사용자 원문
 
-@dataclass
-class PolishResult:
-    polished_text: str
-    sources: List[Dict[str, Any]]     # [{"requirement":"a","hash":"..."}]
-    model: str
-    created_at: str
-
 # ===== 유틸 =====
 def _sha256(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
@@ -134,7 +127,7 @@ class GriPolisher:
         items: List[RequirementItem],
         style: str = "중립",
         extra_instructions: Optional[str] = None,
-    ) -> PolishResult:
+    ) -> Dict[str, Any]:
         """
         동기 함수. (FastAPI/비동기에서 쓰려면 아래 apolish 사용 권장)
         """
@@ -168,12 +161,12 @@ class GriPolisher:
 
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
 
-            return PolishResult(
-                polished_text=str(ai_msg.content).strip(),
-                sources=sources,
-                model=self.model_name,
-                created_at=datetime.utcnow().isoformat()
-            )
+            return {
+                "polished_text": str(ai_msg.content).strip(),
+                "sources": sources,
+                "model": self.model_name,
+                "created_at": datetime.utcnow().isoformat()
+            }
 
         except Exception as e:
             logger.error(f"Polish 실패: {str(e)}")
@@ -186,7 +179,7 @@ class GriPolisher:
         items: List[RequirementItem],
         style: str = "중립",
         extra_instructions: Optional[str] = None,
-    ) -> PolishResult:
+    ) -> Dict[str, Any]:
         """
         비동기 함수(FastAPI/async 세션과 궁합 좋음)
         """
@@ -220,12 +213,12 @@ class GriPolisher:
 
             sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
 
-            return PolishResult(
-                polished_text=str(ai_msg.content).strip(),
-                sources=sources,
-                model=self.model_name,
-                created_at=datetime.utcnow().isoformat()
-            )
+            return {
+                "polished_text": str(ai_msg.content).strip(),
+                "sources": sources,
+                "model": self.model_name,
+                "created_at": datetime.utcnow().isoformat()
+            }
 
         except Exception as e:
             logger.error(f"Async polish 실패: {str(e)}")

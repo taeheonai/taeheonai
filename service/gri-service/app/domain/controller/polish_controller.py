@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from app.domain.service.polish_service import PolishService
 from app.domain.schema.polish_schema import (
     PolishRequest,
-    PolishResult,
+    PolishResponse,
     PolishCreate
 )
 from app.common.config import get_settings
@@ -42,7 +42,7 @@ class PolishController:
     def __init__(self):
         self.service = PolishService()
 
-    async def polish_answers(self, request: PolishRequest) -> PolishResult:
+    async def polish_answers(self, request: PolishRequest) -> PolishResponse:
         """GRI 답변 윤문 처리"""
         try:
             # 기존 윤문 결과 조회
@@ -92,18 +92,8 @@ class PolishController:
                 model=llm_result["data"]["model"]
             )
 
-            # 결과 저장
-            saved = await self.service.create_polish(create_data)
-
-            # PolishResult로 변환하여 반환
-            result = PolishResult(
-                polished_text=saved.polished_text,
-                model=saved.model,
-                created_at=saved.created_at,
-                session_key=saved.session_key,
-                gri_index=saved.gri_index
-            )
-            return result
+            # 결과 저장 및 반환 (PolishResponse가 자동으로 반환됨)
+            return await self.service.create_polish(create_data)
 
         except Exception as e:
             logger.error(f"윤문 처리 실패: {str(e)}")

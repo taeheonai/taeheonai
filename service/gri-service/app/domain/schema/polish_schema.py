@@ -41,13 +41,3 @@ class PolishResponse(BaseModel):
     model: str
     created_at: datetime
     updated_at: datetime
-
-
-class PolishResult(BaseModel):
-    """윤문 결과 모델 (LLM 서비스와 동일한 구조)"""
-    polished_text: Dict[str, Any]  # JSONB 데이터 (text, model, created_at)
-    model: str
-    created_at: datetime  # datetime 타입으로 통일
-    # GRI 서비스 추가 필드
-    session_key: str
-    gri_index: str
