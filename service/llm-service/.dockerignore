@@ -26,8 +26,7 @@ venv/
 *.swp
 *.swo
 
-# 데이터
-data/
+# 데이터 (data/ 디렉토리는 포함)
 *.jsonl
 *.json
 *.csv
