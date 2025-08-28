@@ -61,7 +61,7 @@ class PolishController:
                 {
                     "question_id": answer.question_id,
                     "key_alpha": answer.key_alpha,
-                    "polished_text": answer.text
+                    "text": answer.text
                 }
                 for answer in request.answers
             ]
