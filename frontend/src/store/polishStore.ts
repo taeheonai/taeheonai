@@ -24,13 +24,28 @@ type PolishState = {
   reset: () => void;
 };
 
-export const usePolishStore = create<PolishState>((set) => ({
+export const usePolishStore = create<PolishState>((set, get) => ({
   status: 'idle',
   result: undefined,
   error: undefined,
   savedAt: undefined,
 
   fetchPolishResult: async (sessionKey, griIndex) => {
+    // 🔧 이미 로딩 중이거나 같은 데이터를 요청 중이면 중복 호출 방지
+    const currentState = get();
+    if (currentState.status === 'loading') {
+      console.log('🔄 이미 로딩 중, 중복 요청 방지');
+      return;
+    }
+    
+    // 🔧 이미 같은 결과가 있으면 API 호출하지 않음
+    if (currentState.result && 
+        currentState.result.meta?.session_key === sessionKey && 
+        currentState.result.meta?.gri_index === griIndex) {
+      console.log('✅ 이미 결과가 있음, API 호출 생략');
+      return;
+    }
+
     set({ status: 'loading', error: undefined });
     try {
       const data = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
