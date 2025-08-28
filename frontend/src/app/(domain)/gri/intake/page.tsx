@@ -7,34 +7,107 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useGriStore } from '@/store/useGriStore';
 import { usePolishStore } from '@/store/polishStore';
 import { PolishResult } from '@/components/PolishResult';
-import type { GRIQuestion, GRICategory } from '@/types/gri';
+import type { 
+  GRIQuestion, 
+  GRICategory, 
+  GRIItem, 
+  GRICompleteData 
+} from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
 
 export default function GRIIntakePage() {
   const user = useAuthStore((s) => s.user);
-  const { sessionKey, selectedItem, answers, setPolished } = useGriStore();
+  const { 
+    sessionKey, 
+    selectedItem, 
+    answers, 
+    setPolished, 
+    setSelectedItem, 
+    setAnswers 
+  } = useGriStore();
   const { status, result, polish } = usePolishStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [categories, setCategories] = useState<GRICategory[]>([]);
   
-  // 카테고리 데이터 로드
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        setIsLoading(true);
-        const response = await GRIApiService.getCategories();
-        setCategories(response.categories);
-      } catch (error) {
-        console.error('카테고리 로드 오류:', error);
-        setMessage('카테고리 데이터를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // 상태 관리
+  const [categories, setCategories] = useState<GRICategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<GRICategory | null>(null);
+  const [griData, setGriData] = useState<GRICompleteData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [message, setMessage] = useState('');
+  
+  // UI 상태
+  const [showCategoryList, setShowCategoryList] = useState(true);
+  const [showDisclosureList, setShowDisclosureList] = useState(true);
+  const [showRequirements, setShowRequirements] = useState(true);
 
+  // 컴포넌트 마운트 시 카테고리 데이터 로드
+  useEffect(() => {
     loadCategories();
   }, []);
+
+  // 카테고리 선택 시 GRI 데이터 로드
+  useEffect(() => {
+    if (selectedCategory) {
+      loadGRICompleteData(selectedCategory.id);
+    }
+  }, [selectedCategory]);
+
+  // GRI 데이터 로드 시 첫 번째 아이템 자동 선택
+  useEffect(() => {
+    if (griData && griData.items.length > 0) {
+      setSelectedItem(griData.items[0]);
+    }
+  }, [griData]);
+
+  // 카테고리 목록 로드
+  const loadCategories = async () => {
+    try {
+      setIsLoadingData(true);
+      const data = await GRIApiService.getCategories();
+      setCategories(data.categories || []);
+      
+      // 첫 번째 카테고리 자동 선택
+      if (data.categories && data.categories.length > 0) {
+        setSelectedCategory(data.categories[0]);
+      }
+      
+    } catch (error) {
+      console.error('카테고리 로드 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : '카테고리 로드 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // GRI 완전 데이터 로드
+  const loadGRICompleteData = async (categoryId: number) => {
+    try {
+      setIsLoadingData(true);
+      const data = await GRIApiService.getCompleteData(categoryId);
+      setGriData(data);
+      
+    } catch (error) {
+      console.error('GRI 데이터 로드 오류:', error);
+      const errorMessage = error instanceof Error ? error.message : 'GRI 데이터 로드 중 오류가 발생했습니다.';
+      setMessage(errorMessage);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // 카테고리 선택 핸들러
+  const handleCategorySelect = (category: GRICategory) => {
+    setSelectedCategory(category);
+    setSelectedItem(null);
+    setAnswers({});
+  };
+
+  // 아이템 선택 핸들러
+  const handleItemSelect = (item: GRIItem) => {
+    setSelectedItem(item);
+    setAnswers({});
+  };
   const answeredQuestions = selectedItem?.questions?.filter(
     (q: GRIQuestion) => answers[q.id.toString()]?.trim() !== ''
   ).length ?? 0;
@@ -89,7 +162,22 @@ export default function GRIIntakePage() {
     setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
   };
 
-  // ... (기존 코드 유지)
+  // 로딩 상태 표시
+  if (isLoadingData) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50">
+          <Navigation user={user} />
+          <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">GRI 데이터를 불러오는 중...</p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   // 답변 입력 폼 부분 수정
   return (
@@ -101,30 +189,83 @@ export default function GRIIntakePage() {
             {/* ... (기존 헤더 부분 유지) ... */}
 
             <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-              {/* 카테고리 목록 패널 */}
-              <div className="col-span-3 bg-white rounded-lg shadow-md p-4 overflow-auto">
-                <h2 className="text-lg font-semibold mb-4">GRI 카테고리</h2>
-                {categories.length > 0 ? (
-                  <ul className="space-y-2">
-                    {categories.map((category) => (
-                      <li
-                        key={category.id}
-                        className="p-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => {
-                          // TODO: 카테고리 선택 로직 구현
-                          console.log('Selected category:', category);
-                        }}
+              {/* 카테고리 선택 패널 */}
+              <div className={`col-span-3 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
+                <div className="bg-white rounded-lg shadow-md h-full">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
+                      <button
+                        onClick={() => setShowCategoryList(false)}
+                        className="text-gray-400 hover:text-gray-600"
                       >
-                        <div className="font-medium">{category.title}</div>
-                        <div className="text-sm text-gray-500">{category.code}</div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-gray-500 text-center py-4">
-                    {isLoading ? '카테고리를 불러오는 중...' : '카테고리가 없습니다.'}
+                        ✕
+                      </button>
+                    </div>
                   </div>
-                )}
+                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                    {categories.map((category) => (
+                      <div
+                        key={category.id}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          selectedCategory?.id === category.id
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => handleCategorySelect(category)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">{category.code}</div>
+                            <div className="text-sm text-gray-600">{category.title}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 공시 항목 패널 */}
+              <div className={`col-span-3 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
+                <div className="bg-white rounded-lg shadow-md h-full">
+                  <div className="p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {selectedCategory ? `${selectedCategory.code} 공시 항목` : 'GRI 공시 항목'}
+                      </h2>
+                      <button
+                        onClick={() => setShowDisclosureList(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                    {griData?.items.map((item: GRIItem) => (
+                      <div
+                        key={item.id}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                          selectedItem?.id === item.id
+                            ? 'bg-green-50 border border-green-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => handleItemSelect(item)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">{item.index_no}</div>
+                            <div className="text-sm text-gray-600">{item.title}</div>
+                          </div>
+                          <span className="px-2 py-1 text-xs border border-gray-300 text-gray-600 rounded">
+                            {item.questions?.length || 0}개 질문
+                          </span>
+                        </div>
+                      </div>
+                    )) || []}
+                  </div>
+                </div>
               </div>
 
               {/* 메인 콘텐츠 영역 */}
@@ -232,7 +373,42 @@ export default function GRIIntakePage() {
               </div>
             </div>
 
-            {/* ... (기존 패널 토글 버튼들 유지) ... */}
+            {/* 패널 토글 버튼들 */}
+            <div className="fixed bottom-4 left-4 space-y-2">
+              {!showCategoryList && (
+                <button
+                  onClick={() => setShowCategoryList(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>카테고리 목록 열기</span>
+                  </span>
+                </button>
+              )}
+              {!showDisclosureList && (
+                <button
+                  onClick={() => setShowDisclosureList(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>공시 목록 열기</span>
+                  </span>
+                </button>
+              )}
+              {!showRequirements && (
+                <button
+                  onClick={() => setShowRequirements(true)}
+                  className="px-4 py-2 bg-white shadow-lg rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>→</span>
+                    <span>요구사항 목록 열기</span>
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
