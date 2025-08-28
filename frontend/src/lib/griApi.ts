@@ -1,4 +1,4 @@
-import api from './api';  // axios.ts 대신 api.ts 사용
+import api from './api';
 
 // GRI 데이터 타입 정의
 export interface GRICategory {
@@ -31,6 +31,7 @@ export interface GRICompleteData {
   item_count: number;
 }
 
+// 답변 관련 인터페이스
 export interface AnswerCreate {
   question_id: number;
   session_key: string;
@@ -67,6 +68,18 @@ export interface PolishRequest {
     text: string;
   }>;
   prompt_profile?: string;
+}
+
+export interface PolishResponse {
+  status: string;
+  data: {
+    polished_text: string;
+    model?: string;
+    prompt_hash?: string;
+    input_tokens?: number;
+    output_tokens?: number;
+    created_at?: string;
+  };
 }
 
 export interface APIError {
@@ -188,20 +201,18 @@ export class GRIApiService {
   }
 
   // 답변 윤문
-  static async polish(request: PolishRequest): Promise<{ polished_text: string }> {
+  static async polish(request: PolishRequest): Promise<PolishResponse> {
     try {
       const response = await api.post('/v1/gri/polish', request);
       
       // 응답 데이터 검증 및 변환
       const data = response.data;
-      if (!data || typeof data.polished_text !== 'string') {
+      if (!data || !data.status || !data.data || typeof data.data.polished_text !== 'string') {
         console.debug('[polish] unexpected shape:', data);
         throw new Error('Unexpected polish response shape');
       }
 
-      return {
-        polished_text: data.polished_text
-      };
+      return data;
     } catch (error) {
       console.error('윤문 요청 오류:', error);
       const apiError: APIError = {
@@ -217,12 +228,17 @@ export class GRIApiService {
    * @param sessionKey - 세션 키
    * @param griIndex - GRI 인덱스 (예: "2-1", "3-2")
    */
-  static async getPolishResult(sessionKey: string, griIndex: string): Promise<{ polished_text: string }> {
+  static async getPolishResult(sessionKey: string, griIndex: string): Promise<PolishResponse> {
     try {
       const response = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
-      return {
-        polished_text: response.data.polished_text
-      };
+      const data = response.data;
+      
+      if (!data || !data.status || !data.data || typeof data.data.polished_text !== 'string') {
+        console.debug('[getPolishResult] unexpected shape:', data);
+        throw new Error('Unexpected polish result shape');
+      }
+
+      return data;
     } catch (error) {
       console.error('윤문 결과 조회 오류:', error);
       const apiError: APIError = {

@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { GRIApiService, type PolishRequest } from '@/lib/griApi';
+import { GRIApiService, type PolishRequest, type PolishResponse } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 type PolishState = {
   status: Status;
-  result?: { polished_text: string };
+  result?: PolishResponse;
   error?: string;
   fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
   polish: (args: PolishRequest) => Promise<void>;
