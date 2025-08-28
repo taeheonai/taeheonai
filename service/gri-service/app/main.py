@@ -39,7 +39,7 @@ async def startup_event():
         
         # 필수 환경변수 확인
         s = get_settings()
-        required = ["llm_service_url", "openai_api_key"]
+        required = ["llm_service_url"]  # openai_api_key는 선택사항으로 변경
         missing = [k for k in required if not getattr(s, k, None)]
         if missing:
             raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")

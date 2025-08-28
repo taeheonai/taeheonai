@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     
     # LLM 서비스 설정
     llm_service_url: HttpUrl = Field(..., alias="LLM_SERVICE_URL")
-    openai_api_key: str = Field(..., alias="OPENAI_API_KEY")
+    openai_api_key: str | None = Field(None, alias="OPENAI_API_KEY")
     llm_service_timeout: float = Field(30.0, alias="LLM_SERVICE_TIMEOUT")
     
     # CORS 설정
