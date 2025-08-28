@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getPolishResult, listPolishResults, type PolishResult } from '@/lib/api/gri';
+import { getPolishResult, listPolishResults, type PolishResult } from '@/lib/gri';
 
 interface PolishStore {
   polishResult: PolishResult | null;
