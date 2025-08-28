@@ -139,7 +139,9 @@ export default function GRIIntakePage() {
             key_alpha: q.key_alpha,
             text: answers[q.id.toString()].trim()
           })),
-        prompt_profile: "kor_gri_v1"
+        style: "중립",
+        audience: "실무자",
+        extra_instructions: "kor_gri_v1"  // prompt_profile을 extra_instructions로 변경
       });
 
       setMessage('윤문이 완료되었습니다.');
@@ -166,23 +168,23 @@ export default function GRIIntakePage() {
   // 로딩 상태 표시
   if (isLoadingData) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation user={user} />
-          <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">GRI 데이터를 불러오는 중...</p>
-            </div>
+          <ProtectedRoute children={
+      <div className="min-h-screen bg-gray-50">
+        <Navigation user={user} />
+        <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">GRI 데이터를 불러오는 중...</p>
           </div>
         </div>
-      </ProtectedRoute>
+      </div>
+    } />
     );
   }
 
   // 답변 입력 폼 부분 수정
   return (
-    <ProtectedRoute>
+    <ProtectedRoute children={
       <div className="min-h-screen bg-gray-50">
         <Navigation user={user} />
         <div className="p-4">
