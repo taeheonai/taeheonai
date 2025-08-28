@@ -46,7 +46,7 @@ class PolishResult:
     polished_text: str
     sources: List[Dict[str, Any]]     # [{"requirement":"a","hash":"..."}]
     model: str
-    created_at_utc: str
+    created_at: str
 
 # ===== 유틸 =====
 def _sha256(s: str) -> str:
@@ -172,7 +172,7 @@ class GriPolisher:
                 polished_text=str(ai_msg.content).strip(),
                 sources=sources,
                 model=self.model_name,
-                created_at_utc=datetime.utcnow().isoformat()
+                created_at=datetime.utcnow().isoformat()
             )
 
         except Exception as e:
@@ -224,7 +224,7 @@ class GriPolisher:
                 polished_text=str(ai_msg.content).strip(),
                 sources=sources,
                 model=self.model_name,
-                created_at_utc=datetime.utcnow().isoformat()
+                created_at=datetime.utcnow().isoformat()
             )
 
         except Exception as e:

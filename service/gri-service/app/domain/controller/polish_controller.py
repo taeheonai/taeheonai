@@ -17,7 +17,7 @@ async def call_llm(payload: dict) -> dict:
     s = get_settings()
     headers = {
         "Content-Type": "application/json",
-        "X-Api-Key": s.service_api_key
+        "x-api-key": s.service_api_key.strip()
     }
     try:
         async with httpx.AsyncClient(base_url=str(s.llm_service_url), timeout=s.llm_service_timeout) as client:
@@ -25,10 +25,10 @@ async def call_llm(payload: dict) -> dict:
             response.raise_for_status()
             return response.json()
     except httpx.HTTPStatusError as e:
-        logger.error(f"LLM 서비스 오류: {e.response.status_code} - {e.response.polished_text}")
+        logger.error(f"LLM 서비스 오류: {e.response.status_code} - {e.response.text}")
         raise HTTPException(
             status_code=e.response.status_code,
-            detail=f"LLM 서비스 오류: {e.response.polished_text}"
+            detail=f"LLM 서비스 오류: {e.response.text}"
         )
     except httpx.RequestError as e:
         logger.error(f"LLM 서비스 연결 오류: {str(e)}")
@@ -79,18 +79,31 @@ class PolishController:
             # LLM 서비스 응답을 로깅하여 구조 확인
             logger.info(f"LLM 서비스 응답: {llm_result}")
             
-            # LLM 서비스 응답을 PolishResult로 변환
-            result = PolishResult(
-                polished_text=llm_result["data"]["polished_text"],
-                sources=llm_result["data"]["sources"],
-                model=llm_result["data"]["model"],
-                created_at_utc=llm_result["data"]["created_at"],
+            # LLM 서비스 응답을 PolishCreate로 변환
+            create_data = PolishCreate(
                 session_key=request.session_key,
-                gri_index=request.gri_index
+                gri_index=request.gri_index,
+                polished_text={
+                    "text": llm_result["data"]["polished_text"],
+                    "sources": llm_result["data"]["sources"],
+                    "model": llm_result["data"]["model"],
+                    "created_at": llm_result["data"]["created_at"]
+                },
+                model=llm_result["data"]["model"]
             )
 
             # 결과 저장
-            await self.service.create_polish(result)
+            saved = await self.service.create_polish(create_data)
+
+            # PolishResult로 변환하여 반환
+            result = PolishResult(
+                polished_text=saved.polished_text["text"],
+                sources=saved.polished_text["sources"],
+                model=saved.model,
+                created_at=saved.polished_text["created_at"],
+                session_key=saved.session_key,
+                gri_index=saved.gri_index
+            )
             return result
 
         except Exception as e:

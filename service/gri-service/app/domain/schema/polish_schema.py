@@ -48,7 +48,7 @@ class PolishResult(BaseModel):
     polished_text: Dict[str, Any]  # JSONB 데이터
     sources: List[Dict[str, Any]]  # [{"requirement": "a", "hash": "..."}]
     model: str
-    created_at_utc: str  # ISO 형식의 UTC 시간
+    created_at: str  # ISO 형식의 UTC 시간
     # GRI 서비스 추가 필드
     session_key: str
     gri_index: str

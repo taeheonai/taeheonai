@@ -26,7 +26,7 @@ def require_openai_key() -> str:
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # 서비스 간 인증을 위한 API 키
-SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "default-service-key")
+SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "default-service-key").strip()
 
 # 요청/응답 스키마
 class RequirementItemIn(BaseModel):
@@ -38,6 +38,7 @@ class PolishRequest(BaseModel):
     session_key: str
     gri_index: str
     answers: List[RequirementItemIn]
+    style: Optional[str] = "중립"  # 스타일 필드 추가
     extra_instructions: Optional[str] = None
 
 class PolishResponse(BaseModel):
@@ -55,7 +56,7 @@ async def health_check():
     }
 
 @app.post("/v1/polish")
-async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="X-Api-Key")):
+async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-key")):
     """GRI 답변 윤문 엔드포인트"""
     if x_api_key != SERVICE_API_KEY:
         raise HTTPException(status_code=401, detail="Invalid service API key")
