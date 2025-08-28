@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 import httpx
 import logging
+from fastapi import HTTPException
 from app.domain.service.polish_service import PolishService
 from app.domain.schema.polish_schema import (
     PolishRequest,
@@ -13,8 +14,31 @@ from app.domain.schema.polish_schema import (
 from app.common.config import get_settings
 
 logger = logging.getLogger(__name__)
-settings = get_settings()
 
+async def call_llm(payload: dict) -> dict:
+    """LLM 서비스 호출 함수"""
+    s = get_settings()
+    headers = {
+        "Authorization": f"Bearer {s.openai_api_key}",
+        "Content-Type": "application/json",
+    }
+    try:
+        async with httpx.AsyncClient(base_url=str(s.llm_service_url), timeout=s.llm_service_timeout) as client:
+            response = await client.post("/v1/polish", json=payload, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"LLM 서비스 오류: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"LLM 서비스 오류: {e.response.text}"
+        )
+    except httpx.RequestError as e:
+        logger.error(f"LLM 서비스 연결 오류: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail="LLM 서비스에 연결할 수 없습니다"
+        )
 
 class PolishController:
     def __init__(self):
@@ -49,54 +73,32 @@ class PolishController:
 
             # LLM 서비스 호출하여 윤문 처리
             logger.info(f"LLM 서비스 호출: session_key={request.session_key}, gri_index={request.gri_index}")
-            try:
-                # LLM 서비스 URL 확인
-                llm_url = settings.llm_service_url.strip()
-                if not llm_url.startswith(("http://", "https://")):
-                    logger.error(f"Invalid LLM_SERVICE_URL: {repr(llm_url)}")
-                    raise Exception("LLM 서비스 URL이 올바르지 않습니다")
-
-                # API 키 확인
-                llm_api_key = settings.llm_api_key
-                if not llm_api_key:
-                    logger.error("LLM_API_KEY not set")
-                    raise Exception("LLM 서비스 API 키가 설정되지 않았습니다")
-
-                # API 호출 헤더 설정
-                headers = {
-                    "x-api-key": llm_api_key,
-                    "Content-Type": "application/json"
+            
+            # 요청 데이터 준비
+            answers_data = [
+                {
+                    "question_id": answer.question_id,
+                    "key_alpha": answer.key_alpha,
+                    "text": answer.text
                 }
-
-                async with httpx.AsyncClient(timeout=30.0) as client:
-                    # Pydantic 모델을 dict로 변환하여 전송
-                    answers_data = [
-                        {
-                            "question_id": answer.question_id,
-                            "key_alpha": answer.key_alpha,
-                            "text": answer.text
-                        }
-                        for answer in request.answers
-                    ]
-                    
-                    response = await client.post(
-                        f"{llm_url}/v1/polish",
-                        json={
-                            "session_key": request.session_key,
-                            "gri_index": request.gri_index,
-                            "item_title": request.item_title,
-                            "answers": answers_data,
-                            "style": request.style,
-                            "audience": request.audience,
-                            "extra_instructions": request.extra_instructions
-                        },
-                        headers=headers
-                    )
-                    response.raise_for_status()
-                    llm_result = response.json()
-                    
-                    # 결과 매핑
-                    polish_data.polished_text = PolishedText(
+                for answer in request.answers
+            ]
+            
+            payload = {
+                "session_key": request.session_key,
+                "gri_index": request.gri_index,
+                "item_title": request.item_title,
+                "answers": answers_data,
+                "style": request.style,
+                "audience": request.audience,
+                "extra_instructions": request.extra_instructions
+            }
+            
+            # LLM 서비스 호출
+            llm_result = await call_llm(payload)
+            
+            # 결과 매핑
+            polish_data.polished_text = PolishedText(
                         text=llm_result["data"]["polished_text"],
                         model=llm_result["data"]["model"],
                         prompt_hash=llm_result["data"].get("prompt_hash"),

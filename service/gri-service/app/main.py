@@ -32,9 +32,17 @@ app = FastAPI(
 # 애플리케이션 시작 시 데이터베이스 초기화
 @app.on_event("startup")
 async def startup_event():
-    """애플리케이션 시작 시 데이터베이스를 초기화합니다."""
+    """애플리케이션 시작 시 초기화 작업을 수행합니다."""
     try:
-        logger.info("🚀 GRI Service 시작 - 데이터베이스 초기화 중...")
+        logger.info("🚀 GRI Service 시작 - 초기화 중...")
+        
+        # 필수 환경변수 확인
+        s = get_settings()
+        required = ["llm_service_url", "openai_api_key"]
+        missing = [k for k in required if not getattr(s, k, None)]
+        if missing:
+            raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
+        logger.info("✅ 환경변수 검증 완료!")
         
         # 데이터베이스 연결 확인
         if await check_database_connection():
@@ -44,6 +52,7 @@ async def startup_event():
             
     except Exception as e:
         logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
+        raise  # 치명적인 오류는 서버 시작을 중단시킴
 
 # APIRouter 정의
 from app.router.answer_router import answer_router
