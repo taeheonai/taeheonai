@@ -106,9 +106,9 @@ try:
     from app.router.issuepool_router import router as issuepool_router
     app.include_router(issuepool_router)
     logger.info("IssuePool router loaded successfully")
-except ImportError as e:
-    logger.warning(f"Could not load IssuePool router: {e}")
-    logger.info("IssuePool functionality will not be available")
+except Exception as e:
+    logger.exception("Fatal: failed to load IssuePool router")
+    raise
 
 if __name__ == "__main__":
     import uvicorn
