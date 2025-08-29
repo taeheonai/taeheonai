@@ -12,7 +12,6 @@ from app.domain.schema.issuepool_schema import (
     IssuePoolBulkCreateRequest
 )
 from app.common.database import get_db
-from app.domain.service.issuepool_service import IssuePoolService
 from app.domain.controller.issuepool_controller import IssuePoolController
 import logging
 
@@ -44,12 +43,12 @@ async def get_issuepool(
 async def get_issuepools_by_corporation_and_year(
     corporation_id: int,
     publish_year: str,
-    issuepool_service: IssuePoolService = Depends(IssuePoolService)
+    db: AsyncSession = Depends(get_db)
 ) -> List[IssuePoolDTO]:
     """기업 ID와 발행 연도로 IssuePool 목록 조회"""
     try:
-        issuepools = await issuepool_service.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
-        return [IssuePoolDTO.from_orm(issuepool) for issuepool in issuepools]
+        controller = IssuePoolController(db)
+        return await controller.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
     except Exception as e:
         logger.error(f"기업별 연도별 IssuePool 조회 실패: {e}")
         raise HTTPException(status_code=500, detail="기업별 연도별 IssuePool 조회에 실패했습니다.")
@@ -122,11 +121,12 @@ async def get_issuepools_by_esg_classification(
 async def get_ranking_statistics(
     corporation_id: int,
     publish_year: str,
-    issuepool_service: IssuePoolService = Depends(IssuePoolService)
+    db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """특정 기업의 특정 연도 랭킹 통계 조회"""
     try:
-        return await issuepool_service.get_ranking_statistics(corporation_id, publish_year)
+        controller = IssuePoolController(db)
+        return await controller.get_ranking_statistics(corporation_id, publish_year)
     except Exception as e:
         logger.error(f"랭킹 통계 조회 실패: {e}")
         raise HTTPException(status_code=500, detail="랭킹 통계 조회에 실패했습니다.")
