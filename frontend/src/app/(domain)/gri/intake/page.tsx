@@ -38,6 +38,45 @@ export default function GRIIntakePage() {
   const [showCategoryList, setShowCategoryList] = useState(true);
   const [showDisclosureList, setShowDisclosureList] = useState(true);
 
+  // 🔧 표/윤문 선택 토글 상태
+  type DisplayMode = 'table' | 'prose';
+  const [displayMode, setDisplayMode] = useState<Record<string, DisplayMode>>({});
+
+  // 🔧 답변 문자열 -> Markdown 표 변환
+  function toMarkdownTable(answer: string) {
+    // 쉼표/세미콜론/줄바꿈으로 분해: "남성:70%, 여성:30%" → 행
+    const pairs = answer
+      .split(/[,;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const rows = pairs.map((p) => {
+      const [k, ...rest] = p.split(':');
+      return `| ${k?.trim() || ''} | ${rest.join(':').trim()} |`;
+    });
+
+    if (!rows.length) return '';
+    return ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');
+  }
+
+  // 🔧 현재 선택된 item의 a/b/c에서 'table'인 항목만 표로 묶어 하나의 Markdown으로 생성
+  function buildTablesMarkdown() {
+    if (!selectedItem) return '';
+    let md = '';
+    for (const q of selectedItem.questions) {
+      const qid = q.id.toString();
+      if (displayMode[qid] !== 'table') continue;
+      const text = answers[qid]?.trim();
+      if (!text) continue;
+
+      const table = toMarkdownTable(text);
+      if (!table) continue;
+
+      md += `\n\n#### ${selectedItem.index_no}-${q.key_alpha}) ${q.question_text || ''}\n${table}\n`;
+    }
+    return md.trim();
+  }
+
   // 초기 로드
   useEffect(() => { void loadCategories(); }, []);
 
@@ -260,6 +299,35 @@ export default function GRIIntakePage() {
                           <div className="flex items-start space-x-2">
                             <span className="text-sm font-medium text-gray-700 mt-1">{q.key_alpha}.</span>
                             <div className="flex-1">
+                              {/* 🔧 표/윤문 선택 토글 */}
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs text-gray-500">표/윤문</span>
+                                <div className="inline-flex rounded-md overflow-hidden border">
+                                  <button
+                                    type="button"
+                                    onClick={() => setDisplayMode((m) => ({ ...m, [q.id.toString()]: 'table' }))}
+                                    className={
+                                      (displayMode[q.id.toString()] ?? 'prose') === 'table'
+                                        ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                                        : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                                    }
+                                  >
+                                    표
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDisplayMode((m) => ({ ...m, [q.id.toString()]: 'prose' }))}
+                                    className={
+                                      (displayMode[q.id.toString()] ?? 'prose') === 'prose'
+                                        ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                                        : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                                    }
+                                  >
+                                    윤문
+                                  </button>
+                                </div>
+                              </div>
+
                               <label className="block text-sm font-medium text-gray-700 mb-2">
                                 <div className="whitespace-pre-wrap">{q.question_text}</div>
                                 {q.required && <span className="text-red-500 ml-1">*</span>}
