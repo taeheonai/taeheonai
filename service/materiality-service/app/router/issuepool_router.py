@@ -2,7 +2,7 @@
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.controller.issuepool_controller import IssuePoolController
+from app.domain.entity.issuepool_entity import IssuePool
 from app.domain.schema.issuepool_schema import (
     IssuePoolDTO,
     IssuePoolCreateRequest,
@@ -13,9 +13,11 @@ from app.domain.schema.issuepool_schema import (
 )
 from app.common.database import get_db
 from app.domain.service.issuepool_service import IssuePoolService
-from app.common.logger import logger
+from app.domain.controller.issuepool_controller import IssuePoolController
+import logging
 
 router = APIRouter(prefix="/v1/materiality", tags=["materiality"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=IssuePoolDTO, status_code=status.HTTP_201_CREATED)
