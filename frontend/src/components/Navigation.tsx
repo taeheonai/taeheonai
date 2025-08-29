@@ -51,6 +51,7 @@ export default function Navigation({ user }: NavigationProps) {
               </Link>
               <Link 
                 href="/gri"
+                prefetch={false}
                 className={`inline-flex items-center px-4 py-2 border-b-2 text-sm font-medium ${
                   isActive('/gri') || isActive('/gri/intake') 
                     ? 'border-blue-500 text-blue-600' 
