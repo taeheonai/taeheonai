@@ -13,7 +13,8 @@ class MGService:
 
     async def resolve_indexes(self, issuepool_ids: List[int]) -> List[MGIndexDTO]:
         rows = await self.repo.get_indexes_for_issuepools(issuepool_ids)
-        return [MGIndexDTO.model_validate(r) for r in rows]
+        # mappings() 결과는 dict이므로 그대로 언팩
+        return [MGIndexDTO(**row) for row in rows]
 
     async def request_polish(self, session_key: str, thread_id: str, items: List[MGIndexDTO]):
         payload = {
