@@ -8,6 +8,8 @@ interface PolishResultProps {
   sessionKey: string;
   griIndex: string;
   showSaveHint?: boolean;
+  /** 🔧 추가: 표로 만든 마크다운을 앞에 붙여 렌더 */
+  prependMarkdown?: string;
 }
 
 // 🔧 공통 상태 메시지 컴포넌트 - React.memo로 최적화
@@ -68,7 +70,12 @@ const StatusMessage = React.memo<{
   );
 });
 
-export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex, showSaveHint = false }) => {
+export const PolishResult: React.FC<PolishResultProps> = ({ 
+  sessionKey, 
+  griIndex, 
+  showSaveHint = false,
+  prependMarkdown = ''
+}) => {
   // ✅ 셀렉터 안정화: useShallow로 객체 참조 안정화
   const { status, result, error, savedAt } = usePolishStore(
     useShallow(s => ({
@@ -99,6 +106,42 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
 
   // ✅ 자동 호출 완전 비활성화 - 버튼 클릭으로만 실행
   // useEffect(() => {}, [sessionKey, griIndex]); // 아무것도 안 함
+
+  // 🔧 마크다운 표 렌더링을 위한 커스텀 스타일
+  const markdownComponents = {
+    table: ({ children, ...props }: any) => (
+      <div className="overflow-x-auto my-4">
+        <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden" {...props}>
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children, ...props }: any) => (
+      <thead className="bg-gray-50" {...props}>
+        {children}
+      </thead>
+    ),
+    tbody: ({ children, ...props }: any) => (
+      <tbody className="bg-white" {...props}>
+        {children}
+      </tbody>
+    ),
+    tr: ({ children, ...props }: any) => (
+      <tr className="border-b border-gray-200" {...props}>
+        {children}
+      </tr>
+    ),
+    th: ({ children, ...props }: any) => (
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700" {...props}>
+        {children}
+      </th>
+    ),
+    td: ({ children, ...props }: any) => (
+      <td className="px-4 py-3 text-sm text-gray-900" {...props}>
+        {children}
+      </td>
+    ),
+  };
 
   if (status === 'loading') {
     return (

@@ -347,7 +347,18 @@ export default function GRIIntakePage() {
                       <h3 className="text-lg font-semibold text-gray-900">윤문 결과</h3>
                     </div>
                     <div className="p-6">
-                      <PolishResult sessionKey={sessionKey} griIndex={selectedItem.index_no} showSaveHint={false} />
+                      {/* 🔧 표 마크다운을 윤문 결과 위에 먼저 렌더링 */}
+                      {(() => {
+                        const tablesMd = buildTablesMarkdown();
+                        return (
+                          <PolishResult 
+                            sessionKey={sessionKey} 
+                            griIndex={selectedItem.index_no}
+                            showSaveHint={false}
+                            prependMarkdown={tablesMd}
+                          />
+                        );
+                      })()}
 
                       {status === 'success' && result?.polished_text && (
                         <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-3">
