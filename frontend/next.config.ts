@@ -33,16 +33,22 @@ const nextConfig: NextConfig = {
   // API 프록시 설정 - Railway 서비스들로 연결
   async rewrites() {
     return [
-      // gri-service API 프록시
+      // gri-service API 프록시 (Gateway)
       { 
         source: '/api/gri/:path*', 
-        destination: 'https://gri-service-production.up.railway.app/:path*' 
+        destination: 'https://taeheonai-production-2130.up.railway.app/gri/:path*' 
       },
-      // auth-service API 프록시
+      // auth-service API 프록시 (Gateway)
       { 
         source: '/api/auth/:path*', 
-        destination: 'https://auth-service-production.up.railway.app/:path*' 
+        destination: 'https://taeheonai-production-2130.up.railway.app/auth/:path*' 
       },
+      // materiality-service API 프록시 (Gateway)
+      { 
+        source: '/api/v1/materiality/:path*', 
+        destination: 'https://taeheonai-production-2130.up.railway.app/v1/materiality/:path*' 
+      },
+
       // (domain) 그룹 폴더를 위한 rewrites
       {
         source: '/login',

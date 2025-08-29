@@ -15,7 +15,7 @@ from app.common.database import get_db
 from app.domain.controller.issuepool_controller import IssuePoolController
 import logging
 
-router = APIRouter(prefix="/v1/materiality", tags=["materiality"])
+router = APIRouter(tags=["materiality"])
 logger = logging.getLogger(__name__)
 
 

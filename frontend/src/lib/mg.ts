@@ -23,12 +23,12 @@ export type MGIndexDTO = {
 
 export async function fetchMGIndexes(issuepoolIds: number[]): Promise<MGIndexDTO[]> {
   const clean = issuepoolIds.map(Number).filter(Number.isFinite);   // 숫자 보장
-  const { data } = await api.post('/v1/mg/indexes', { issuepool_ids: clean });
+  const { data } = await api.post('/v1/materiality/mg/indexes', { issuepool_ids: clean });
   return data.items;
 }
 
 export async function requestMGPolish(sessionKey: string, threadId: string, items: GRIIndex[]) {
-  const { data } = await api.post('/v1/mg/polish', items, {
+  const { data } = await api.post('/v1/materiality/mg/polish', items, {
     headers: { 'X-Session-Key': sessionKey, 'X-Thread-Id': threadId },
   });
   return data; // job_id 또는 결과
