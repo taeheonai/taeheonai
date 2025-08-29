@@ -9,6 +9,7 @@ class IssuePoolDTO(BaseModel):
     corporation_id: int
     publish_year: int
     ranking: int
+    base_issue_pool: Optional[str] = None  # 원본 제목 (옵션)
     issue_pool: str
     category_id: int
     esg_classification_id: ESG
