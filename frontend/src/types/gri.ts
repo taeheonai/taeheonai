@@ -77,6 +77,13 @@ export interface PolishResponse {
   };
 }
 
+// 🔧 새로운 응답 구조: exists 플래그 기반
+export interface PolishEnvelope {
+  exists: boolean;
+  data: PolishResponse | null;
+  message?: string;
+}
+
 export interface APIError {
   message: string;
   status?: number;

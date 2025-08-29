@@ -57,21 +57,23 @@ export const usePolishStore = create<PolishState>((set, get) => ({
 
     set({ status: 'loading', error: undefined });
     try {
-      const data = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
-      if (!data) {
-        // 🔧 데이터가 없는 경우를 명확한 상태로 관리
+      const response = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
+      
+      // 🔧 새로운 응답 구조 처리: exists 플래그 기반
+      if (response.exists && response.data) {
+        set({ status: 'success', result: response.data, error: undefined });
+      } else {
+        // 🔧 데이터가 없는 경우를 정상 상태로 처리
         set({ 
           status: 'not_found', 
-          error: '저장된 윤문 결과가 없습니다.',
+          error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.',
           result: undefined 
         });
-        return;
       }
-      set({ status: 'success', result: data, error: undefined });
     } catch (e: unknown) {
       console.error('윤문 결과 조회 실패:', e);
       
-      // 🔧 404 에러는 정상적인 상황으로 처리 (타입 안전하게)
+      // 🔧 기존 404 에러 처리 로직 유지 (하위 호환성)
       if (e && typeof e === 'object' && 'response' in e) {
         const errorResponse = e as ErrorResponse;
         if (errorResponse.response?.status === 404) {

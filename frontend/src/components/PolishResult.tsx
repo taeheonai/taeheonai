@@ -9,6 +9,64 @@ interface PolishResultProps {
   showSaveHint?: boolean;
 }
 
+// 🔧 공통 상태 메시지 컴포넌트
+const StatusMessage: React.FC<{
+  type: 'info' | 'warning' | 'error' | 'success';
+  title: string;
+  message: string;
+  buttonText?: string;
+  onButtonClick?: () => void;
+  icon?: React.ReactNode;
+}> = ({ type, title, message, buttonText, onButtonClick, icon }) => {
+  const getColorClasses = () => {
+    switch (type) {
+      case 'info':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'warning':
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'error':
+        return 'bg-red-50 text-red-700 border-red-200';
+      case 'success':
+        return 'bg-green-50 text-green-700 border-green-200';
+      default:
+        return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
+
+  const getButtonColor = () => {
+    switch (type) {
+      case 'info':
+        return 'bg-blue-600 hover:bg-blue-700';
+      case 'warning':
+        return 'bg-yellow-600 hover:bg-yellow-700';
+      case 'error':
+        return 'bg-red-600 hover:bg-red-700';
+      case 'success':
+        return 'bg-green-600 hover:bg-green-700';
+      default:
+        return 'bg-gray-600 hover:bg-gray-700';
+    }
+  };
+
+  return (
+    <div className={`p-4 border rounded-md ${getColorClasses()}`}>
+      <div className="flex items-center space-x-2">
+        {icon}
+        <span className="font-medium">{title}</span>
+      </div>
+      <p className="mt-2">{message}</p>
+      {buttonText && onButtonClick && (
+        <button
+          onClick={onButtonClick}
+          className={`mt-3 px-4 py-2 text-white text-sm rounded-md transition-colors ${getButtonColor()}`}
+        >
+          {buttonText}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex, showSaveHint = false }) => {
   const { status, result, error, savedAt, fetchPolishResult } = usePolishStore((s) => ({
     status: s.status,
@@ -63,21 +121,18 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
   // 🔧 컴포넌트 레벨 에러 처리
   if (componentError) {
     return (
-      <div className="p-4 bg-red-50 text-red-700 rounded-md">
-        <div className="flex items-center space-x-2">
+      <StatusMessage
+        type="error"
+        title="오류가 발생했습니다"
+        message={componentError}
+        buttonText="다시 시도"
+        onButtonClick={() => setComponentError(null)}
+        icon={
           <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
-          <span className="font-medium">오류가 발생했습니다</span>
-        </div>
-        <p className="mt-2">{componentError}</p>
-        <button
-          onClick={() => setComponentError(null)}
-          className="mt-3 px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
-        >
-          다시 시도
-        </button>
-      </div>
+        }
+      />
     );
   }
 
@@ -92,51 +147,69 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
 
   if (status === 'error') {
     return (
-      <div className="p-4 bg-red-50 text-red-700 rounded-md">
-        <p>오류: {error}</p>
-        {/* 🔧 404 에러일 때 사용자 친화적 메시지 */}
-        {error?.includes('404') && (
-          <p className="text-sm mt-2">아직 윤문 결과가 없습니다. 윤문을 실행해주세요.</p>
-        )}
-      </div>
+      <StatusMessage
+        type="error"
+        title="오류가 발생했습니다"
+        message={`오류: ${error}`}
+        icon={
+          <svg className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        }
+      />
     );
   }
 
   // 🔧 not_found 상태를 별도로 처리
   if (status === 'not_found') {
     return (
-      <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-        <div className="flex items-center space-x-2">
+      <StatusMessage
+        type="info"
+        title="윤문 결과가 없습니다"
+        message={`${error}\n윤문을 실행하면 결과가 여기에 표시됩니다.`}
+        buttonText="윤문 결과 확인하기"
+        onButtonClick={stableFetchPolishResult}
+        icon={
           <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="font-medium">윤문 결과가 없습니다</span>
-        </div>
-        <p className="mt-2">{error}</p>
-        <p className="text-sm mt-2 text-blue-600">
-          윤문을 실행하면 결과가 여기에 표시됩니다.
-        </p>
-        <button
-          onClick={() => stableFetchPolishResult()}
-          className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-        >
-          윤문 결과 확인하기
-        </button>
-      </div>
+        }
+      />
+    );
+  }
+
+  // 🔧 idle 상태일 때 초기 안내 메시지
+  if (status === 'idle') {
+    return (
+      <StatusMessage
+        type="info"
+        title="윤문 결과 확인"
+        message="윤문을 실행했거나 저장된 결과가 있는지 확인해보세요."
+        buttonText="윤문 결과 확인하기"
+        onButtonClick={stableFetchPolishResult}
+        icon={
+          <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
     );
   }
 
   if (status !== 'success' || !result?.polished_text) {
     return (
-      <div className="p-4 bg-gray-50 text-gray-600 rounded-md">
-        <p>윤문 결과가 없습니다. 윤문을 실행해주세요.</p>
-        <button
-          onClick={() => stableFetchPolishResult()}
-          className="mt-3 px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
-        >
-          윤문 결과 확인하기
-        </button>
-      </div>
+      <StatusMessage
+        type="info"
+        title="윤문 결과가 없습니다"
+        message="윤문을 실행해주세요."
+        buttonText="윤문 결과 확인하기"
+        onButtonClick={stableFetchPolishResult}
+        icon={
+          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+      />
     );
   }
 
