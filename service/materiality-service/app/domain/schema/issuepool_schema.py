@@ -8,8 +8,8 @@ ESG = Literal[1, 2, 3, 4]  # 1:E, 2:S, 3:G, 4:?(확정 필요)
 class IssuePoolDTO(BaseModel):
     id: int
     corporation_id: Optional[int] = None  # 🔧 NULL 허용
-    publish_year: Optional[int] = None    # 🔧 NULL 허용
-    ranking: Optional[int] = None         # 🔧 NULL 허용 (문자열도 자동 변환)
+    publish_year: Optional[str] = None    # 🔧 NULL 허용
+    ranking: Optional[str] = None         # 🔧 NULL 허용
     base_issue_pool: Optional[str] = None  # 원본 제목 (옵션)
     issue_pool: str
     category_id: int
@@ -39,7 +39,7 @@ class IssuePoolListResponse(BaseModel):
 
 class IssuePoolFilter(BaseModel):
     corporation_id: Optional[int] = None
-    publish_year: Optional[int] = None
+    publish_year: Optional[str] = None
     limit: int = 10
     random: bool = True
 
@@ -52,8 +52,8 @@ class IssuePoolFilter(BaseModel):
 class IssuePoolCreateRequest(BaseModel):
     """IssuePool 생성 요청 스키마"""
     corporation_id: int
-    publish_year: int
-    ranking: int
+    publish_year: str
+    ranking: str
     issue_pool: str
     category_id: int
     esg_classification_id: int
@@ -67,8 +67,8 @@ class IssuePoolCreateRequest(BaseModel):
 class IssuePoolUpdateRequest(BaseModel):
     """IssuePool 업데이트 요청 스키마"""
     corporation_id: Optional[int] = None
-    publish_year: Optional[int] = None
-    ranking: Optional[int] = None
+    publish_year: Optional[str] = None
+    ranking: Optional[str] = None
     issue_pool: Optional[str] = None
     category_id: Optional[int] = None
     esg_classification_id: Optional[int] = None

@@ -6,7 +6,7 @@ import type { MGIndexDTO } from '@/lib/mg';
 import { fetchMGIndexes, requestMGPolish } from '@/lib/mg';
 
 type IssuePool = {
-  id:number; corporation_id:number; publish_year:number; ranking:number;
+  id:number; corporation_id:number; publish_year:string; ranking:string;
   issue_pool:string; category_id:number; esg_classification_id:number;
 };
 
