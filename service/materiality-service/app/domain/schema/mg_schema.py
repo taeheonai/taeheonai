@@ -1,6 +1,6 @@
 # app/domain/schema/mg_schema.py
 from typing import List, Literal, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 Grade = Literal['A','B','C']
 
@@ -25,7 +25,8 @@ class MGIndexDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class MGResolveRequest(BaseModel):
-    issuepool_ids: List[int]  # materiality에서 선택한 10개 id
+    issuepool_ids: List[int] = Field(..., alias="issuepool_ids")
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
 class MGIndexMapResponse(BaseModel):
     items: List[MGIndexDTO]
