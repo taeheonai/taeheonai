@@ -189,12 +189,12 @@ export default function GRIIntakePage() {
           <div className="max-w-7xl mx-auto">
             {/* ... (기존 헤더 부분 유지) ... */}
 
-            <div className="space-y-4">
-              {/* 상단: 카테고리와 공시항목을 가로로 배치 */}
-              <div className="grid grid-cols-12 gap-4">
-                {/* 카테고리 선택 패널 - 더 넓게 */}
-                <div className={`col-span-6 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
-                  <div className="bg-white rounded-lg shadow-md">
+            <div className="space-y-6">
+              {/* 🔧 상단: 카테고리와 공시항목을 가로로 배치 (피피티처럼) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 카테고리 선택 패널 */}
+                <div className={`transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
+                  <div className="bg-white rounded-lg shadow-md h-full">
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
@@ -229,9 +229,9 @@ export default function GRIIntakePage() {
                   </div>
                 </div>
 
-                {/* 공시 항목 패널 - 더 넓게 */}
-                <div className={`col-span-6 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
-                  <div className="bg-white rounded-lg shadow-md">
+                {/* 공시 항목 패널 */}
+                <div className={`transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
+                  <div className="bg-white rounded-lg shadow-md h-full">
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">
@@ -272,11 +272,11 @@ export default function GRIIntakePage() {
                 </div>
               </div>
 
-              {/* 하단: 요구사항과 윤문결과를 전체 너비로 배치 */}
+              {/* 🔧 하단: 요구사항과 윤문결과를 전체 너비로 배치 (피피티처럼) */}
               <div className="w-full">
                 {/* 답변 입력 폼과 윤문 결과를 하나의 흐름으로 구성 */}
                 {selectedItem && selectedItem.questions && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {/* 요구사항 헤더 */}
                     <div className="bg-white rounded-lg shadow-md">
                       <div className="p-4 border-b border-gray-200">
