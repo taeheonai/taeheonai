@@ -1,99 +1,111 @@
 # app/router/mg_router.py
-from typing import List
+from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, Header, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.database import get_db
-from app.domain.schema.mg_schema import MGResolveRequest, MGIndexMapResponse, MGIndexDTO
+from app.domain.schema.mg_schema import (
+    MGResolveRequest,
+    MGIndexMapResponse,
+    MGIndexDTO,
+)
 from app.domain.controller.mg_controller import MGController
 import logging
 
-# 🔧 prefix를 /v1/mg로 수정 (다른 라우터와 일관성)
 router = APIRouter(prefix="/v1/mg", tags=["mg"])
 logger = logging.getLogger(__name__)
 
+
 def _controller(db: AsyncSession) -> MGController:
-    """MGController 인스턴스 생성 및 반환"""
     return MGController(db)
 
-@router.post("/indexes", response_model=MGIndexMapResponse)
-async def resolve_indexes(req: MGResolveRequest = Body(...), db: AsyncSession = Depends(get_db)):
-    """IssuePool ID들에 대한 GRI 인덱스 해결"""
-    try:
-        # 🔧 BaseModel 검증 및 로깅
-        logger.info(f"MG Index 요청 받음: issuepool_ids={req.issuepool_ids}")
-        
-        # 🔧 Schema 기반 데이터 검증
-        if not req.issuepool_ids:
-            raise HTTPException(status_code=422, detail="issuepool_ids는 비어있을 수 없습니다")
-        
-        if len(req.issuepool_ids) > 100:  # 최대 100개 제한
-            raise HTTPException(status_code=422, detail="issuepool_ids는 최대 100개까지 가능합니다")
-        
-        # 🔧 각 ID가 유효한 정수인지 검증
-        for i, id_val in enumerate(req.issuepool_ids):
-            if not isinstance(id_val, int) or id_val <= 0:
-                raise HTTPException(status_code=422, detail=f"issuepool_ids[{i}]: 유효하지 않은 ID 값입니다")
-        
-        controller = _controller(db)
-        items = await controller.resolve_indexes(req)
-        
-        # 🔧 응답 데이터 로깅
-        logger.info(f"MG Index 응답: {len(items)}개 항목 반환")
-        
-        return MGIndexMapResponse(items=items)
-        
-    except HTTPException:
-        raise  # HTTPException은 그대로 전달
-    except Exception as e:
-        logger.error(f"MG Index 해결 실패: {e}")
-        raise HTTPException(status_code=500, detail=f"MG Index 해결에 실패했습니다: {str(e)}")
 
+# -----------------------------
+# 1) /indexes : 원시 바디를 받아 직접 검증/보정 + 상세 로깅
+# -----------------------------
+@router.post("/indexes", response_model=MGIndexMapResponse)
+async def resolve_indexes(
+    payload: Dict[str, Any] = Body(...),         # ★ 원시 바디로 받는다 (검증은 우리가)
+    db: AsyncSession = Depends(get_db),
+):
+    # 원시 바디 로깅
+    logger.info("[MG] /indexes raw payload=%s", payload)
+
+    # 키 두 형태 모두 허용 (issuepool_ids / issuepoolIds)
+    ids_src = payload.get("issuepool_ids") or payload.get("issuepoolIds")
+    if not isinstance(ids_src, list):
+        raise HTTPException(status_code=422, detail="issuepool_ids must be an array")
+
+    # 정수로 보정 + 공백 제거
+    try:
+        ids = [int(x) for x in ids_src if str(x).strip() != ""]
+    except Exception:
+        raise HTTPException(status_code=422, detail="issuepool_ids must contain integers")
+
+    if not ids:
+        raise HTTPException(status_code=422, detail="issuepool_ids is empty")
+    if len(ids) > 100:
+        raise HTTPException(status_code=422, detail="issuepool_ids size must be <= 100")
+
+    logger.info("[MG] /indexes normalized ids=%s", ids)
+
+    # 컨트롤러 호출 (필요 시 스키마로 감싸 전달)
+    controller = _controller(db)
+    req_model = MGResolveRequest(issuepool_ids=ids)
+    items = await controller.resolve_indexes(req_model)
+
+    logger.info("[MG] /indexes OK -> groups=%d", len(items))
+    return MGIndexMapResponse(items=items)
+
+
+# -----------------------------
+# 2) /polish : 원시 바디를 받아 스키마로 검증/보정 + 상세 로깅
+# -----------------------------
 @router.post("/polish")
 async def polish(
-    items: List[MGIndexDTO] = Body(...),
+    payload: List[Dict[str, Any]] = Body(...),   # ★ 원시 바디로 받아 직접 검증/로깅
     db: AsyncSession = Depends(get_db),
     x_session_key: str = Header(..., convert_underscores=False),
     x_thread_id: str = Header(..., convert_underscores=False),
 ):
-    """GRI 인덱스에 대한 Polish 요청"""
-    try:
-        # 🔧 BaseModel 검증 및 로깅
-        logger.info(f"MG Polish 요청 받음: session_key={x_session_key[:8]}..., thread_id={x_thread_id[:8]}..., items_count={len(items)}")
-        
-        # 🔧 Schema 기반 데이터 검증
-        if not items:
-            raise HTTPException(status_code=422, detail="items는 비어있을 수 없습니다")
-        
-        # 🔧 각 item의 Schema 필드 검증
-        for i, item in enumerate(items):
-            # 필수 필드 존재 여부 검증
-            if not hasattr(item, 'issuepool_id') or item.issuepool_id is None:
-                raise HTTPException(status_code=422, detail=f"item[{i}]: issuepool_id가 누락되었습니다")
-            
-            if not hasattr(item, 'gri_indexes') or not item.gri_indexes:
-                raise HTTPException(status_code=422, detail=f"item[{i}]: gri_indexes가 비어있습니다")
-            
-            # gri_indexes 배열의 각 항목 검증
-            for j, gri in enumerate(item.gri_indexes):
-                if not hasattr(gri, 'gri_index') or not gri.gri_index:
-                    raise HTTPException(status_code=422, detail=f"item[{i}].gri_indexes[{j}]: gri_index가 누락되었습니다")
-                
-                if not hasattr(gri, 'frequency') or not isinstance(gri.frequency, int):
-                    raise HTTPException(status_code=422, detail=f"item[{i}].gri_indexes[{j}]: frequency가 유효하지 않습니다")
-                
-                if not hasattr(gri, 'grade') or gri.grade not in ['A', 'B', 'C']:
-                    raise HTTPException(status_code=422, detail=f"item[{i}].gri_indexes[{j}]: grade가 유효하지 않습니다")
-        
-        controller = _controller(db)
-        result = await controller.request_polish(x_session_key, x_thread_id, items)
-        
-        # 🔧 응답 로깅
-        logger.info(f"MG Polish 응답: {type(result).__name__}")
-        
-        return result
-        
-    except HTTPException:
-        raise  # HTTPException은 그대로 전달
-    except Exception as e:
-        logger.error(f"MG Polish 요청 실패: {e}")
-        raise HTTPException(status_code=500, detail=f"MG Polish 요청에 실패했습니다: {str(e)}")
+    logger.info(
+        "[MG] /polish raw count=%s, session=%s..., thread=%s...",
+        len(payload) if isinstance(payload, list) else "N/A",
+        x_session_key[:8],
+        x_thread_id[:8],
+    )
+
+    if not isinstance(payload, list) or not payload:
+        raise HTTPException(status_code=422, detail="items must be a non-empty array")
+
+    # 스키마로 밸리데이션 (여기서 MGIndexDTO는 nest된 gri_indexes를 포함한다고 가정)
+    valid_items: List[MGIndexDTO] = []
+    for i, obj in enumerate(payload):
+        try:
+            item = MGIndexDTO.model_validate(obj)
+        except Exception as e:
+            logger.warning("[MG] /polish item[%d] validation error: %s", i, e)
+            raise HTTPException(
+                status_code=422,
+                detail=f"items[{i}] validation error"
+            )
+        # 추가 수기 검증 (필요 시)
+        if not getattr(item, "issuepool_id", None):
+            raise HTTPException(status_code=422, detail=f"items[{i}]: issuepool_id missing")
+        if not getattr(item, "gri_indexes", None):
+            raise HTTPException(status_code=422, detail=f"items[{i}]: gri_indexes missing")
+
+        # gri_indexes 각 항목의 키 체크 (grade/frequency/gri_index)
+        for j, gi in enumerate(item.gri_indexes):
+            if not getattr(gi, "gri_index", None):
+                raise HTTPException(status_code=422, detail=f"items[{i}].gri_indexes[{j}]: gri_index missing")
+            if not isinstance(getattr(gi, "frequency", None), int):
+                raise HTTPException(status_code=422, detail=f"items[{i}].gri_indexes[{j}]: frequency must be int")
+            if getattr(gi, "grade", None) not in ["A", "B", "C"]:
+                raise HTTPException(status_code=422, detail=f"items[{i}].gri_indexes[{j}]: grade must be A|B|C")
+
+        valid_items.append(item)
+
+    controller = _controller(db)
+    result = await controller.request_polish(x_session_key, x_thread_id, valid_items)
+    logger.info("[MG] /polish OK (%s)", type(result).__name__)
+    return result
