@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 Grade = Literal['A','B','C']
 
 class MGIndexDTO(BaseModel):
-    issuepool_id: int
+    id: int
     category_id: int
     gri_index: str
     frequency: int
