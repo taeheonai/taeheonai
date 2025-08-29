@@ -22,7 +22,8 @@ export type MGIndexDTO = {
 };
 
 export async function fetchMGIndexes(issuepoolIds: number[]): Promise<MGIndexDTO[]> {
-  const { data } = await api.post('/v1/mg/indexes', { issuepool_ids: issuepoolIds });
+  const clean = issuepoolIds.map(Number).filter(Number.isFinite);   // 숫자 보장
+  const { data } = await api.post('/v1/mg/indexes', { issuepool_ids: clean });
   return data.items;
 }
 
