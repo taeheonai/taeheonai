@@ -70,18 +70,19 @@ const nextConfig: NextConfig = {
         source: '/esrs',
         destination: '/esrs'
       },
-      {
-        source: '/gri',
-        destination: '/gri'
-      },
-      {
-        source: '/gri/intake',
-        destination: '/gri/intake'
-      },
-      {
-        source: '/gri/report',
-        destination: '/gri/report'
-      },
+      // GRI 페이지들은 Next.js 앱 라우터로 처리 (rewrite 불필요)
+      // {
+      //   source: '/gri',
+      //   destination: '/gri'
+      // },
+      // {
+      //   source: '/gri/intake',
+      //   destination: '/gri/intake'
+      // },
+      // {
+      //   source: '/gri/report',
+      //   destination: '/gri/report'
+      // },
       {
         source: '/materiality',
         destination: '/materiality'
