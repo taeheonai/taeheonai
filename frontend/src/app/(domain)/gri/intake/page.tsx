@@ -446,13 +446,16 @@ export default function GRIIntakePage() {
                           ...selectedItem?.questions.map(q => q.question_text ?? '') ?? [],
                         ];
 
+                        // 🔧 모드별로 다른 키 사용
+                        const keepFromLLM = anyProse ? 'prose' : 'none';
+
                         return (
                           <PolishResult 
                             sessionKey={sessionKey} 
                             griIndex={selectedItem.index_no}
                             showSaveHint={false}
                             prependMarkdown={tablesMd}
-                            keepFromLLM={anyProse ? 'prose' : 'none'}
+                            keepFromLLM={keepFromLLM}
                             stripHeads={stripHeads}
                           />
                         );
