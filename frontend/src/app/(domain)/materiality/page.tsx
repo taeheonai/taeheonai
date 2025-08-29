@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { IssuePool, IssuePoolAPI } from '@/lib/api/issuepool';
+import { IssuePool, IssuePoolAPI } from '@/lib/issuepool';
 
 export default function MaterialityPage() {
   const [issuePools, setIssuePools] = useState<IssuePool[]>([]);
