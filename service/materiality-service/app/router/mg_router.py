@@ -29,9 +29,12 @@ async def resolve_indexes(
 ):
     # 원시 바디 로깅
     logger.info("[MG] /indexes raw payload=%s", payload)
+    logger.info("[MG] /indexes payload type=%s", type(payload))
+    logger.info("[MG] /indexes payload keys=%s", list(payload.keys()) if isinstance(payload, dict) else "N/A")
 
     # 키 두 형태 모두 허용 (issuepool_ids / issuepoolIds)
     ids_src = payload.get("issuepool_ids") or payload.get("issuepoolIds")
+    logger.info("[MG] /indexes ids_src=%s, type=%s", ids_src, type(ids_src))
     if not isinstance(ids_src, list):
         raise HTTPException(status_code=422, detail="issuepool_ids must be an array")
 

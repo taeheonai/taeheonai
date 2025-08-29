@@ -37,6 +37,8 @@ export default function MaterialityPage() {
   const navigateToMG = () => {
     if (issuePools.length > 0) {
       setSelected(issuePools);  // MG Store에 10개 선택된 데이터 저장
+      // 세션 스토리지에도 저장 (페이지 새로고침 대비)
+      sessionStorage.setItem('selectedIssuePools', JSON.stringify(issuePools));
       router.push('/mg');        // MG 페이지로 이동
     }
   };
