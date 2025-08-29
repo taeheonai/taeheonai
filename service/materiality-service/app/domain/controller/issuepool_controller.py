@@ -207,20 +207,12 @@ class IssuePoolController:
         try:
             issuepools = await self.service.get_random_issuepools(limit)
             
-            # Entity 리스트를 DTO 리스트로 변환하여 반환
+            # Pydantic v2의 model_validate를 사용하여 안전한 DTO 변환
             issuepool_dtos = []
             for issuepool in issuepools:
                 try:
-                    dto = IssuePoolDTO(
-                        id=issuepool.id,
-                        corporation_id=issuepool.corporation_id,
-                        publish_year=issuepool.publish_year,
-                        ranking=issuepool.ranking,
-                        base_issue_pool=issuepool.base_issue_pool,  # base_issue_pool 추가
-                        issue_pool=issuepool.issue_pool,
-                        category_id=issuepool.category_id,
-                        esg_classification_id=issuepool.esg_classification_id
-                    )
+                    # from_attributes=True로 설정되어 있어서 SQLAlchemy 엔티티를 직접 변환 가능
+                    dto = IssuePoolDTO.model_validate(issuepool, from_attributes=True)
                     issuepool_dtos.append(dto)
                 except Exception as dto_error:
                     logger.error(f"DTO 변환 실패 - Entity ID {issuepool.id}: {str(dto_error)}")

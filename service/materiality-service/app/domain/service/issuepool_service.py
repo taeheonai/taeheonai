@@ -101,18 +101,10 @@ class IssuePoolService:
     async def create_issuepool_list_response(self, session_key: str, thread_id: str, issuepools: List[IssuePool]) -> IssuePoolListResponse:
         """IssuePool 엔티티 리스트를 DTO로 변환하여 응답 생성"""
         try:
-            # Entity를 DTO로 변환
+            # Pydantic v2의 model_validate를 사용하여 안전한 DTO 변환
             issuepool_dtos = []
             for issuepool in issuepools:
-                dto = IssuePoolDTO(
-                    id=issuepool.id,
-                    corporation_id=issuepool.corporation_id,
-                    publish_year=issuepool.publish_year,
-                    ranking=issuepool.ranking,
-                    issue_pool=issuepool.issue_pool,
-                    category_id=issuepool.category_id,
-                    esg_classification_id=issuepool.esg_classification_id
-                )
+                dto = IssuePoolDTO.model_validate(issuepool, from_attributes=True)
                 issuepool_dtos.append(dto)
             
             # 응답 DTO 생성
