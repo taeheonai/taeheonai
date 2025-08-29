@@ -10,6 +10,8 @@ import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
 
+type DisplayMode = 'table' | 'prose';
+
 export default function GRIIntakePage() {
   const user = useAuthStore((s) => s.user);
 
@@ -38,35 +40,34 @@ export default function GRIIntakePage() {
   const [showCategoryList, setShowCategoryList] = useState(true);
   const [showDisclosureList, setShowDisclosureList] = useState(true);
 
-  // 🔧 표/윤문 선택 토글 상태
-  type DisplayMode = 'table' | 'prose';
+  // 표/윤문 선택 (질문 id -> 모드)
   const [displayMode, setDisplayMode] = useState<Record<string, DisplayMode>>({});
 
-  // 🔧 답변 문자열 -> Markdown 표 변환
+  // ------- Markdown 표 생성기 -------
   function toMarkdownTable(answer: string) {
-    // 1) 줄 단위 분해 (콤마 기준 분할 제거)
+    // 줄 단위 분해
     const lines = answer
       .replace(/\r\n/g, '\n')
       .split('\n')
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean);
 
     const rows: string[] = [];
 
     for (const raw of lines) {
-      // 2) 불릿만 데이터로 처리 (제목/설명 라인은 건너뜀)
-      if (!/^\s*[-*]\s+/.test(raw)) continue;
+      // 불릿(-, *, •)로 시작하는 줄만 데이터로 취급
+      if (!/^\s*([-*•])\s+/.test(raw)) continue;
 
       // 불릿 제거
-      const line = raw.replace(/^\s*[-*]\s+/, '');
+      const line = raw.replace(/^\s*([-*•])\s+/, '');
 
-      // 3) "항목: 값" 패턴만 추출
+      // "항목: 값" 형태만 추출
       const m = line.match(/^(.+?):\s*(.+)$/);
       if (!m) continue;
 
       const key = m[1].trim();
 
-      // 4) 값에서 천단위 콤마만 제거 (숫자 사이 콤마)
+      // 값에서 "숫자,숫자" 형태의 콤마만 제거(텍스트 콤마는 보존)
       const value = m[2].trim().replace(/(?<=\d),(?=\d)/g, '');
 
       rows.push(`| ${key} | ${value} |`);
@@ -76,12 +77,12 @@ export default function GRIIntakePage() {
     return ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');
   }
 
-  // 🔧 현재 선택된 item의 a/b/c에서 'table'인 항목만 표로 묶어 하나의 Markdown으로 생성
+  // 현재 아이템의 질문들 중 'table'로 선택한 것만 표로 변환하여 하나의 마크다운으로 합치기
   function buildTablesMarkdown() {
     if (!selectedItem) return '';
     let md = '';
     for (const q of selectedItem.questions) {
-      const qid = q.id.toString();
+      const qid = String(q.id);
       if (displayMode[qid] !== 'table') continue;
       const text = answers[qid]?.trim();
       if (!text) continue;
@@ -95,59 +96,64 @@ export default function GRIIntakePage() {
   }
 
   // 초기 로드
-  useEffect(() => { void loadCategories(); }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        setIsLoadingData(true);
+        const data = await GRIApiService.getCategories();
+        setCategories(data.categories || []);
+        if (data.categories?.length) setSelectedCategory(data.categories[0]);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : '카테고리 로드 중 오류가 발생했습니다.';
+        setMessage(msg);
+      } finally {
+        setIsLoadingData(false);
+      }
+    })();
+  }, []);
 
   // 카테고리 선택 시 GRI 전체 데이터 로드
   useEffect(() => {
-    if (selectedCategory) void loadGRICompleteData(selectedCategory.id);
+    if (!selectedCategory) return;
+    (async () => {
+      try {
+        setIsLoadingData(true);
+        const data = await GRIApiService.getCompleteData(selectedCategory.id);
+        setGriData(data);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'GRI 데이터 로드 중 오류가 발생했습니다.';
+        setMessage(msg);
+      } finally {
+        setIsLoadingData(false);
+      }
+    })();
   }, [selectedCategory]);
 
-  // GRI 데이터 로드되면 첫 아이템 자동 선택
+  // GRI 데이터 로드되면 첫 번째 아이템 자동 선택
   useEffect(() => {
-    if (griData?.items?.length) setSelectedItem(griData.items[0]);
+    if (griData?.items?.length) {
+      setSelectedItem(griData.items[0]);
+    }
   }, [griData, setSelectedItem]);
 
-  // 카테고리 목록
-  const loadCategories = async () => {
-    try {
-      setIsLoadingData(true);
-      const data = await GRIApiService.getCategories();
-      setCategories(data.categories || []);
-      if (data.categories?.length) setSelectedCategory(data.categories[0]);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '카테고리 로드 중 오류가 발생했습니다.';
-      setMessage(msg);
-      // console.error(err);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
-  // GRI 완전 데이터
-  const loadGRICompleteData = async (categoryId: number) => {
-    try {
-      setIsLoadingData(true);
-      const data = await GRIApiService.getCompleteData(categoryId);
-      setGriData(data);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'GRI 데이터 로드 중 오류가 발생했습니다.';
-      setMessage(msg);
-      // console.error(err);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+  // 아이템 바뀌면 입력 & 모드 초기화(잔상 제거)
+  useEffect(() => {
+    setDisplayMode({});
+    setMessage('');
+  }, [selectedItem?.id]);
 
   // 선택 핸들러
   const handleCategorySelect = (category: GRICategory) => {
     setSelectedCategory(category);
     setSelectedItem(null);
     setAnswers({});
+    setDisplayMode({});
   };
 
   const handleItemSelect = (item: GRIItem) => {
     setSelectedItem(item);
     setAnswers({});
+    setDisplayMode({});
   };
 
   const answeredQuestions =
@@ -183,7 +189,6 @@ export default function GRIIntakePage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '윤문 중 오류가 발생했습니다.';
       setMessage(msg);
-      // console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -198,7 +203,7 @@ export default function GRIIntakePage() {
     setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
   };
 
-  // 데이터 로딩 화면
+  // 로딩 화면
   if (isLoadingData) {
     return (
       <ProtectedRoute>
@@ -223,7 +228,7 @@ export default function GRIIntakePage() {
 
         <div className="p-4">
           <div className="max-w-7xl mx-auto">
-            {/* ===== 12열 그리드로 상·하 수직 스택 고정 ===== */}
+            {/* 상단 2패널, 하단 전폭: 수직 스택 */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* 좌: 카테고리 */}
               <section className={`lg:col-span-6 ${showCategoryList ? '' : 'hidden'}`}>
@@ -311,68 +316,72 @@ export default function GRIIntakePage() {
                     </div>
 
                     <div className="p-6 space-y-6">
-                      {selectedItem.questions.map((q) => (
-                        <div key={q.id} className="space-y-3">
-                          <div className="flex items-start space-x-2">
-                            <span className="text-sm font-medium text-gray-700 mt-1">{q.key_alpha}.</span>
-                            <div className="flex-1">
-                              {/* 🔧 표/윤문 선택 토글 */}
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs text-gray-500">표/윤문</span>
-                                <div className="inline-flex rounded-md overflow-hidden border">
-                                  <button
-                                    type="button"
-                                    onClick={() => setDisplayMode((m) => ({ ...m, [q.id.toString()]: 'table' }))}
-                                    className={
-                                      (displayMode[q.id.toString()] ?? 'prose') === 'table'
-                                        ? 'px-2 py-1 text-xs bg-blue-600 text-white'
-                                        : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
-                                    }
-                                  >
-                                    표
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setDisplayMode((m) => ({ ...m, [q.id.toString()]: 'prose' }))}
-                                    className={
-                                      (displayMode[q.id.toString()] ?? 'prose') === 'prose'
-                                        ? 'px-2 py-1 text-xs bg-blue-600 text-white'
-                                        : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
-                                    }
-                                  >
-                                    윤문
-                                  </button>
+                      {selectedItem.questions.map((q) => {
+                        const qid = String(q.id);
+                        const mode = displayMode[qid] ?? 'prose';
+                        return (
+                          <div key={qid} className="space-y-3">
+                            <div className="flex items-start space-x-2">
+                              <span className="text-sm font-medium text-gray-700 mt-1">{q.key_alpha}.</span>
+                              <div className="flex-1">
+                                {/* 표/윤문 선택 토글 */}
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-xs text-gray-500">표/윤문</span>
+                                  <div className="inline-flex rounded-md overflow-hidden border">
+                                    <button
+                                      type="button"
+                                      onClick={() => setDisplayMode((m) => ({ ...m, [qid]: 'table' }))}
+                                      className={
+                                        mode === 'table'
+                                          ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                                          : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                                      }
+                                    >
+                                      표
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setDisplayMode((m) => ({ ...m, [qid]: 'prose' }))}
+                                      className={
+                                        mode === 'prose'
+                                          ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                                          : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                                      }
+                                    >
+                                      윤문
+                                    </button>
+                                  </div>
                                 </div>
+
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  <div className="whitespace-pre-wrap">{q.question_text}</div>
+                                  {q.required && <span className="text-red-500 ml-1">*</span>}
+                                </label>
+
+                                {q.reference_text && (
+                                  <div className="mb-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                                    <strong>참고:</strong>
+                                    <div className="whitespace-pre-wrap mt-1">{q.reference_text}</div>
+                                  </div>
+                                )}
+
+                                <textarea
+                                  placeholder="답변을 입력해주세요..."
+                                  value={answers[qid] || ''}
+                                  onChange={(e) => setAnswer(qid, e.target.value)}
+                                  className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                {answers[qid]?.trim() && (
+                                  <div className="flex items-center space-x-1 mt-2 text-green-600">
+                                    <span className="text-sm">✓</span>
+                                    <span className="text-sm">답변 완료</span>
+                                  </div>
+                                )}
                               </div>
-
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <div className="whitespace-pre-wrap">{q.question_text}</div>
-                                {q.required && <span className="text-red-500 ml-1">*</span>}
-                              </label>
-
-                              {q.reference_text && (
-                                <div className="mb-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                                  <strong>참고:</strong>
-                                  <div className="whitespace-pre-wrap mt-1">{q.reference_text}</div>
-                                </div>
-                              )}
-
-                              <textarea
-                                placeholder="답변을 입력해주세요..."
-                                value={answers[q.id.toString()] || ''}
-                                onChange={(e) => setAnswer(q.id.toString(), e.target.value)}
-                                className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              />
-                              {answers[q.id.toString()]?.trim() && (
-                                <div className="flex items-center space-x-1 mt-2 text-green-600">
-                                  <span className="text-sm">✓</span>
-                                  <span className="text-sm">답변 완료</span>
-                                </div>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div className="flex justify-end pt-4 border-t space-x-3 px-6 pb-6">
@@ -432,26 +441,24 @@ export default function GRIIntakePage() {
                       <h3 className="text-lg font-semibold text-gray-900">윤문 결과</h3>
                     </div>
                     <div className="p-6">
-                      {/* 🔧 표 마크다운을 윤문 결과 위에 먼저 렌더링 */}
                       {(() => {
                         const tablesMd = buildTablesMarkdown();
-                        const anyProse = selectedItem?.questions?.some(q => 
-                          displayMode[q.id.toString()] !== 'table'
+                        const anyProse = selectedItem?.questions?.some(
+                          (q) => displayMode[String(q.id)] !== 'table',
                         );
-                        
-                        // 제거할 요구사항 헤더(LLM가 다시 출력하는 걸 숨기기)
+
+                        // LLM이 뱉은 요구사항/헤더를 제거하기 위한 후보
                         const stripHeads = [
                           selectedItem?.title ?? '',
-                          // 필요하면 세부 질문 텍스트도 추가
-                          ...selectedItem?.questions.map(q => q.question_text ?? '') ?? [],
+                          ...(selectedItem?.questions?.map((q) => q.question_text ?? '') ?? []),
                         ];
 
-                        // 🔧 모드별로 다른 키 사용
+                        // 한 개라도 '윤문'이 있으면 LLM의 prose만 살리고, 전부 표면 LLM은 숨김
                         const keepFromLLM = anyProse ? 'prose' : 'none';
 
                         return (
-                          <PolishResult 
-                            sessionKey={sessionKey} 
+                          <PolishResult
+                            sessionKey={sessionKey}
                             griIndex={selectedItem.index_no}
                             showSaveHint={false}
                             prependMarkdown={tablesMd}
