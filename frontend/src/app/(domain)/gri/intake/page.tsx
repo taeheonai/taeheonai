@@ -435,12 +435,25 @@ export default function GRIIntakePage() {
                       {/* 🔧 표 마크다운을 윤문 결과 위에 먼저 렌더링 */}
                       {(() => {
                         const tablesMd = buildTablesMarkdown();
+                        const anyProse = selectedItem?.questions?.some(q => 
+                          displayMode[q.id.toString()] !== 'table'
+                        );
+                        
+                        // 제거할 요구사항 헤더(LLM가 다시 출력하는 걸 숨기기)
+                        const stripHeads = [
+                          selectedItem?.title ?? '',
+                          // 필요하면 세부 질문 텍스트도 추가
+                          ...selectedItem?.questions.map(q => q.question_text ?? '') ?? [],
+                        ];
+
                         return (
                           <PolishResult 
                             sessionKey={sessionKey} 
                             griIndex={selectedItem.index_no}
                             showSaveHint={false}
                             prependMarkdown={tablesMd}
+                            keepFromLLM={anyProse ? 'prose' : 'none'}
+                            stripHeads={stripHeads}
                           />
                         );
                       })()}
