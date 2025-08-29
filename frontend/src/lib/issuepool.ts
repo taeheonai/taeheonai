@@ -6,8 +6,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://taeheonai-produ
 export interface IssuePool {
   id: number;
   corporation_id: number;
-  publish_year: number;
-  ranking: number;
+  publish_year: string;
+  ranking: string;
   issue_pool: string;
   category_id: number;
   esg_classification_id: number;
@@ -15,8 +15,8 @@ export interface IssuePool {
 
 export interface IssuePoolCreateRequest {
   corporation_id: number;
-  publish_year: number;
-  ranking: number;
+  publish_year: string;
+  ranking: string;
   issue_pool: string;
   category_id: number;
   esg_classification_id: number;
@@ -24,8 +24,8 @@ export interface IssuePoolCreateRequest {
 
 export interface IssuePoolUpdateRequest {
   corporation_id: number;
-  publish_year: number;
-  ranking: number;
+  publish_year: string;
+  ranking: string;
   issue_pool: string;
   category_id: number;
   esg_classification_id: number;
@@ -33,7 +33,7 @@ export interface IssuePoolUpdateRequest {
 
 export interface IssuePoolFilter {
   corporation_id?: number;
-  publish_year?: number;
+  publish_year?: string;
   category_id?: number;
   esg_classification_id?: number;
 }
@@ -75,7 +75,7 @@ export class IssuePoolAPI {
 
   static async getIssuePoolsByCorporationAndYear(
     corporationId: number, 
-    publishYear: number
+    publishYear: string
   ): Promise<IssuePool[]> {
     const response = await axios.get(
       `${this.baseURL}/corporation/${corporationId}/year/${publishYear}`

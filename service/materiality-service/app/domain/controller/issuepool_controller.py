@@ -56,7 +56,7 @@ class IssuePoolController:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"IssuePool 조회 실패: {str(e)}")
 
-    async def get_issuepools_by_corporation_and_year(self, corporation_id: int, publish_year: int) -> List[IssuePool]:
+    async def get_issuepools_by_corporation_and_year(self, corporation_id: int, publish_year: str) -> List[IssuePool]:
         """기업 ID와 발행 연도로 IssuePool 목록 조회"""
         try:
             issuepools = await self.service.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
@@ -129,7 +129,7 @@ class IssuePoolController:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"ESG 분류별 IssuePool 조회 실패: {str(e)}")
 
-    async def get_ranking_statistics(self, corporation_id: int, publish_year: int) -> Dict[str, Any]:
+    async def get_ranking_statistics(self, corporation_id: int, publish_year: str) -> Dict[str, Any]:
         """랭킹 통계 정보 조회"""
         try:
             statistics = await self.service.get_ranking_statistics(corporation_id, publish_year)
@@ -183,11 +183,11 @@ class IssuePoolController:
             if not isinstance(request_data.get('corporation_id'), int):
                 raise ValueError("corporation_id는 정수여야 합니다.")
             
-            if not isinstance(request_data.get('publish_year'), int):
-                raise ValueError("publish_year는 정수여야 합니다.")
+            if not isinstance(request_data.get('publish_year'), str):
+                raise HTTPException(status_code=400, detail="publish_year는 문자열이어야 합니다.")
             
-            if not isinstance(request_data.get('ranking'), int):
-                raise ValueError("ranking은 정수여야 합니다.")
+            if not isinstance(request_data.get('ranking'), str):
+                raise HTTPException(status_code=400, detail="ranking은 문자열이어야 합니다.")
             
             if not isinstance(request_data.get('issue_pool'), str):
                 raise ValueError("issue_pool은 문자열이어야 합니다.")

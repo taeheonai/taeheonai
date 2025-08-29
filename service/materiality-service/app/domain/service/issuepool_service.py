@@ -6,6 +6,7 @@ from app.domain.schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter, Is
 from app.domain.entity.issuepool_entity import IssuePool
 import logging
 import traceback
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +31,13 @@ class IssuePoolService:
         except Exception as e:
             raise Exception(f"IssuePool 조회 실패: {str(e)}")
 
-    async def get_issuepools_by_corporation_and_year(self, corporation_id: int, publish_year: int) -> List[IssuePool]:
-        """기업 ID와 발행 연도로 IssuePool 목록 조회"""
+    async def get_issuepools_by_corporation_and_year(self, corporation_id: int, publish_year: str) -> List[IssuePool]:
+        """특정 기업의 특정 연도 IssuePool 조회"""
         try:
             return await self.repository.get_by_corporation_and_year(corporation_id, publish_year)
         except Exception as e:
-            raise Exception(f"IssuePool 목록 조회 실패: {str(e)}")
+            logger.error(f"기업별 연도별 IssuePool 조회 실패: {e}")
+            raise HTTPException(status_code=500, detail="기업별 연도별 IssuePool 조회에 실패했습니다.")
 
     async def get_filtered_issuepools(self, filter_dto: IssuePoolFilter) -> List[IssuePool]:
         """필터 조건에 따른 IssuePool 목록 조회"""
@@ -79,12 +81,13 @@ class IssuePoolService:
         except Exception as e:
             raise Exception(f"ESG 분류별 IssuePool 조회 실패: {str(e)}")
 
-    async def get_ranking_statistics(self, corporation_id: int, publish_year: int) -> Dict[str, Any]:
-        """랭킹 통계 정보 조회"""
+    async def get_ranking_statistics(self, corporation_id: int, publish_year: str) -> Dict[str, Any]:
+        """특정 기업의 특정 연도 랭킹 통계 조회"""
         try:
             return await self.repository.get_ranking_statistics(corporation_id, publish_year)
         except Exception as e:
-            raise Exception(f"랭킹 통계 조회 실패: {str(e)}")
+            logger.error(f"랭킹 통계 조회 실패: {e}")
+            raise HTTPException(status_code=500, detail="랭킹 통계 조회에 실패했습니다.")
 
     async def bulk_create_issuepools(self, issuepool_dtos: List[IssuePoolDTO]) -> List[IssuePool]:
         """Controller로부터 받은 DTO 리스트를 Repository에 전달하여 일괄 생성"""

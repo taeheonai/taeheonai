@@ -1,5 +1,5 @@
 # app/router/issuepool_router.py
-from typing import List
+from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.controller.issuepool_controller import IssuePoolController
@@ -12,6 +12,8 @@ from app.domain.schema.issuepool_schema import (
     IssuePoolBulkCreateRequest
 )
 from app.common.database import get_db
+from app.domain.service.issuepool_service import IssuePoolService
+from app.common.logger import logger
 
 router = APIRouter(prefix="/v1/materiality", tags=["materiality"])
 
@@ -36,15 +38,19 @@ async def get_issuepool(
     return await controller.get_issuepool_by_id(issuepool_id)
 
 
-@router.get("/corporation/{corporation_id}/year/{publish_year}", response_model=List[IssuePoolDTO])
+@router.get("/corporation/{corporation_id}/year/{publish_year}")
 async def get_issuepools_by_corporation_and_year(
     corporation_id: int,
-    publish_year: int,
-    db: AsyncSession = Depends(get_db)
-):
+    publish_year: str,
+    issuepool_service: IssuePoolService = Depends(IssuePoolService)
+) -> List[IssuePoolDTO]:
     """기업 ID와 발행 연도로 IssuePool 목록 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
+    try:
+        issuepools = await issuepool_service.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
+        return [IssuePoolDTO.from_orm(issuepool) for issuepool in issuepools]
+    except Exception as e:
+        logger.error(f"기업별 연도별 IssuePool 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="기업별 연도별 IssuePool 조회에 실패했습니다.")
 
 
 @router.put("/{issuepool_id}", response_model=IssuePoolDTO)
@@ -110,15 +116,18 @@ async def get_issuepools_by_esg_classification(
     return await controller.get_issuepools_by_esg_classification(esg_classification_id, corporation_id)
 
 
-@router.get("/statistics/corporation/{corporation_id}/year/{publish_year}")
+@router.get("/corporation/{corporation_id}/year/{publish_year}/ranking-stats")
 async def get_ranking_statistics(
     corporation_id: int,
-    publish_year: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """랭킹 통계 정보 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_ranking_statistics(corporation_id, publish_year)
+    publish_year: str,
+    issuepool_service: IssuePoolService = Depends(IssuePoolService)
+) -> Dict[str, Any]:
+    """특정 기업의 특정 연도 랭킹 통계 조회"""
+    try:
+        return await issuepool_service.get_ranking_statistics(corporation_id, publish_year)
+    except Exception as e:
+        logger.error(f"랭킹 통계 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="랭킹 통계 조회에 실패했습니다.")
 
 
 @router.get("/random", response_model=List[IssuePoolDTO])
