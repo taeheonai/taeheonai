@@ -189,88 +189,91 @@ export default function GRIIntakePage() {
           <div className="max-w-7xl mx-auto">
             {/* ... (기존 헤더 부분 유지) ... */}
 
-            <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-              {/* 카테고리 선택 패널 - 더 짧게 */}
-              <div className={`col-span-3 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
-                <div className="bg-white rounded-lg shadow-md">
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
-                      <button
-                        onClick={() => setShowCategoryList(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        ✕
-                      </button>
+            <div className="space-y-4">
+              {/* 상단: 카테고리와 공시항목을 가로로 배치 */}
+              <div className="grid grid-cols-12 gap-4">
+                {/* 카테고리 선택 패널 - 더 넓게 */}
+                <div className={`col-span-6 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
+                  <div className="bg-white rounded-lg shadow-md">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
+                        <button
+                          onClick={() => setShowCategoryList(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-                    {categories.map((category) => (
-                      <div
-                        key={category.id}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedCategory?.id === category.id
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleCategorySelect(category)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">{category.code}</div>
-                            <div className="text-sm text-gray-600">{category.title}</div>
+                    <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
+                      {categories.map((category) => (
+                        <div
+                          key={category.id}
+                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                            selectedCategory?.id === category.id
+                              ? 'bg-blue-50 border border-blue-200'
+                              : 'hover:bg-gray-50'
+                          }`}
+                          onClick={() => handleCategorySelect(category)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">{category.code}</div>
+                              <div className="text-sm text-gray-600">{category.title}</div>
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 공시 항목 패널 - 더 넓게 */}
+                <div className={`col-span-6 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
+                  <div className="bg-white rounded-lg shadow-md">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                          {selectedCategory ? `${selectedCategory.code} 공시 항목` : 'GRI 공시 항목'}
+                        </h2>
+                        <button
+                          onClick={() => setShowDisclosureList(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          ✕
+                        </button>
                       </div>
-                    ))}
+                    </div>
+                    <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
+                      {griData?.items.map((item: GRIItem) => (
+                        <div
+                          key={item.id}
+                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                            selectedItem?.id === item.id
+                              ? 'bg-green-50 border border-green-200'
+                              : 'hover:bg-gray-50'
+                          }`}
+                          onClick={() => handleItemSelect(item)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">{item.index_no}</div>
+                              <div className="text-sm text-gray-600">{item.title}</div>
+                            </div>
+                            <span className="px-2 py-1 text-xs border border-gray-300 text-gray-600 rounded">
+                              {item.questions?.length || 0}개 질문
+                            </span>
+                          </div>
+                        </div>
+                      )) || []}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* 공시 항목 패널 - 더 짧게 */}
-              <div className={`col-span-3 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
-                <div className="bg-white rounded-lg shadow-md">
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        {selectedCategory ? `${selectedCategory.code} 공시 항목` : 'GRI 공시 항목'}
-                      </h2>
-                      <button
-                        onClick={() => setShowDisclosureList(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-                    {griData?.items.map((item: GRIItem) => (
-                      <div
-                        key={item.id}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedItem?.id === item.id
-                            ? 'bg-green-50 border border-green-200'
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleItemSelect(item)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">{item.index_no}</div>
-                            <div className="text-sm text-gray-600">{item.title}</div>
-                          </div>
-                          <span className="px-2 py-1 text-xs border border-gray-300 text-gray-600 rounded">
-                            {item.questions?.length || 0}개 질문
-                          </span>
-                        </div>
-                      </div>
-                    )) || []}
-                  </div>
-                </div>
-              </div>
-
-              {/* 메인 콘텐츠 영역 - 더 넓게 */}
-              <div className="col-span-6 space-y-4">
+              {/* 하단: 요구사항과 윤문결과를 전체 너비로 배치 */}
+              <div className="w-full">
                 {/* 답변 입력 폼과 윤문 결과를 하나의 흐름으로 구성 */}
                 {selectedItem && selectedItem.questions && (
                   <div className="space-y-4">
