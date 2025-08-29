@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, APIRouter
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, APIRouter, Request
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from datetime import datetime
 import logging
 import os
+import traceback
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -14,6 +15,24 @@ app = FastAPI(
     description="Materiality Assessment Service for TaeheonAI",
     version="1.0.0"
 )
+
+# 🔧 전역 예외 핸들러 추가 (진단용)
+@app.exception_handler(Exception)
+async def all_exc_handler(request: Request, exc: Exception):
+    """모든 예외를 잡아서 상세한 로그를 남기고 500 응답"""
+    import traceback
+    
+    # 상세한 에러 로그
+    logger.error(f"🚨 Unhandled error in {request.method} {request.url}: {exc}")
+    logger.error(f"🚨 Error type: {type(exc).__name__}")
+    logger.error(f"🚨 Error details: {str(exc)}")
+    logger.error(f"🚨 Full traceback: {traceback.format_exc()}")
+    
+    # 클라이언트에는 간단한 메시지만
+    return PlainTextResponse(
+        f"Internal Server Error: {type(exc).__name__}: {str(exc)}", 
+        status_code=500
+    )
 
 # APIRouter 정의
 materiality_router = APIRouter(prefix="/v1/materiality")

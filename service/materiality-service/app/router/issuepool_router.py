@@ -121,20 +121,34 @@ async def get_ranking_statistics(
     return await controller.get_ranking_statistics(corporation_id, publish_year)
 
 
-@router.get("/random", response_model=List[IssuePoolDTO])
+@router.get("/random", response_model=None)
 async def get_random_issuepools(
     limit: int = Query(10, ge=1, le=100, description="가져올 개수"),
     db: AsyncSession = Depends(get_db)
 ):
-    """랜덤으로 IssuePool 목록 조회"""
+    """랜덤으로 IssuePool 목록 조회 (진단용: response_model 제거)"""
     controller = IssuePoolController(db)
-    return await controller.get_random_issuepools(limit)
+    result = await controller.get_random_issuepools(limit)
+    
+    # 🔧 진단용: raw 데이터 반환
+    return {
+        "message": "진단용 응답",
+        "data": [dto.model_dump() for dto in result],
+        "count": len(result)
+    }
 
-@router.get("/random/{limit}", response_model=List[IssuePoolDTO])
+@router.get("/random/{limit}", response_model=None)
 async def get_random_issuepools_by_path(
     limit: int = Path(..., ge=1, le=100, description="가져올 개수"),
     db: AsyncSession = Depends(get_db)
 ):
-    """랜덤으로 IssuePool 목록 조회 (경로 파라미터 방식)"""
+    """랜덤으로 IssuePool 목록 조회 (경로 파라미터 방식, 진단용: response_model 제거)"""
     controller = IssuePoolController(db)
-    return await controller.get_random_issuepools(limit)
+    result = await controller.get_random_issuepools(limit)
+    
+    # 🔧 진단용: raw 데이터 반환
+    return {
+        "message": "진단용 응답",
+        "data": [dto.model_dump() for dto in result],
+        "count": len(result)
+    }
