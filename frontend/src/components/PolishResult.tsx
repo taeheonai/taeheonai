@@ -207,10 +207,14 @@ export const PolishResult: React.FC<PolishResultProps> = ({
 
     // 1) 본문 텍스트(마크다운 대상) - JSON이 아닌 실제 텍스트만
     let proseText = '';
+    let tableText = '';
+    
     if (typeof raw === 'string') {
       proseText = raw;
-    } else if (raw && typeof raw === 'object' && 'text' in raw) {
-      proseText = String((raw as Record<string, unknown>).text || '');
+    } else if (raw && typeof raw === 'object') {
+      const rawObj = raw as Record<string, unknown>;
+      proseText = String(rawObj.text || '');
+      tableText = String(rawObj.table || '');
     }
 
     // 2) 메타를 코드블록으로 렌더 (파싱 방지)
@@ -223,10 +227,25 @@ export const PolishResult: React.FC<PolishResultProps> = ({
       }, null, 2) + '\n```';
     }
 
-    // 3) 표 마크다운 + 본문 텍스트 + 메타 코드블록 합치기
+    // 3) 모드별로 다른 내용 렌더링
+    let contentToRender = '';
+    
+    if (keepFromLLM === 'tables' && tableText) {
+      // 표 모드: table 키 내용만
+      contentToRender = tableText;
+    } else if (keepFromLLM === 'prose' && proseText) {
+      // 윤문 모드: text 키 내용만
+      contentToRender = proseText;
+    } else if (keepFromLLM === 'both') {
+      // 둘 다: table + text
+      contentToRender = (tableText ? tableText + '\n\n' : '') + proseText;
+    }
+    // keepFromLLM === 'none'이면 contentToRender는 빈 문자열
+
+    // 4) 표 마크다운 + LLM 내용 + 메타 코드블록 합치기
     const mergedMarkdown =
       (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
-      proseText +
+      contentToRender +
       (metaJson ? `\n\n${metaJson}` : '');
 
     // 🔧 마크다운 필터링 적용
