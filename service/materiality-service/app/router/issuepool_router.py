@@ -12,7 +12,7 @@ from app.domain.schema.issuepool_schema import (
 )
 from app.common.database import get_db
 
-router = APIRouter(prefix="/api/v1/issuepools", tags=["issuepools"])
+router = APIRouter(prefix="/v1/materiality", tags=["materiality"])
 
 
 @router.post("/", response_model=IssuePoolDTO, status_code=status.HTTP_201_CREATED)
