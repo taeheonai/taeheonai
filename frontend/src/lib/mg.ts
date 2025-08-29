@@ -4,8 +4,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://taeheonai-produ
 const api = axios.create({ baseURL: API_BASE_URL });
 
 export type MGIndexDTO = {
-  issuepool_id: number; category_id: number; gri_index: string;
-  frequency: number; grade: 'A'|'B'|'C';
+  issuepool_id: number;
+  category_id: number;
+  gri_index: string;
+  frequency: number;
+  grade: 'A' | 'B' | 'C';
+  gri_id?: number;
 };
 
 export async function fetchMGIndexes(issuepoolIds: number[]): Promise<MGIndexDTO[]> {

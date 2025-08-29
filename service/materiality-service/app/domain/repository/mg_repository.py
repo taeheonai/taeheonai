@@ -3,26 +3,26 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.entity.issuepool_entity import IssuePool
-from app.domain.entity.mg_entity import IssuePoolGRIEntity  # 🔧 올바른 경로로 import
+from app.domain.entity.mg_entity import IssuePoolGRIEntity
 
 class MGRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
     async def get_indexes_for_issuepools(self, issuepool_ids: List[int]):
-        # 🔧 실제 엔티티를 사용하여 테이블 연동
+        # 🔧 JOIN 시 컬럼명 충돌 방지를 위해 별칭 사용
         try:
-            # IssuePool과 IssuePoolGRI를 JOIN하여 실제 데이터 조회
             query = (
                 select(
-                    IssuePool.id.label("issuepool_id"),
+                    IssuePool.id.label("issuepool_id"),                  # ★ 별칭
                     IssuePool.category_id,
+                    IssuePoolGRIEntity.id.label("gri_id"),               # ★ 별칭
                     IssuePoolGRIEntity.gri_index,
                     IssuePoolGRIEntity.frequency,
-                    IssuePoolGRIEntity.grade
+                    IssuePoolGRIEntity.grade,
                 )
                 .join(
-                    IssuePoolGRIEntity, 
+                    IssuePoolGRIEntity,
                     IssuePoolGRIEntity.category_id == IssuePool.category_id
                 )
                 .where(IssuePool.id.in_(issuepool_ids))
@@ -30,7 +30,7 @@ class MGRepository:
             )
             
             result = await self.db.execute(query)
-            return result.mappings().all()  # [{issuepool_id:..., category_id:..., ...}, ...]
+            return result.mappings().all()  # [{'issuepool_id':..., 'gri_id':..., ...}, ...]
             
         except Exception as e:
             # 에러 발생 시 로그 출력 및 빈 리스트 반환
