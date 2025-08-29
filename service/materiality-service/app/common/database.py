@@ -24,7 +24,7 @@ AsyncSessionLocal = async_sessionmaker(
 # Base 클래스 생성
 Base = declarative_base()
 
-# 데이터베이스 세션 의존성
+# 비동기 데이터베이스 세션 의존성
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
