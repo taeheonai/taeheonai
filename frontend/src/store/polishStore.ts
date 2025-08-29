@@ -55,15 +55,21 @@ export const usePolishStore = create<PolishState>((set, get) => ({
       return;
     }
 
+    // ✅ 배치 업데이트: loading 상태만 먼저 설정
     set({ status: 'loading', error: undefined });
+    
     try {
       const response = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
       
-      // 🔧 새로운 응답 구조 처리: exists 플래그 기반
+      // ✅ 결과에 따라 한 번에 상태 업데이트 (다중 set 방지)
       if (response.exists && response.data) {
-        set({ status: 'success', result: response.data, error: undefined });
+        set({ 
+          status: 'success', 
+          result: response.data, 
+          error: undefined 
+        });
       } else {
-        // 🔧 데이터가 없는 경우를 정상 상태로 처리
+        // ✅ 데이터가 없는 경우를 정상 상태로 처리
         set({ 
           status: 'not_found', 
           error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.',
@@ -86,9 +92,13 @@ export const usePolishStore = create<PolishState>((set, get) => ({
         }
       }
       
-      // 🔧 기타 에러는 error 상태로 처리
+      // ✅ 기타 에러는 한 번에 상태 업데이트
       const error = e instanceof Error ? e.message : '윤문 결과 조회에 실패했습니다.';
-      set({ status: 'error', error, result: undefined });
+      set({ 
+        status: 'error', 
+        error, 
+        result: undefined 
+      });
     }
   },
 
