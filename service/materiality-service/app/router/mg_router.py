@@ -11,7 +11,7 @@ from app.domain.schema.mg_schema import (
 from app.domain.controller.mg_controller import MGController
 import logging
 
-router = APIRouter(prefix="/mg", tags=["mg"])
+router = APIRouter(tags=["mg"])
 logger = logging.getLogger(__name__)
 
 
