@@ -204,3 +204,33 @@ class IssuePoolController:
 def get_issuepool_controller(db: Session = Depends(get_db)) -> IssuePoolController:
     """IssuePoolController 인스턴스 생성 및 반환"""
     return IssuePoolController(db)
+
+    # ... existing code ...
+
+def get_random_issuepools(self, limit: int = 10) -> List[IssuePoolDTO]:
+    """랜덤으로 IssuePool 목록 조회"""
+    try:
+        issuepools = self.service.get_random_issuepools(limit)
+        
+        # Entity 리스트를 DTO 리스트로 변환하여 반환
+        issuepool_dtos = []
+        for issuepool in issuepools:
+            dto = IssuePoolDTO(
+                id=issuepool.id,
+                corporation_id=issuepool.corporation_id,
+                publish_year=issuepool.publish_year,
+                ranking=issuepool.ranking,
+                issue_pool=issuepool.issue_pool,
+                category_id=issuepool.category_id,
+                esg_classification_id=issuepool.esg_classification_id
+            )
+            issuepool_dtos.append(dto)
+        
+        return issuepool_dtos
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"랜덤 IssuePool 조회 실패: {str(e)}"
+        )
+
+# ... existing code ...
