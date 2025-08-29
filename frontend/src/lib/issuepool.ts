@@ -40,7 +40,7 @@ export interface IssuePoolFilter {
 
 // IssuePool API 클래스
 export class IssuePoolAPI {
-  private static baseURL = `${API_BASE_URL}/v1/materiality/api/v1/issuepools`;
+  private static baseURL = `${API_BASE_URL}/v1/materiality`;
 
   // 랜덤 IssuePool 10개 조회 (새로운 엔드포인트)
   static async getRandomIssuePools(limit: number = 10): Promise<IssuePool[]> {
