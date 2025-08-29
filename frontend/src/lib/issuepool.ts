@@ -1,7 +1,7 @@
 // frontend/src/lib/api/issuepool.ts
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://taeheonai-production-2130.up.railway.app/api';
 
 export interface IssuePool {
   id: number;
