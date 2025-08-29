@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, APIRouter
-# from fastapi.middleware.cors import CORSMiddleware  # 🚨 CORS 제거로 인해 불필요
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
@@ -15,15 +14,6 @@ app = FastAPI(
     description="Materiality Assessment Service for TaeheonAI",
     version="1.0.0"
 )
-
-# 🚨 CORS 제거: Gateway에서만 CORS 처리 (브라우저가 직접 호출하지 않음)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=[...],
-#     allow_credentials=True,
-#     allow_methods=[...],
-#     allow_headers=[...],
-# )
 
 # APIRouter 정의
 materiality_router = APIRouter()
@@ -58,7 +48,8 @@ async def root():
         "endpoints": {
             "health": "/health",
             "assess": "/assess",
-            "criteria": "/criteria"
+            "criteria": "/criteria",
+            "issuepools": "/api/v1/issuepools"
         }
     }
 
@@ -110,8 +101,17 @@ async def get_assessment_criteria():
 # 라우터를 앱에 포함
 app.include_router(materiality_router)
 
+# IssuePool 관련 라우터 추가
+try:
+    from app.router.issuepool_router import router as issuepool_router
+    app.include_router(issuepool_router)
+    logger.info("IssuePool router loaded successfully")
+except ImportError as e:
+    logger.warning(f"Could not load IssuePool router: {e}")
+    logger.info("IssuePool functionality will not be available")
+
 if __name__ == "__main__":
     import uvicorn
     
     port = int(os.getenv("PORT", 8002))
-    uvicorn.run(app, host="0.0.0.0", port=port) 
+    uvicorn.run(app, host="0.0.0.0", port=port)
