@@ -10,6 +10,7 @@ from app.domain.schema.polish_schema import (
     PolishCreate
 )
 from app.common.config import get_settings
+from app.domain.schema.polish_schema import PolishEnvelope
 
 logger = logging.getLogger(__name__)
 
@@ -99,13 +100,14 @@ class PolishController:
             logger.error(f"윤문 처리 실패: {str(e)}")
             raise
 
-    async def get_polish_result(self, session_key: str, gri_index: str) -> PolishResponse:
-        """윤문 결과 조회"""
+    async def get_polish_result(self, session_key: str, gri_index: str) -> PolishEnvelope:
+        """윤문 결과 조회 - 404 대신 200으로 응답"""
         try:
             result = await self.service.get_polish(session_key, gri_index)
             if not result:
-                raise HTTPException(status_code=404, detail="윤문 결과를 찾을 수 없습니다")
-            return result
+                # 🔧 404 대신 200으로 응답하되 exists=False로 표시
+                return PolishEnvelope.without_data("윤문 결과를 찾을 수 없습니다")
+            return PolishEnvelope.with_data(result)
         except Exception as e:
             logger.error(f"윤문 결과 조회 실패: {str(e)}")
             raise

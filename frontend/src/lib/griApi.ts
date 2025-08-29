@@ -219,10 +219,11 @@ export class GRIApiService {
   static async getPolishResult(sessionKey: string, griIndex: string) {
     try {
       const { data } = await api.get(`/v1/gri/polish/${sessionKey}/${griIndex}`);
-      return this.normalizePolish(data);
+      return { exists: true, data: this.normalizePolish(data) };
     } catch (error: unknown) {
       if ((error as { response?: { status: number } })?.response?.status === 404) {
-        return null; // 데이터가 없는 경우
+        // 🔧 404는 정상 상태: 아직 윤문 결과가 없음
+        return { exists: false, data: null };
       }
       console.error('윤문 결과 조회 오류:', error);
       const apiError: APIError = {

@@ -3,6 +3,8 @@ import logging
 
 from app.domain.controller.polish_controller import PolishController
 from app.domain.schema.polish_schema import PolishRequest
+from app.domain.schema.polish_schema import PolishEnvelope
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +29,21 @@ async def polish_answers(request: PolishRequest):
         raise HTTPException(status_code=500, detail=f"GRI 답변 윤문 중 오류가 발생했습니다: {str(e)}")
 
 
-@polish_router.get("/polish/{session_key}/{gri_index}", summary="윤문 결과 조회")
+@polish_router.get("/polish/{session_key}/{gri_index}", summary="윤문 결과 조회", response_model=PolishEnvelope)
 async def get_polish_result(session_key: str, gri_index: str):
-    """세션과 GRI 인덱스로 윤문 결과 조회"""
+    """세션과 GRI 인덱스로 윤문 결과 조회 - 404 대신 200으로 응답"""
     try:
         logger.info(f"📝 윤문 결과 조회 요청: session_key={session_key}, gri_index={gri_index}")
         
         result = await polish_controller.get_polish_result(session_key, gri_index)
-        if not result:
-            raise HTTPException(status_code=404, detail="윤문 결과를 찾을 수 없습니다")
-            
-        logger.info(f"✅ 윤문 결과 조회 성공")
+        logger.info(f"✅ 윤문 결과 조회 성공: exists={result.exists}")
         return result
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ 윤문 결과 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail=f"윤문 결과 조회 중 오류가 발생했습니다: {str(e)}")
+        raise HTTPException(status_code=500, detail="윤문 결과 조회 중 오류가 발생했습니다")
 
 
 @polish_router.get("/polish/{session_key}", summary="세션별 윤문 결과 목록")

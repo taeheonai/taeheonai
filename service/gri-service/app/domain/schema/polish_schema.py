@@ -64,3 +64,20 @@ class PolishResponse(BaseModel):
         else:
             # 이미 딕셔너리인 경우
             return cls.model_validate(rec)
+
+
+class PolishEnvelope(BaseModel):
+    """윤문 결과 응답 래퍼 - exists 플래그로 존재 여부 명시"""
+    exists: bool
+    data: Optional[PolishResponse] = None
+    message: Optional[str] = None
+
+    @classmethod
+    def with_data(cls, data: PolishResponse) -> "PolishEnvelope":
+        """데이터가 존재하는 경우"""
+        return cls(exists=True, data=data)
+    
+    @classmethod
+    def without_data(cls, message: str = "윤문 결과가 없습니다") -> "PolishEnvelope":
+        """데이터가 존재하지 않는 경우"""
+        return cls(exists=False, data=None, message=message)
