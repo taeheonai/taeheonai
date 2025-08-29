@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { usePolishStore } from '@/store/polishStore';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -85,16 +85,16 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
   // 🔧 컴포넌트 레벨 에러 상태 관리
   const [componentError, setComponentError] = useState<string | null>(null);
 
-  // ✅ useCallback 의존성 최소화: fetchPolishResult 제거
+  // ✅ useCallback 의존성 최소화: fetchPolishResult는 스토어에서 안정적
   const stableFetchPolishResult = useCallback(async () => {
     if (!sessionKey || !griIndex) return;
     try {
       setComponentError(null);
       await fetchPolishResult(sessionKey, griIndex);
-    } catch (e) {
+    } catch (error) {
       setComponentError('윤문 결과 조회 중 오류가 발생했습니다.');
     }
-  }, [sessionKey, griIndex]); // ✅ 최소 의존성
+  }, [sessionKey, griIndex, fetchPolishResult]); // ✅ fetchPolishResult 포함 (ESLint 규칙 준수)
 
   // ✅ 자동 호출 완전 비활성화 - 버튼 클릭으로만 실행
   // useEffect(() => {}, [sessionKey, griIndex]); // 아무것도 안 함
