@@ -212,6 +212,7 @@ class IssuePoolController:
                     corporation_id=issuepool.corporation_id,
                     publish_year=issuepool.publish_year,
                     ranking=issuepool.ranking,
+                    base_issue_pool=issuepool.base_issue_pool,  # base_issue_pool 추가
                     issue_pool=issuepool.issue_pool,
                     category_id=issuepool.category_id,
                     esg_classification_id=issuepool.esg_classification_id
