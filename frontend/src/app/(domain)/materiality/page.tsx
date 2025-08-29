@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { IssuePool, IssuePoolAPI } from '@/lib/issuepool';
+import { useMGStore } from '@/store/mgStore'; // 🔧 MG Store 추가
 
 export default function MaterialityPage() {
   const [issuePools, setIssuePools] = useState<IssuePool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  
+  // 🔧 MG Store 연동
+  const setSelected = useMGStore(s => s.setSelected);
 
   // 랜덤 IssuePool 10개 로드
   useEffect(() => {
@@ -29,7 +33,15 @@ export default function MaterialityPage() {
     }
   };
 
-  // GRI 페이지로 이동하면서 데이터 전달
+  // 🔧 MG 페이지로 이동하면서 데이터 전달 (기존 GRI 기능과 함께)
+  const navigateToMG = () => {
+    if (issuePools.length > 0) {
+      setSelected(issuePools);  // MG Store에 10개 선택된 데이터 저장
+      router.push('/mg');        // MG 페이지로 이동
+    }
+  };
+
+  // GRI 페이지로 이동하면서 데이터 전달 (기존 기능 유지)
   const navigateToGRI = () => {
     if (issuePools.length > 0) {
       // 세션 스토리지에 데이터 저장 (페이지 간 데이터 전달용)
@@ -81,7 +93,7 @@ export default function MaterialityPage() {
             Materiality Assessment
           </h1>
           <p className="text-xl text-gray-600">
-            IssuePool에서 랜덤으로 선택된 10개의 이슈를 확인하고 GRI 페이지로 전달하세요
+            IssuePool에서 랜덤으로 선택된 10개의 이슈를 확인하고 MG 페이지로 전달하세요
           </p>
         </div>
 
@@ -93,6 +105,20 @@ export default function MaterialityPage() {
           >
             🔄 새로운 랜덤 데이터
           </button>
+          
+          {/* 🔧 MG 페이지로 이동 버튼 추가 */}
+          <button
+            onClick={navigateToMG}
+            disabled={issuePools.length === 0}
+            className={`font-bold py-3 px-6 rounded-lg transition-colors ${
+              issuePools.length > 0
+                ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            }`}
+          >
+            🎯 MG 페이지로 이동 ({issuePools.length}개 선택됨)
+          </button>
+          
           <button
             onClick={navigateToGRI}
             disabled={issuePools.length === 0}
