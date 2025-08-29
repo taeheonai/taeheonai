@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { usePolishStore } from '@/store/polishStore';
 import { useShallow } from 'zustand/react/shallow';
 import ReactMarkdown from 'react-markdown';
@@ -97,6 +97,13 @@ export const PolishResult: React.FC<PolishResultProps> = ({
       console.error('윤문 결과 조회 실패:', e);
     }
   }, [sessionKey, griIndex, fetchPolishResult]);
+
+  /* 컴포넌트 마운트 시 자동으로 데이터 가져오기 */
+  useEffect(() => {
+    if (sessionKey && griIndex && status === 'idle') {
+      stableFetchPolishResult();
+    }
+  }, [sessionKey, griIndex, status, stableFetchPolishResult]);
 
   /* 테이블 마크다운 렌더링 스타일 */
   const markdownComponents = {
