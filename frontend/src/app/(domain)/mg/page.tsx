@@ -17,8 +17,26 @@ export default function MGPage() {
   }, [selected, loadIndexes]);
 
   useEffect(() => { 
+    // selected가 비어있으면 세션 스토리지에서 복원 시도
+    if (selected.length === 0) {
+      try {
+        const stored = sessionStorage.getItem('selectedIssuePools');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // MG Store에 복원
+            const { setSelected } = useMGStore.getState();
+            setSelected(parsed);
+            return; // 다음 useEffect에서 처리
+          }
+        }
+      } catch (error) {
+        console.error('세션 스토리지 복원 실패:', error);
+      }
+    }
+    
     stableLoadIndexes();
-  }, [stableLoadIndexes]);
+  }, [stableLoadIndexes, selected.length]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
