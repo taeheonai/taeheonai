@@ -120,20 +120,20 @@ async def get_assessment_criteria():
 # 라우터를 앱에 포함
 app.include_router(materiality_router)
 
-# IssuePool 관련 라우터 추가
+# IssuePool 관련 라우터를 Materiality Router의 하위로 포함
 try:
     from app.router.issuepool_router import router as issuepool_router
-    app.include_router(issuepool_router)
-    logger.info("IssuePool router loaded successfully")
+    materiality_router.include_router(issuepool_router)
+    logger.info("IssuePool router loaded successfully as sub-router of Materiality")
 except Exception as e:
     logger.exception("Fatal: failed to load IssuePool router")
     raise
 
-# 🔧 MG 관련 라우터 추가
+# 🔧 MG 관련 라우터를 Materiality Router의 하위로 포함
 try:
     from app.router.mg_router import router as mg_router
-    app.include_router(mg_router)
-    logger.info("MG router loaded successfully")
+    materiality_router.include_router(mg_router)
+    logger.info("MG router loaded successfully as sub-router of Materiality")
 except Exception as e:
     logger.exception("Fatal: failed to load MG router")
     raise
