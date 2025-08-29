@@ -1,7 +1,8 @@
 'use client';
 
+import React, { useEffect, useState, useCallback } from 'react';
 import { usePolishStore } from '@/store/polishStore';
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 interface PolishResultProps {
   sessionKey: string;
@@ -9,15 +10,15 @@ interface PolishResultProps {
   showSaveHint?: boolean;
 }
 
-// 🔧 공통 상태 메시지 컴포넌트
-const StatusMessage: React.FC<{
+// 🔧 공통 상태 메시지 컴포넌트 - React.memo로 최적화
+const StatusMessage = React.memo<{
   type: 'info' | 'warning' | 'error' | 'success';
   title: string;
   message: string;
   buttonText?: string;
   onButtonClick?: () => void;
   icon?: React.ReactNode;
-}> = ({ type, title, message, buttonText, onButtonClick, icon }) => {
+}>(function StatusMessage({ type, title, message, buttonText, onButtonClick, icon }) {
   const getColorClasses = () => {
     switch (type) {
       case 'info':
@@ -54,7 +55,7 @@ const StatusMessage: React.FC<{
         {icon}
         <span className="font-medium">{title}</span>
       </div>
-      <p className="mt-2">{message}</p>
+      <p className="whitespace-pre-line mt-2">{message}</p>
       {buttonText && onButtonClick && (
         <button
           onClick={onButtonClick}
@@ -65,57 +66,46 @@ const StatusMessage: React.FC<{
       )}
     </div>
   );
-};
+});
 
 export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex, showSaveHint = false }) => {
-  const { status, result, error, savedAt, fetchPolishResult } = usePolishStore((s) => ({
-    status: s.status,
-    result: s.result,
-    error: s.error,
-    savedAt: s.savedAt,
-    fetchPolishResult: s.fetchPolishResult,
-  }));
+  // ✅ 셀렉터 안정화: useShallow로 객체 참조 안정화
+  const { status, result, error, savedAt } = usePolishStore(
+    useShallow(s => ({
+      status: s.status,
+      result: s.result,
+      error: s.error,
+      savedAt: s.savedAt,
+    }))
+  );
+  
+  // ✅ 액션은 별도 구독 (참조가 안정적이어야 함)
+  const fetchPolishResult = usePolishStore(s => s.fetchPolishResult);
 
-  // 🔧 컴포넌트 마운트 상태 추적
-  const isMounted = useRef(true);
   // 🔧 컴포넌트 레벨 에러 상태 관리
   const [componentError, setComponentError] = useState<string | null>(null);
 
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  // 🔧 무한 루프 방지: useCallback으로 함수 안정화
+  // ✅ useCallback 의존성 최소화: fetchPolishResult 제거
   const stableFetchPolishResult = useCallback(async () => {
-    if (!isMounted.current || !sessionKey || !griIndex) return;
-    
+    if (!sessionKey || !griIndex) return;
     try {
-      setComponentError(null); // 에러 상태 초기화
+      setComponentError(null);
       await fetchPolishResult(sessionKey, griIndex);
-    } catch (error) {
-      // 🔧 컴포넌트가 언마운트된 경우 에러 무시
-      if (isMounted.current) {
-        console.error('윤문 결과 조회 실패:', error);
-        setComponentError('윤문 결과 조회 중 오류가 발생했습니다.');
-      }
+    } catch (e) {
+      setComponentError('윤문 결과 조회 중 오류가 발생했습니다.');
     }
-  }, [sessionKey, griIndex, fetchPolishResult]);
+  }, [sessionKey, griIndex]); // ✅ 최소 의존성
 
-  useEffect(() => {
-    // 🔧 이미 결과가 있거나 로딩 중이면 API 호출하지 않음
-    // 🔧 초기 자동 호출 방지: 사용자가 명시적으로 요청할 때만 조회
-    if (sessionKey && griIndex && status === 'idle' && !result && isMounted.current) {
-      // 🔧 자동 호출 대신 사용자 액션 기반 호출로 변경
-      console.log('🔄 윤문 결과 자동 조회 비활성화 - 사용자 액션 기반으로 변경');
-    }
-  }, [sessionKey, griIndex, status, result]);
+  // ✅ 자동 호출 완전 비활성화 - 버튼 클릭으로만 실행
+  // useEffect(() => {}, [sessionKey, griIndex]); // 아무것도 안 함
 
-  // 🔧 컴포넌트가 언마운트된 경우 아무것도 렌더링하지 않음
-  if (!isMounted.current) {
-    return null;
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <span className="ml-2">윤문 결과를 불러오는 중...</span>
+      </div>
+    );
   }
 
   // 🔧 컴포넌트 레벨 에러 처리
@@ -133,15 +123,6 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
           </svg>
         }
       />
-    );
-  }
-
-  if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        <span className="ml-2">윤문 결과를 불러오는 중...</span>
-      </div>
     );
   }
 
