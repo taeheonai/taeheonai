@@ -11,15 +11,15 @@ interface PolishResultProps {
   sessionKey: string;
   griIndex: string;
   showSaveHint?: boolean;
-  /** 🔧 추가: 표로 만든 마크다운을 앞에 붙여 렌더 */
+  /** 표로 만든 마크다운을 윤문 결과 앞에 붙여서 렌더링 */
   prependMarkdown?: string;
-  /** 🔧 LLM 응답에서 어떤 부분을 보여줄지: 'tables' | 'prose' | 'both' | 'none' */
+  /** LLM 응답에서 어떤 부분을 보여줄지: 'tables' | 'prose' | 'both' | 'none' */
   keepFromLLM?: KeepMode | 'none';
-  /** 🔧 LLM 응답에서 제거할 질문/헤더 문구(요구사항 제목 등) */
+  /** LLM 응답에서 제거할 질문/헤더 문구(요구사항 제목 등) */
   stripHeads?: string[];
 }
 
-// 🔧 공통 상태 메시지 컴포넌트 - React.memo로 최적화
+/* ---------- 공통 상태 메시지 ---------- */
 const StatusMessage = React.memo<{
   type: 'info' | 'warning' | 'error' | 'success' | 'loading';
   title: string;
@@ -30,38 +30,24 @@ const StatusMessage = React.memo<{
 }>(function StatusMessage({ type, title, message, buttonText, onButtonClick, icon }) {
   const getColorClasses = () => {
     switch (type) {
-      case 'info':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'warning':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'error':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'success':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'loading':
-        return 'bg-gray-50 text-gray-600 border-gray-200';
-      default:
-        return 'bg-gray-50 text-gray-600 border-gray-200';
+      case 'info': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'warning': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'error': return 'bg-red-50 text-red-700 border-red-200';
+      case 'success': return 'bg-green-50 text-green-700 border-green-200';
+      case 'loading': return 'bg-gray-50 text-gray-600 border-gray-200';
+      default: return 'bg-gray-50 text-gray-600 border-gray-200';
     }
   };
-
   const getButtonColor = () => {
     switch (type) {
-      case 'info':
-        return 'bg-blue-600 hover:bg-blue-700';
-      case 'warning':
-        return 'bg-yellow-600 hover:bg-yellow-700';
-      case 'error':
-        return 'bg-red-600 hover:bg-red-700';
-      case 'success':
-        return 'bg-green-600 hover:bg-green-700';
-      case 'loading':
-        return 'bg-gray-600 hover:bg-gray-700';
-      default:
-        return 'bg-gray-600 hover:bg-gray-700';
+      case 'info': return 'bg-blue-600 hover:bg-blue-700';
+      case 'warning': return 'bg-yellow-600 hover:bg-yellow-700';
+      case 'error': return 'bg-red-600 hover:bg-red-700';
+      case 'success': return 'bg-green-600 hover:bg-green-700';
+      case 'loading': return 'bg-gray-600 hover:bg-gray-700';
+      default: return 'bg-gray-600 hover:bg-gray-700';
     }
   };
-
   return (
     <div className={`p-4 border rounded-md ${getColorClasses()}`}>
       <div className="flex items-center space-x-2">
@@ -81,41 +67,38 @@ const StatusMessage = React.memo<{
   );
 });
 
-export const PolishResult: React.FC<PolishResultProps> = ({ 
-  sessionKey, 
-  griIndex, 
+/* ---------- 본 컴포넌트 ---------- */
+export const PolishResult: React.FC<PolishResultProps> = ({
+  sessionKey,
+  griIndex,
   showSaveHint = false,
   prependMarkdown = '',
   keepFromLLM = 'both',
-  stripHeads = []
+  stripHeads = [],
 }) => {
-  // ✅ 셀렉터 안정화: useShallow로 객체 참조 안정화
+  /* 셀렉터: 참조 안정화 */
   const { status, result, error, savedAt } = usePolishStore(
-    useShallow(s => ({
+    useShallow((s) => ({
       status: s.status,
       result: s.result,
       error: s.error,
       savedAt: s.savedAt,
-    }))
+    })),
   );
-  
-  // ✅ 액션은 별도 구독 (참조가 안정적이어야 함)
-  const fetchPolishResult = usePolishStore(s => s.fetchPolishResult);
+  /* 액션은 별도 구독 */
+  const fetchPolishResult = usePolishStore((s) => s.fetchPolishResult);
 
-  // ✅ useCallback 의존성 최소화: fetchPolishResult는 스토어에서 안정적
+  /* 안전 호출 */
   const stableFetchPolishResult = useCallback(async () => {
     if (!sessionKey || !griIndex) return;
     try {
       await fetchPolishResult(sessionKey, griIndex);
-    } catch (error) {
-      console.error('윤문 결과 조회 실패:', error);
+    } catch (e) {
+      console.error('윤문 결과 조회 실패:', e);
     }
-  }, [sessionKey, griIndex, fetchPolishResult]); // ✅ fetchPolishResult 포함 (ESLint 규칙 준수)
+  }, [sessionKey, griIndex, fetchPolishResult]);
 
-  // ✅ 자동 호출 완전 비활성화 - 버튼 클릭으로만 실행
-  // useEffect(() => {}, [sessionKey, griIndex]); // 아무것도 안 함
-
-  // 🔧 마크다운 표 렌더링을 위한 커스텀 스타일
+  /* 테이블 마크다운 렌더링 스타일 */
   const markdownComponents = {
     table: ({ children, ...props }: React.ComponentProps<'table'>) => (
       <div className="overflow-x-auto my-4">
@@ -125,32 +108,23 @@ export const PolishResult: React.FC<PolishResultProps> = ({
       </div>
     ),
     thead: ({ children, ...props }: React.ComponentProps<'thead'>) => (
-      <thead className="bg-gray-50" {...props}>
-        {children}
-      </thead>
+      <thead className="bg-gray-50" {...props}>{children}</thead>
     ),
     tbody: ({ children, ...props }: React.ComponentProps<'tbody'>) => (
-      <tbody className="bg-white" {...props}>
-        {children}
-      </tbody>
+      <tbody className="bg-white" {...props}>{children}</tbody>
     ),
     tr: ({ children, ...props }: React.ComponentProps<'tr'>) => (
-      <tr className="border-b border-gray-200" {...props}>
-        {children}
-      </tr>
+      <tr className="border-b border-gray-200" {...props}>{children}</tr>
     ),
     th: ({ children, ...props }: React.ComponentProps<'th'>) => (
-      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700" {...props}>
-        {children}
-      </th>
+      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700" {...props}>{children}</th>
     ),
     td: ({ children, ...props }: React.ComponentProps<'td'>) => (
-      <td className="px-4 py-3 text-sm text-gray-900" {...props}>
-        {children}
-      </td>
+      <td className="px-4 py-3 text-sm text-gray-900" {...props}>{children}</td>
     ),
   };
 
+  /* 상태별 UI */
   if (status === 'loading') {
     return (
       <StatusMessage
@@ -202,78 +176,77 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   }
 
   if (status === 'success' && result?.polished_text) {
-    // 🔧 JSON을 마크다운으로 직접 렌더링하지 않도록 수정
+    // 서버에서 내려오는 polished_text 형식에 따라 안전 파싱
     const raw = result.polished_text;
 
-    // 1) 본문 텍스트(마크다운 대상) - JSON이 아닌 실제 텍스트만
+    // 본문/표 텍스트 분리
     let proseText = '';
     let tableText = '';
-    
+
     if (typeof raw === 'string') {
+      // 서버가 순수 마크다운 문자열을 줄 때
       proseText = raw;
     } else if (raw && typeof raw === 'object') {
-      const rawObj = raw as Record<string, unknown>;
-      proseText = String(rawObj.text || '');
-      tableText = String(rawObj.table || '');
+      // { text, table, model, created_at, ... } 형태
+      const obj = raw as Record<string, unknown>;
+      proseText = String(obj.text ?? '');
+      tableText = String(obj.table ?? '');
     }
 
-    // 2) 메타를 코드블록으로 렌더 (파싱 방지)
+    // 메타(모델/시간) 코드블록
     let metaJson = '';
     if (raw && typeof raw === 'object' && 'model' in raw) {
-      const rawObj = raw as Record<string, unknown>;
-      metaJson = '```json\n' + JSON.stringify({ 
-        model: rawObj.model, 
-        created_at: rawObj.created_at 
-      }, null, 2) + '\n```';
+      const obj = raw as Record<string, unknown>;
+      metaJson =
+        '```json\n' +
+        JSON.stringify(
+          {
+            model: obj.model,
+            created_at: obj.created_at,
+          },
+          null,
+          2,
+        ) +
+        '\n```';
     }
 
-    // 3) 모드별로 다른 내용 렌더링
+    // 표시 모드에 따라 LLM 내용 선택
     let contentToRender = '';
-    
     if (keepFromLLM === 'tables' && tableText) {
-      // 표 모드: table 키 내용만
       contentToRender = tableText;
     } else if (keepFromLLM === 'prose' && proseText) {
-      // 윤문 모드: text 키 내용만
       contentToRender = proseText;
     } else if (keepFromLLM === 'both') {
-      // 둘 다: table + text
-      contentToRender = (tableText ? tableText + '\n\n' : '') + proseText;
-    }
-    // keepFromLLM === 'none'이면 contentToRender는 빈 문자열
+      contentToRender = (tableText ? `${tableText}\n\n` : '') + proseText;
+    } // 'none'이면 비움
 
-    // 4) 표 마크다운 + LLM 내용 + 메타 코드블록 합치기
+    // 표(프론트 생성) + LLM 내용 + 메타 합치기
     const mergedMarkdown =
       (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
-      contentToRender +
+      (contentToRender ?? '') +
       (metaJson ? `\n\n${metaJson}` : '');
 
-    // 🔧 마크다운 필터링 적용
-    const filteredMarkdown = 
-      keepFromLLM === 'none' ? '' : 
-      filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
+    // stripHeads/모드에 따른 필터링
+    const filteredMarkdown =
+      keepFromLLM === 'none' ? (prependMarkdown?.trim() ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
 
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
         <div className="prose max-w-none">
-          {/* 🔧 마크다운 렌더링으로 표 자동 변환 */}
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}
-            components={markdownComponents}
-          >
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
             {filteredMarkdown || '_표시할 내용이 없습니다._'}
           </ReactMarkdown>
         </div>
         <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
           {savedAt && <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>}
-          {/* 모델/시간은 위 metaJson으로 보여주므로 여기서는 제거 */}
+          {showSaveHint && <p className="text-blue-600">* 저장 후 GRI Report 페이지에서 확인할 수 있습니다</p>}
         </div>
       </div>
     );
   }
 
-  // 🔧 idle 상태일 때 초기 안내 메시지
+  // idle 및 그 외 안전 처리
   if (status === 'idle') {
     return (
       <StatusMessage
@@ -291,27 +264,11 @@ export const PolishResult: React.FC<PolishResultProps> = ({
     );
   }
 
-  if (status !== 'success' || !result?.polished_text) {
-    return (
-      <StatusMessage
-        type="info"
-        title="윤문 결과가 없습니다"
-        message="윤문을 실행해주세요."
-        buttonText="윤문 결과 확인하기"
-        onButtonClick={stableFetchPolishResult}
-        icon={
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }
-      />
-    );
-  }
-
-  // polished_text가 객체인 경우 문자열로 변환
-  const polishedText = typeof result.polished_text === 'string' 
-    ? result.polished_text 
-    : JSON.stringify(result.polished_text, null, 2);
+  // 폴백
+  const polishedText =
+    typeof result?.polished_text === 'string'
+      ? result?.polished_text
+      : JSON.stringify(result?.polished_text ?? {}, null, 2);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -320,17 +277,8 @@ export const PolishResult: React.FC<PolishResultProps> = ({
         <div className="whitespace-pre-wrap">{polishedText}</div>
       </div>
       <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
-        <div>
-          {savedAt && (
-            <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>
-          )}
-          {result.meta?.model && <p>모델: {result.meta.model}</p>}
-        </div>
-        {showSaveHint && (
-          <p className="text-blue-600">
-            * 저장 후 GRI Report 페이지에서 확인할 수 있습니다
-          </p>
-        )}
+        {savedAt && <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>}
+        {showSaveHint && <p className="text-blue-600">* 저장 후 GRI Report 페이지에서 확인할 수 있습니다</p>}
       </div>
     </div>
   );
