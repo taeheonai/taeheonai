@@ -5,6 +5,7 @@ import { usePolishStore } from '@/store/polishStore';
 import { useShallow } from 'zustand/react/shallow';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { filterMarkdown, KeepMode } from '@/lib/mdFilter';
 
 interface PolishResultProps {
   sessionKey: string;
@@ -12,6 +13,10 @@ interface PolishResultProps {
   showSaveHint?: boolean;
   /** 🔧 추가: 표로 만든 마크다운을 앞에 붙여 렌더 */
   prependMarkdown?: string;
+  /** 🔧 LLM 응답에서 어떤 부분을 보여줄지: 'tables' | 'prose' | 'both' | 'none' */
+  keepFromLLM?: KeepMode | 'none';
+  /** 🔧 LLM 응답에서 제거할 질문/헤더 문구(요구사항 제목 등) */
+  stripHeads?: string[];
 }
 
 // 🔧 공통 상태 메시지 컴포넌트 - React.memo로 최적화
@@ -80,7 +85,9 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   sessionKey, 
   griIndex, 
   showSaveHint = false,
-  prependMarkdown = ''
+  prependMarkdown = '',
+  keepFromLLM = 'both',
+  stripHeads = []
 }) => {
   // ✅ 셀렉터 안정화: useShallow로 객체 참조 안정화
   const { status, result, error, savedAt } = usePolishStore(
@@ -222,6 +229,11 @@ export const PolishResult: React.FC<PolishResultProps> = ({
       proseText +
       (metaJson ? `\n\n${metaJson}` : '');
 
+    // 🔧 마크다운 필터링 적용
+    const filteredMarkdown = 
+      keepFromLLM === 'none' ? '' : 
+      filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
+
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
@@ -231,12 +243,12 @@ export const PolishResult: React.FC<PolishResultProps> = ({
             remarkPlugins={[remarkGfm]}
             components={markdownComponents}
           >
-            {mergedMarkdown}
+            {filteredMarkdown || '_표시할 내용이 없습니다._'}
           </ReactMarkdown>
         </div>
         <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
           {savedAt && <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>}
-          {result.meta?.model && <p>모델: {result.meta.model}</p>}
+          {/* 모델/시간은 위 metaJson으로 보여주므로 여기서는 제거 */}
         </div>
       </div>
     );
