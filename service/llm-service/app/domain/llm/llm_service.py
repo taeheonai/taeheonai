@@ -7,26 +7,36 @@ import hashlib
 import logging
 from datetime import datetime
 from pathlib import Path
+import asyncio
 
 from langchain_community.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)
 
-def load_gri_examples() -> Dict[str, Dict[str, Any]]:
-    """GRI 예시 데이터를 로드하는 함수"""
+async def load_gri_examples() -> Dict[str, Dict[str, Any]]:
+    """GRI 예시 데이터를 비동기로 로드하는 함수"""
     examples = {}
     try:
         # Docker 컨테이너 내 경로: /app/data/gri_all.jsonl
         jsonl_path = Path("/app/data/gri_all.jsonl")
         
-        with open(jsonl_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                data = json.loads(line)
-                # input이 GRI 인덱스를 나타냄
-                gri_index = data.get('input')
-                if gri_index:
-                    examples[gri_index] = data
+        # 파일 읽기를 비동기로 처리
+        def _read_file_sync():
+            with open(jsonl_path, 'r', encoding='utf-8') as f:
+                return f.readlines()
+        
+        # 동기 파일 읽기를 별도 스레드에서 실행
+        loop = asyncio.get_event_loop()
+        lines = await loop.run_in_executor(None, _read_file_sync)
+        
+        for line in lines:
+            data = json.loads(line)
+            # input이 GRI 인덱스를 나타냄
+            gri_index = data.get('input')
+            if gri_index:
+                examples[gri_index] = data
+                
         logger.info(f"Loaded {len(examples)} GRI examples from {jsonl_path}")
         return examples
     except Exception as e:
@@ -71,9 +81,9 @@ class GriPolisher:
                 temperature=temperature,
                 timeout=timeout,
             )
-            # GRI 예시 데이터 로드
-            self.gri_examples = load_gri_examples()
-            logger.info(f"Initialized GriPolisher with {len(self.gri_examples)} GRI examples")
+            # GRI 예시 데이터는 비동기로 로드하므로 여기서는 초기화하지 않음
+            self.gri_examples = {}
+            logger.info(f"Initialized GriPolisher with model: {self.model_name}")
         except Exception as e:
             logger.error(f"LangChain 초기화 실패: {str(e)}")
             raise
@@ -98,79 +108,29 @@ class GriPolisher:
             "### 참고 예시\n"
             "gri_all.jsonl 파일에서 GRI {gri_index} 인덱스의 예시를 참고하여 작성하세요.\n"
             "특히 다음 요소들을 주의 깊게 살펴보세요:\n"
-            "- 데이터 구조화 방식 (표/서술)\n"
-            "- 정량/정성 데이터 배치\n"
-            "- 용어 사용과 표현 방식\n\n"
-            "### 입력 원문 목록\n"
+            "- 문장 구조와 형식\n"
+            "- 용어 사용법\n"
+            "- 데이터 제시 방식\n"
+            "- 전체적인 논리적 흐름\n\n"
+            "### 입력 데이터\n"
             "{items_block}\n\n"
-            "### 출력 지침\n"
-            "- 하나의 통합 본문으로 작성\n"
-            "- 불필요한 중복 제거, 용어 통일\n"
-            "- 정책/프로세스/성과가 섞여 있으면 맥락 순서로 재배열\n"
-            "- 필요 시 문단 구분(2~4문단), 불릿(선택) 허용\n"
-            "- 정량 데이터는 표 형식으로 구조화\n"
-            "- 정성적 설명은 명확하고 간결한 서술형으로 작성\n"
+            "위 입력을 바탕으로 GRI {gri_index}에 맞는 공시문을 작성하세요."
         )
 
+    async def _ensure_examples_loaded(self):
+        """GRI 예시 데이터가 로드되지 않았다면 로드"""
+        if not self.gri_examples:
+            self.gri_examples = await load_gri_examples()
+            logger.info(f"GRI examples loaded: {len(self.gri_examples)} examples")
+
     def _build_items_block(self, items: List[RequirementItem]) -> str:
-        """요구사항 목록을 문자열로 변환"""
-        lines = []
-        for it in sorted(items, key=lambda x: x.key_alpha):
-            lines.append(f"- ({it.key_alpha}) {it.text}")
-        return "\n".join(lines)
+        """요구사항 아이템들을 텍스트 블록으로 구성"""
+        blocks = []
+        for item in items:
+            blocks.append(f"**{item.key_alpha}.** {item.text}")
+        return "\n\n".join(blocks)
 
-    def polish(
-        self,
-        *,
-        gri_index: str,
-        items: List[RequirementItem],
-        extra_instructions: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        동기 함수. (FastAPI/비동기에서 쓰려면 아래 apolish 사용 권장)
-        """
-        try:
-            items_block = self._build_items_block(items)
-            system = self.system_tmpl.format(gri_index=gri_index)
-            # 해당 GRI 인덱스의 예시 데이터 가져오기
-            example_data = self.gri_examples.get(gri_index, {})
-            example_instruction = example_data.get('instruction', '')
-            example_answer = example_data.get('answer', '')
-            
-            # 예시 데이터를 포함한 human 프롬프트 구성
-            human = self.human_tmpl.format(
-                gri_index=gri_index,
-                items_block=items_block + (f"\n\n[추가 지침]\n{extra_instructions}" if extra_instructions else "")
-            )
-            
-            # 예시 데이터가 있을 때만 추가
-            if example_instruction and example_answer:
-                human += f"\n\n### GRI {gri_index} 참고 예시\n"
-                human += f"요구사항: {example_instruction}\n"
-                human += f"답변 예시:\n{example_answer}\n"
-
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", system),
-                ("human", "{human_input}")
-            ])
-
-            chain = prompt | self.llm
-            ai_msg = chain.invoke({"human_input": human})
-
-            sources = [{"requirement": it.key_alpha, "hash": _hash_item(it)} for it in items]
-
-            return {
-                "polished_text": str(ai_msg.content).strip(),
-                "sources": sources,
-                "model": self.model_name,
-                "created_at": datetime.utcnow().isoformat()
-            }
-
-        except Exception as e:
-            logger.error(f"Polish 실패: {str(e)}")
-            raise
-
-    async def apolish(
+    async def polish(
         self,
         *,
         gri_index: str,
@@ -181,6 +141,9 @@ class GriPolisher:
         비동기 함수(FastAPI/async 세션과 궁합 좋음)
         """
         try:
+            # GRI 예시 데이터 로드 확인
+            await self._ensure_examples_loaded()
+            
             items_block = self._build_items_block(items)
             system = self.system_tmpl.format(gri_index=gri_index)
             # 해당 GRI 인덱스의 예시 데이터 가져오기
@@ -220,3 +183,20 @@ class GriPolisher:
         except Exception as e:
             logger.error(f"Async polish 실패: {str(e)}")
             raise
+
+    # 기존 apolish 메서드를 polish로 통합 (하위 호환성 유지)
+    async def apolish(
+        self,
+        *,
+        gri_index: str,
+        items: List[RequirementItem],
+        extra_instructions: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        하위 호환성을 위한 별칭 (실제로는 polish 메서드 호출)
+        """
+        return await self.polish(
+            gri_index=gri_index,
+            items=items,
+            extra_instructions=extra_instructions
+        )
