@@ -2,8 +2,8 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { MGIndexDTO } from '@/lib/api/mg';
-import { fetchMGIndexes, requestMGPolish } from '@/lib/api/mg';
+import type { MGIndexDTO } from '@/lib/mg';
+import { fetchMGIndexes, requestMGPolish } from '@/lib/mg';
 
 type IssuePool = {
   id:number; corporation_id:number; publish_year:number; ranking:number;
@@ -39,7 +39,7 @@ export const useMGStore = create<MGState>()(persist((set, get) => ({
   runPolish: async (sessionKey, threadId, indices) => {
     const idx = indices ?? Object.values(get().indexesByIssue).flat();
     // 상태 표시
-    const patch: Record<string, any> = {};
+    const patch: Record<string, { status: 'loading' }> = {};
     idx.forEach(i => patch[`${i.gri_index}`] = { status: 'loading' });
     set({ resultsByIndex: { ...get().resultsByIndex, ...patch } });
 

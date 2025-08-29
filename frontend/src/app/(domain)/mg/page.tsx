@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useMGStore } from '@/store/mgStore';
 // 필요하면 PolishResult를 다이내믹 임포트
 // import dynamic from 'next/dynamic';
@@ -9,7 +9,16 @@ import { useMGStore } from '@/store/mgStore';
 export default function MGPage() {
   const { selected, indexesByIssue, loadIndexes } = useMGStore();
 
-  useEffect(() => { loadIndexes(); }, [selected]);
+  // 🔧 useCallback으로 함수 안정화
+  const stableLoadIndexes = useCallback(() => {
+    if (selected.length > 0) {
+      loadIndexes();
+    }
+  }, [selected, loadIndexes]);
+
+  useEffect(() => { 
+    stableLoadIndexes();
+  }, [stableLoadIndexes]);
 
   return (
     <div>
