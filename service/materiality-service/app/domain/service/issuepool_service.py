@@ -4,6 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.repository.issuepool_repository import IssuePoolRepository
 from app.domain.schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter, IssuePoolListResponse
 from app.domain.entity.issuepool_entity import IssuePool
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 
 class IssuePoolService:
@@ -124,8 +128,15 @@ class IssuePoolService:
     async def get_random_issuepools(self, limit: int = 10) -> List[IssuePool]:
         """랜덤으로 IssuePool 목록 조회"""
         try:
-            return await self.repository.get_random_issuepools(limit)
+            logger.info(f"랜덤 IssuePool 조회 시작: limit={limit}")
+            result = await self.repository.get_random_issuepools(limit)
+            logger.info(f"랜덤 IssuePool 조회 완료: {len(result)}개")
+            return result
         except Exception as e:
+            logger.error(f"랜덤 IssuePool 조회 실패: {str(e)}")
+            logger.error(f"에러 타입: {type(e).__name__}")
+            import traceback
+            logger.error(f"스택 트레이스: {traceback.format_exc()}")
             raise Exception(f"랜덤 IssuePool 조회 실패: {str(e)}")
 
     async def process_issuepool_creation(self, issuepool_dto: IssuePoolDTO) -> IssuePool:

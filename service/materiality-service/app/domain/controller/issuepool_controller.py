@@ -13,6 +13,9 @@ from app.domain.schema.issuepool_schema import (
 )
 from app.domain.entity.issuepool_entity import IssuePool
 from app.common.database import get_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class IssuePoolController:
@@ -207,20 +210,29 @@ class IssuePoolController:
             # Entity 리스트를 DTO 리스트로 변환하여 반환
             issuepool_dtos = []
             for issuepool in issuepools:
-                dto = IssuePoolDTO(
-                    id=issuepool.id,
-                    corporation_id=issuepool.corporation_id,
-                    publish_year=issuepool.publish_year,
-                    ranking=issuepool.ranking,
-                    base_issue_pool=issuepool.base_issue_pool,  # base_issue_pool 추가
-                    issue_pool=issuepool.issue_pool,
-                    category_id=issuepool.category_id,
-                    esg_classification_id=issuepool.esg_classification_id
-                )
-                issuepool_dtos.append(dto)
+                try:
+                    dto = IssuePoolDTO(
+                        id=issuepool.id,
+                        corporation_id=issuepool.corporation_id,
+                        publish_year=issuepool.publish_year,
+                        ranking=issuepool.ranking,
+                        base_issue_pool=issuepool.base_issue_pool,  # base_issue_pool 추가
+                        issue_pool=issuepool.issue_pool,
+                        category_id=issuepool.category_id,
+                        esg_classification_id=issuepool.esg_classification_id
+                    )
+                    issuepool_dtos.append(dto)
+                except Exception as dto_error:
+                    logger.error(f"DTO 변환 실패 - Entity ID {issuepool.id}: {str(dto_error)}")
+                    logger.error(f"Entity 데이터: {issuepool.__dict__}")
+                    raise dto_error
             
             return issuepool_dtos
         except Exception as e:
+            logger.error(f"랜덤 IssuePool 조회 실패: {str(e)}")
+            logger.error(f"에러 타입: {type(e).__name__}")
+            import traceback
+            logger.error(f"스택 트레이스: {traceback.format_exc()}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"랜덤 IssuePool 조회 실패: {str(e)}"

@@ -5,6 +5,10 @@ from sqlalchemy import and_, desc, func, select
 from sqlalchemy.orm import selectinload
 from app.domain.entity.issuepool_entity import IssuePool
 from app.domain.schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 
 class IssuePoolRepository:
@@ -204,12 +208,22 @@ class IssuePoolRepository:
 
     async def get_random_issuepools(self, limit: int = 10) -> List[IssuePool]:
         """랜덤으로 IssuePool 목록 조회"""
-        result = await self.db.execute(
-            select(IssuePool)
-            .order_by(func.random())
-            .limit(limit)
-        )
-        return result.scalars().all()
+        try:
+            logger.info(f"Repository: 랜덤 IssuePool 조회 시작: limit={limit}")
+            result = await self.db.execute(
+                select(IssuePool)
+                .order_by(func.random())
+                .limit(limit)
+            )
+            issuepools = result.scalars().all()
+            logger.info(f"Repository: 랜덤 IssuePool 조회 완료: {len(issuepools)}개")
+            return issuepools
+        except Exception as e:
+            logger.error(f"Repository: 랜덤 IssuePool 조회 실패: {str(e)}")
+            logger.error(f"에러 타입: {type(e).__name__}")
+            import traceback
+            logger.error(f"스택 트레이스: {traceback.format_exc()}")
+            raise
 
     async def process_issuepool_creation(self, issuepool_dto: IssuePoolDTO) -> IssuePool:
         """IssuePool 생성 처리"""
