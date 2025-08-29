@@ -118,3 +118,13 @@ async def get_ranking_statistics(
     """랭킹 통계 정보 조회"""
     controller = IssuePoolController(db)
     return controller.service.get_ranking_statistics(corporation_id, publish_year)
+
+
+@router.get("/random/{limit}", response_model=List[IssuePoolDTO])
+async def get_random_issuepools(
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """랜덤으로 IssuePool 목록 조회 (기본값: 10개)"""
+    controller = IssuePoolController(db)
+    return controller.get_random_issuepools(limit)

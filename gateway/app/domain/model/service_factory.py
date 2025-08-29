@@ -26,7 +26,7 @@ class ServiceProxyFactory:
         self.base_urls = {
             ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://gri-service-production.up.railway.app"),
-            ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+            ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://materiality-service-production-6720.up.railway.app"),
             ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
