@@ -13,9 +13,16 @@ export default function GriReportPage() {
   const [indices, setIndices] = useState<string[]>([]); // 보고서에 담을 index 리스트
   const [isLoading, setIsLoading] = useState(true);
 
+  // 🔧 Store 상태 검증 및 안전한 인덱스 설정
   useEffect(() => {
-    // 예: intake에서 선택된 item만 혹은 카테고리 전체
-    setIndices(Object.keys(polishedByIndex));
+    if (polishedByIndex && typeof polishedByIndex === 'object') {
+      const validIndices = Object.keys(polishedByIndex).filter(key => 
+        key && typeof key === 'string' && key.trim() !== ''
+      );
+      setIndices(validIndices);
+    } else {
+      setIndices([]);
+    }
   }, [polishedByIndex]);
 
   // 새로고침으로 비어있으면 서버에서 복구
@@ -35,6 +42,11 @@ export default function GriReportPage() {
 
     loadPolishedData();
   }, [sessionKey, indices, polishedByIndex, setPolished]);
+
+  // 🔧 Store 상태 디버깅
+  useEffect(() => {
+    console.log('🔍 GRI Store 상태:', { sessionKey, polishedByIndex, indices });
+  }, [sessionKey, polishedByIndex, indices]);
 
   if (isLoading) {
     return (
