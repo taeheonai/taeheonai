@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 # APIRouter 정의
-materiality_router = APIRouter()
+materiality_router = APIRouter(prefix="/v1/materiality")
 
 # 요청 모델
 class MaterialityRequest(BaseModel):
@@ -46,10 +46,10 @@ async def root():
         "message": "Materiality Service",
         "version": "1.0.0",
         "endpoints": {
-            "health": "/health",
-            "assess": "/assess",
-            "criteria": "/criteria",
-            "issuepools": "/api/v1/issuepools"
+            "health": "/v1/materiality/health",
+            "assess": "/v1/materiality/assess",
+            "criteria": "/v1/materiality/criteria",
+            "issuepools": "/v1/materiality/random/{limit}"
         }
     }
 
