@@ -129,11 +129,12 @@ except Exception as e:
     logger.exception("Fatal: failed to load IssuePool router")
     raise
 
-# 🔧 MG 관련 라우터를 Materiality Router의 하위로 포함
+# 🔧 MG 관련 라우터를 직접 앱에 포함 (prefix 명시)
 try:
     from app.router.mg_router import router as mg_router
-    materiality_router.include_router(mg_router)
-    logger.info("MG router loaded successfully as sub-router of Materiality")
+    # MG Router를 /v1/materiality/mg 경로에 직접 포함
+    app.include_router(mg_router, prefix="/v1/materiality/mg")
+    logger.info("MG router loaded successfully at /v1/materiality/mg")
 except Exception as e:
     logger.exception("Fatal: failed to load MG router")
     raise
