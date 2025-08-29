@@ -129,6 +129,15 @@ except Exception as e:
     logger.exception("Fatal: failed to load IssuePool router")
     raise
 
+# 🔧 MG 관련 라우터 추가
+try:
+    from app.router.mg_router import router as mg_router
+    app.include_router(mg_router)
+    logger.info("MG router loaded successfully")
+except Exception as e:
+    logger.exception("Fatal: failed to load MG router")
+    raise
+
 if __name__ == "__main__":
     import uvicorn
     
