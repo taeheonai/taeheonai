@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { GRIApiService } from '@/lib/griApi';
 
-type Status = 'idle' | 'loading' | 'success' | 'error';
+type Status = 'idle' | 'loading' | 'success' | 'error' | 'not_found';
 
 // 🔧 에러 응답 타입 정의
 interface ErrorResponse {
@@ -59,10 +59,15 @@ export const usePolishStore = create<PolishState>((set, get) => ({
     try {
       const data = await GRIApiService.getPolishResult(sessionKey, griIndex); // 📖 GET
       if (!data) {
-        set({ status: 'error', error: '저장된 윤문 결과가 없습니다.' });
+        // 🔧 데이터가 없는 경우를 명확한 상태로 관리
+        set({ 
+          status: 'not_found', 
+          error: '저장된 윤문 결과가 없습니다.',
+          result: undefined 
+        });
         return;
       }
-      set({ status: 'success', result: data });
+      set({ status: 'success', result: data, error: undefined });
     } catch (e: unknown) {
       console.error('윤문 결과 조회 실패:', e);
       
@@ -70,13 +75,18 @@ export const usePolishStore = create<PolishState>((set, get) => ({
       if (e && typeof e === 'object' && 'response' in e) {
         const errorResponse = e as ErrorResponse;
         if (errorResponse.response?.status === 404) {
-          set({ status: 'error', error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.' });
+          set({ 
+            status: 'not_found', 
+            error: '아직 윤문 결과가 없습니다. 윤문을 실행해주세요.',
+            result: undefined 
+          });
           return;
         }
       }
       
+      // 🔧 기타 에러는 error 상태로 처리
       const error = e instanceof Error ? e.message : '윤문 결과 조회에 실패했습니다.';
-      set({ status: 'error', error });
+      set({ status: 'error', error, result: undefined });
     }
   },
 
@@ -84,10 +94,10 @@ export const usePolishStore = create<PolishState>((set, get) => ({
     set({ status: 'loading', error: undefined });
     try {
       const data = await GRIApiService.runPolish(args);      // ✅ POST
-      set({ status: 'success', result: data });
+      set({ status: 'success', result: data, error: undefined });
     } catch (e: unknown) {
       const error = e instanceof Error ? e.message : 'polish failed';
-      set({ status: 'error', error });
+      set({ status: 'error', error, result: undefined });
     }
   },
 
