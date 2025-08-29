@@ -43,3 +43,7 @@ class IssuePoolUpdateRequest(BaseModel):
     issue_pool: str
     category_id: int
     esg_classification_id: int
+
+class IssuePoolBulkCreateRequest(BaseModel):
+    """IssuePool 일괄 생성 요청 스키마"""
+    issuepools: List[IssuePoolCreateRequest]

@@ -1,7 +1,7 @@
 # app/router/issuepool_router.py
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.controller.issuepool_controller import IssuePoolController
 from app.domain.schema.issuepool_schema import (
     IssuePoolDTO,
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/v1/materiality", tags=["materiality"])
 @router.post("/", response_model=IssuePoolDTO, status_code=status.HTTP_201_CREATED)
 async def create_issuepool(
     request_data: IssuePoolCreateRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """axios로부터 받은 JSON 데이터로 IssuePool 생성"""
     controller = IssuePoolController(db)
@@ -28,7 +28,7 @@ async def create_issuepool(
 @router.get("/{issuepool_id}", response_model=IssuePoolDTO)
 async def get_issuepool(
     issuepool_id: int,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """ID로 IssuePool 조회"""
     controller = IssuePoolController(db)
@@ -39,7 +39,7 @@ async def get_issuepool(
 async def get_issuepools_by_corporation_and_year(
     corporation_id: int,
     publish_year: int,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """기업 ID와 발행 연도로 IssuePool 목록 조회"""
     controller = IssuePoolController(db)
@@ -50,7 +50,7 @@ async def get_issuepools_by_corporation_and_year(
 async def update_issuepool(
     issuepool_id: int,
     request_data: IssuePoolUpdateRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """axios로부터 받은 JSON 데이터로 IssuePool 업데이트"""
     controller = IssuePoolController(db)
@@ -60,7 +60,7 @@ async def update_issuepool(
 @router.delete("/{issuepool_id}")
 async def delete_issuepool(
     issuepool_id: int,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """IssuePool 삭제"""
     controller = IssuePoolController(db)
@@ -70,7 +70,7 @@ async def delete_issuepool(
 @router.post("/filter", response_model=List[IssuePoolDTO])
 async def get_filtered_issuepools(
     filter_data: IssuePoolFilter,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """필터 조건에 따른 IssuePool 목록 조회"""
     controller = IssuePoolController(db)
