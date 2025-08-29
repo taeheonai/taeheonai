@@ -190,9 +190,9 @@ export default function GRIIntakePage() {
             {/* ... (기존 헤더 부분 유지) ... */}
 
             <div className="grid grid-cols-12 gap-4 h-[calc(100vh-200px)]">
-              {/* 카테고리 선택 패널 */}
+              {/* 카테고리 선택 패널 - 더 짧게 */}
               <div className={`col-span-3 transition-all duration-300 ${showCategoryList ? 'block' : 'hidden'}`}>
-                <div className="bg-white rounded-lg shadow-md h-full">
+                <div className="bg-white rounded-lg shadow-md">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-gray-900">카테고리 선택</h2>
@@ -204,7 +204,7 @@ export default function GRIIntakePage() {
                       </button>
                     </div>
                   </div>
-                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                  <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
                     {categories.map((category) => (
                       <div
                         key={category.id}
@@ -227,9 +227,9 @@ export default function GRIIntakePage() {
                 </div>
               </div>
 
-              {/* 공시 항목 패널 */}
+              {/* 공시 항목 패널 - 더 짧게 */}
               <div className={`col-span-3 transition-all duration-300 ${showDisclosureList ? 'block' : 'hidden'}`}>
-                <div className="bg-white rounded-lg shadow-md h-full">
+                <div className="bg-white rounded-lg shadow-md">
                   <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-gray-900">
@@ -243,7 +243,7 @@ export default function GRIIntakePage() {
                       </button>
                     </div>
                   </div>
-                  <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-300px)]">
+                  <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
                     {griData?.items.map((item: GRIItem) => (
                       <div
                         key={item.id}
@@ -269,13 +269,12 @@ export default function GRIIntakePage() {
                 </div>
               </div>
 
-              {/* 메인 콘텐츠 영역 */}
+              {/* 메인 콘텐츠 영역 - 더 넓게 */}
               <div className="col-span-6 space-y-4">
-                {/* ... (기존 요구사항 헤더 유지) ... */}
-
-                {/* 답변 입력 폼 */}
+                {/* 답변 입력 폼과 윤문 결과를 하나의 흐름으로 구성 */}
                 {selectedItem && selectedItem.questions && (
-                  <>
+                  <div className="space-y-4">
+                    {/* 요구사항 헤더 */}
                     <div className="bg-white rounded-lg shadow-md">
                       <div className="p-4 border-b border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
@@ -286,6 +285,8 @@ export default function GRIIntakePage() {
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">{selectedItem.title}</p>
                       </div>
+                      
+                      {/* 답변 입력 폼 */}
                       <div className="p-6 space-y-6">
                         {selectedItem.questions.map((question: GRIQuestion) => (
                           <div key={question.id} className="space-y-3">
@@ -377,50 +378,48 @@ export default function GRIIntakePage() {
                       </div>
                     </div>
 
-                    {/* 윤문 결과 표시 */}
-                    {status === 'success' && result?.polished_text && selectedItem && sessionKey && (
-                      <div className="relative">
-                        <div className="absolute right-0 top-0 z-10 flex space-x-2 mb-4">
-                          <button
-                            onClick={() => polishAnswers()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span>🔄</span>
-                              <span>다시 윤문하기</span>
-                            </div>
-                          </button>
-                          <button
-                            onClick={savePolishResult}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span>✓</span>
-                              <span>이 결과로 저장하기</span>
-                            </div>
-                          </button>
+                    {/* 윤문 결과 - 요구사항 바로 아래에 배치 */}
+                    {selectedItem && sessionKey && (
+                      <div className="bg-white rounded-lg shadow-md">
+                        <div className="p-4 border-b border-gray-200">
+                          <h3 className="text-lg font-semibold text-gray-900">윤문 결과</h3>
                         </div>
-                        <div className="mt-12">
+                        <div className="p-6">
                           <PolishResult 
                             sessionKey={sessionKey} 
                             griIndex={selectedItem.index_no}
-                            showSaveHint
+                            showSaveHint={false}
                           />
+                          
+                          {/* 윤문 결과가 있을 때만 액션 버튼 표시 */}
+                          {status === 'success' && result?.polished_text && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex justify-end space-x-3">
+                                <button
+                                  onClick={() => polishAnswers()}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <span>🔄</span>
+                                    <span>다시 윤문하기</span>
+                                  </div>
+                                </button>
+                                <button
+                                  onClick={savePolishResult}
+                                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <span>✓</span>
+                                    <span>이 결과로 저장하기</span>
+                                  </div>
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
-
-                    {/* 🔧 윤문 결과가 없을 때만 PolishResult 컴포넌트 렌더링 (API 호출 방지) */}
-                    {selectedItem && sessionKey && (
-                      <div className="mt-12">
-                        <PolishResult 
-                          sessionKey={sessionKey} 
-                          griIndex={selectedItem.index_no}
-                          showSaveHint={false}
-                        />
-                      </div>
-                    )}
-                  </>
+                  </div>
                 )}
 
                 {/* 메시지 표시 */}
@@ -431,8 +430,6 @@ export default function GRIIntakePage() {
                     <p>{message}</p>
                   </div>
                 )}
-
-                {/* ... (기존 데이터가 없을 때 표시 유지) ... */}
               </div>
             </div>
 
