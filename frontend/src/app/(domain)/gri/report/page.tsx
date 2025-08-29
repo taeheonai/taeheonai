@@ -13,6 +13,11 @@ export default function GriReportPage() {
   const [indices, setIndices] = useState<string[]>([]); // 보고서에 담을 index 리스트
   const [isLoading, setIsLoading] = useState(true);
 
+  // 🔧 PolishResult 컴포넌트 타입 디버깅
+  useEffect(() => {
+    console.log('🔍 PolishResult type:', typeof PolishResult, PolishResult);
+  }, []);
+
   // 🔧 Store 상태 검증 및 안전한 인덱스 설정
   useEffect(() => {
     if (polishedByIndex && typeof polishedByIndex === 'object') {
