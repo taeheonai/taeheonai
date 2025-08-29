@@ -44,16 +44,33 @@ export default function GRIIntakePage() {
 
   // 🔧 답변 문자열 -> Markdown 표 변환
   function toMarkdownTable(answer: string) {
-    // 쉼표/세미콜론/줄바꿈으로 분해: "남성:70%, 여성:30%" → 행
-    const pairs = answer
-      .split(/[,;\n]+/)
-      .map((s) => s.trim())
+    // 1) 줄 단위 분해 (콤마 기준 분할 제거)
+    const lines = answer
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .map(s => s.trim())
       .filter(Boolean);
 
-    const rows = pairs.map((p) => {
-      const [k, ...rest] = p.split(':');
-      return `| ${k?.trim() || ''} | ${rest.join(':').trim()} |`;
-    });
+    const rows: string[] = [];
+
+    for (const raw of lines) {
+      // 2) 불릿만 데이터로 처리 (제목/설명 라인은 건너뜀)
+      if (!/^\s*[-*]\s+/.test(raw)) continue;
+
+      // 불릿 제거
+      const line = raw.replace(/^\s*[-*]\s+/, '');
+
+      // 3) "항목: 값" 패턴만 추출
+      const m = line.match(/^(.+?):\s*(.+)$/);
+      if (!m) continue;
+
+      const key = m[1].trim();
+
+      // 4) 값에서 천단위 콤마만 제거 (숫자 사이 콤마)
+      const value = m[2].trim().replace(/(?<=\d),(?=\d)/g, '');
+
+      rows.push(`| ${key} | ${value} |`);
+    }
 
     if (!rows.length) return '';
     return ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');

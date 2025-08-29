@@ -195,12 +195,32 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   }
 
   if (status === 'success' && result?.polished_text) {
-    // 🔧 표 마크다운과 윤문 결과를 합쳐서 렌더링
-    const mergedMarkdown = 
+    // 🔧 JSON을 마크다운으로 직접 렌더링하지 않도록 수정
+    const raw = result.polished_text;
+
+    // 1) 본문 텍스트(마크다운 대상) - JSON이 아닌 실제 텍스트만
+    let proseText = '';
+    if (typeof raw === 'string') {
+      proseText = raw;
+    } else if (raw && typeof raw === 'object' && 'text' in raw) {
+      proseText = String((raw as Record<string, unknown>).text || '');
+    }
+
+    // 2) 메타를 코드블록으로 렌더 (파싱 방지)
+    let metaJson = '';
+    if (raw && typeof raw === 'object' && 'model' in raw) {
+      const rawObj = raw as Record<string, unknown>;
+      metaJson = '```json\n' + JSON.stringify({ 
+        model: rawObj.model, 
+        created_at: rawObj.created_at 
+      }, null, 2) + '\n```';
+    }
+
+    // 3) 표 마크다운 + 본문 텍스트 + 메타 코드블록 합치기
+    const mergedMarkdown =
       (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
-      (typeof result.polished_text === 'string' 
-        ? result.polished_text 
-        : JSON.stringify(result.polished_text, null, 2));
+      proseText +
+      (metaJson ? `\n\n${metaJson}` : '');
 
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
