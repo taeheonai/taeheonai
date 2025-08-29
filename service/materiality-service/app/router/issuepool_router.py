@@ -1,6 +1,6 @@
 # app/router/issuepool_router.py
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.domain.controller.issuepool_controller import IssuePoolController
 from app.domain.schema.issuepool_schema import (
@@ -123,9 +123,18 @@ async def get_ranking_statistics(
 
 @router.get("/random", response_model=List[IssuePoolDTO])
 async def get_random_issuepools(
-    limit: int = 10,
+    limit: int = Query(10, ge=1, le=100, description="가져올 개수"),
     db: AsyncSession = Depends(get_db)
 ):
     """랜덤으로 IssuePool 목록 조회"""
+    controller = IssuePoolController(db)
+    return await controller.get_random_issuepools(limit)
+
+@router.get("/random/{limit}", response_model=List[IssuePoolDTO])
+async def get_random_issuepools_by_path(
+    limit: int = Path(..., ge=1, le=100, description="가져올 개수"),
+    db: AsyncSession = Depends(get_db)
+):
+    """랜덤으로 IssuePool 목록 조회 (경로 파라미터 방식)"""
     controller = IssuePoolController(db)
     return await controller.get_random_issuepools(limit)
