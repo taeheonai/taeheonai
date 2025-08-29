@@ -92,6 +92,7 @@ export const PolishResult: React.FC<PolishResultProps> = ({ sessionKey, griIndex
       setComponentError(null);
       await fetchPolishResult(sessionKey, griIndex);
     } catch (error) {
+      console.error('윤문 결과 조회 실패:', error);
       setComponentError('윤문 결과 조회 중 오류가 발생했습니다.');
     }
   }, [sessionKey, griIndex, fetchPolishResult]); // ✅ fetchPolishResult 포함 (ESLint 규칙 준수)
