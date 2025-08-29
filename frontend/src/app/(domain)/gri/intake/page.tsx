@@ -10,7 +10,6 @@ import { filterMarkdown, KeepMode } from '@/lib/mdFilter';
 interface PolishResultProps {
   sessionKey: string;
   griIndex: string;
-  showSaveHint?: boolean;
   /** 앞에 붙일 표(마크다운) */
   prependMarkdown?: string;
   /** LLM 응답에서 무엇을 보일지 */
@@ -69,7 +68,6 @@ const StatusMessage = React.memo<{
 export const PolishResult: React.FC<PolishResultProps> = ({
   sessionKey,
   griIndex,
-  showSaveHint = false,
   prependMarkdown = '',
   keepFromLLM = 'both',
   stripHeads = []
