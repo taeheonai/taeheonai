@@ -37,7 +37,20 @@ export const useAuthStore = create<AuthState>()(
         info: undefined,
         error: undefined,
       },
-      setUser: (u) => set({ user: u, isAuthenticated: true }),
+      setUser: (u) => {
+        set({ 
+          user: u, 
+          isAuthenticated: true,
+          company: {
+            isLoading: false,
+            info: u.company_name ? {
+              id: u.company_id,
+              name: u.company_name
+            } : undefined,
+            error: undefined
+          }
+        });
+      },
       clear: () => set({ 
         user: null, 
         isAuthenticated: false,
@@ -87,7 +100,8 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated
+        isAuthenticated: state.isAuthenticated,
+        company: state.company
       }),
       version: 1,
     }
