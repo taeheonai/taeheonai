@@ -63,8 +63,6 @@ export default function MGPage() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-2xl font-semibold text-gray-900">{issue.issue_pool}</h3>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>순위: {issue.ranking}</span>
-                      <span>연도: {issue.publish_year}</span>
                       <span>카테고리: {issue.category_id}</span>
                     </div>
                   </div>
