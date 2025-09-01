@@ -3,12 +3,10 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 
+import { User } from '@/contexts/AuthContext';
+
 interface NavigationProps {
-  user?: {
-    name: string;
-    corporation_id: string;
-    corporation_name?: string;
-  } | null;
+  user?: User | null;
 }
 
 export default function Navigation({ user }: NavigationProps) {
