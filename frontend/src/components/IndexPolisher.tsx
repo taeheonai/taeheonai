@@ -94,6 +94,8 @@ export default function IndexPolisher({
   const onPolish = async () => {
     setIsLoading(true);
     try {
+      console.log("Polishing with user context:", { user, corporationId });
+      
       // 기업 정보를 extra_meta에 포함
       const res = await polishIndex({
         session_key: sessionKey,
@@ -104,7 +106,8 @@ export default function IndexPolisher({
         corporation_id: corporationId,
         extra_meta: {
           company_id: user?.company_id,
-          company_context: "true"  // 기업 컨텍스트 활성화 플래그
+          company_context: "true",  // 기업 컨텍스트 활성화 플래그
+          debug_info: `user_company_id: ${user?.company_id}, corporation_id: ${corporationId}`
         }
       
       // 표 형식 답변과 윤문 답변 결합

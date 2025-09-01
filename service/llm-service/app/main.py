@@ -84,16 +84,29 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
         try:
             # 기업 컨텍스트가 활성화된 경우 추가 지시사항 생성
             extra_instructions = req.extra_instructions or ""
-            if req.company_context and req.company_id:
+            logger.info(f"Received request with extra_meta: {req.extra_meta}")
+            
+            if req.extra_meta and req.extra_meta.get("company_context") == "true":
+                company_id = req.extra_meta.get("company_id")
+                logger.info(f"Company context enabled for company_id: {company_id}")
+                
                 # 기업 정보 조회 (실제로는 DB에서 조회해야 함)
                 company_name = "한온시스템"  # 임시로 하드코딩
+                
+                # JSON 형식의 메타데이터 생성
+                company_meta = {
+                    "company_context": "true",
+                    "company_name": company_name,
+                    "company_id": company_id
+                }
+                
                 extra_instructions = f"""
-                이 응답은 {company_name} 기업의 ESG 보고서를 위한 것입니다.
-                모든 'ABC' 또는 '회사'라는 표현을 '{company_name}'으로 대체하고,
-                기업 특성에 맞게 응답을 조정해주세요.
+                {json.dumps(company_meta)}
                 
                 {extra_instructions}
                 """.strip()
+                
+                logger.info(f"Added company context to instructions: {extra_instructions}")
 
             result = await asyncio.wait_for(
                 polisher.polish(

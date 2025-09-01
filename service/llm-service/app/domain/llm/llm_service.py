@@ -157,15 +157,22 @@ class GriPolisher:
                     meta_end = extra_instructions.rfind('}')
                     if meta_start != -1 and meta_end != -1:
                         meta_str = extra_instructions[meta_start:meta_end + 1]
+                        logger.info(f"Found metadata in extra_instructions: {meta_str}")
+                        
                         meta = json.loads(meta_str)
+                        logger.info(f"Parsed metadata: {meta}")
+                        
                         if meta.get("company_context") == "true" and meta.get("company_name"):
                             company_context = (
                                 f"중요: 이 응답은 {meta['company_name']} 기업의 ESG 보고서를 위한 것입니다. "
                                 f"모든 'ABC', '회사', '조직' 등의 표현을 '{meta['company_name']}'으로 대체하고, "
                                 f"기업 특성에 맞게 응답을 조정하세요."
                             )
-                except:
-                    pass
+                            logger.info(f"Created company context: {company_context}")
+                        else:
+                            logger.info("Company context not enabled or company name missing")
+                except Exception as e:
+                    logger.error(f"Error processing company context: {str(e)}")
 
             system = self.system_tmpl.format(
                 gri_index=gri_index,
