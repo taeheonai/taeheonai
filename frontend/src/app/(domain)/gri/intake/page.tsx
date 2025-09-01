@@ -163,7 +163,22 @@ export default function GRIIntakePage() {
 
   const handleItemSelect = (item: GRIItem) => {
     setSelectedItem(item);
-    setAnswers({});
+    
+    // polishStore에서 저장된 답변 불러오기
+    const savedItem = usePolishStore.getState().getPolishedItem(item.index_no);
+    if (savedItem?.answers) {
+      // key_alpha를 question_id로 변환하여 저장
+      const newAnswers: Record<string, string> = {};
+      item.questions.forEach(q => {
+        if (q.key_alpha && savedItem.answers[q.key_alpha]) {
+          newAnswers[q.id.toString()] = savedItem.answers[q.key_alpha];
+        }
+      });
+      setAnswers(newAnswers);
+    } else {
+      setAnswers({});
+    }
+    
     setDisplayMode({});
   };
 
@@ -377,9 +392,27 @@ export default function GRIIntakePage() {
                                 )}
 
                                 <textarea
-                                  placeholder="답변을 입력해주세요..."
+                                  placeholder={mode === 'table' 
+                                    ? "예시 형식:\n항목: 값\n키워드 나머지 설명\n단순 데이터" 
+                                    : "여기에 원문을 입력하세요"}
                                   value={answers[qid] || ''}
-                                  onChange={(e) => setAnswer(qid, e.target.value)}
+                                  onChange={(e) => {
+                                    setAnswer(qid, e.target.value);
+                                    // polishStore에도 저장
+                                    if (selectedItem) {
+                                      const savedItem = usePolishStore.getState().getPolishedItem(selectedItem.index_no);
+                                      usePolishStore.getState().savePolishedItem({
+                                        gri_index: selectedItem.index_no,
+                                        category_id: selectedCategory?.id || 0,
+                                        polished_text: savedItem?.polished_text || "",
+                                        answers: {
+                                          ...savedItem?.answers || {},
+                                          [q.key_alpha || ""]: e.target.value
+                                        },
+                                        last_modified: new Date().toISOString(),
+                                      });
+                                    }
+                                  }}
                                   className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
                                 {answers[qid]?.trim() && (
