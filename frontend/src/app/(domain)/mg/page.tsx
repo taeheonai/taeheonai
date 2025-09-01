@@ -42,7 +42,7 @@ export default function MGPage() {
       }
     }
     stableLoadIndexes();
-  }, [stableLoadIndexes, selected.length]);
+  }, [stableLoadIndexes, selected.map(i => i.id).join(',')]);
 
   // 세션이 준비되지 않았으면 로딩 표시
   if (!sessionKey || !threadId) {
