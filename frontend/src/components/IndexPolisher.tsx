@@ -49,15 +49,13 @@ export default function IndexPolisher({
     setAnswers(newAnswers);
     
     // 답변이 변경될 때마다 local storage에 저장
-    if (savedItem?.polished_text) {
-      savePolishedItem({
-        gri_index: griIndex,
-        category_id: categoryId,
-        polished_text: savedItem.polished_text,
-        answers: newAnswers,
-        last_modified: new Date().toISOString(),
-      });
-    }
+    savePolishedItem({
+      gri_index: griIndex,
+      category_id: categoryId,
+      polished_text: savedItem?.polished_text || "",
+      answers: newAnswers,
+      last_modified: new Date().toISOString(),
+    });
   };
 
   // 표 형식으로 변환
@@ -113,8 +111,15 @@ export default function IndexPolisher({
     return md.trim();
   }
 
-  // 사용자의 기업 정보 가져오기
-  const user = useAuthStore(state => state.user);
+  // 사용자와 회사 정보 가져오기
+  const { user, company, fetchCompanyInfo } = useAuthStore();
+  
+  // 컴포넌트 마운트 시 회사 정보 조회
+  useEffect(() => {
+    if (user?.company_id) {
+      fetchCompanyInfo();
+    }
+  }, [user?.company_id, fetchCompanyInfo]);
 
   const onPolish = async () => {
     setIsLoading(true);
@@ -131,9 +136,9 @@ export default function IndexPolisher({
         corporation_id: corporationId,
         extra_meta: {
           company_id: user?.company_id,
-          company_name: "한온시스템",  // 임시로 하드코딩
+          company_name: company.info?.name,  // API에서 가져온 회사 이름
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
-          debug_info: `user_company_id: ${user?.company_id}, company_name: 한온시스템, corporation_id: ${corporationId}`
+          debug_info: `user_company_id: ${user?.company_id}, company_name: ${company.info?.name}, corporation_id: ${corporationId}`
         }
       });
       
