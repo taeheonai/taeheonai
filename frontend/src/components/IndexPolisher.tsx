@@ -125,13 +125,13 @@ export default function IndexPolisher({
   // 컴포넌트 마운트 시 회사 정보 조회
   useEffect(() => {
     const loadCompanyInfo = async () => {
-      if (user?.company_id) {
+      if (user?.corporation_id) {
         await fetchCompanyInfo();
         console.log('회사 정보 로드됨:', { user, company });
       }
     };
     loadCompanyInfo();
-  }, [user?.company_id, fetchCompanyInfo]);
+  }, [user?.corporation_id, fetchCompanyInfo]);
 
   const onPolish = async () => {
     setIsLoading(true);
@@ -147,10 +147,10 @@ export default function IndexPolisher({
         thread_id: threadId,
         corporation_id: corporationId,
         extra_meta: {
-          company_id: user?.company_id,
-          company_name: company?.info?.name || user?.company_name,  // API에서 가져온 회사 이름 또는 유저 정보의 회사 이름
+          corporation_id: user?.corporation_id,
+          corporation_name: company?.info?.corporation_name || user?.corporation_name,  // API에서 가져온 회사 이름 또는 유저 정보의 회사 이름
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
-          debug_info: `user_company_id: ${user?.company_id}, company_name: ${company.info?.name}, corporation_id: ${corporationId}`
+          debug_info: `corporation_id: ${user?.corporation_id}, corporation_name: ${company.info?.corporation_name}, corporation_id: ${corporationId}`
         }
       });
       

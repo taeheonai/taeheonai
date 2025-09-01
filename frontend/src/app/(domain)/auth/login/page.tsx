@@ -43,7 +43,7 @@ export default function LoginPage() {
         const userData = {
           id: response.data.id || form.auth_id,
           name: response.data.name || form.auth_id,
-          company_id: response.data.company_id || 'COMPANY-001',
+          corporation_id: response.data.corporation_id || 'COMPANY-001',
           email: response.data.email || `${form.auth_id}@company.com`
         };
         

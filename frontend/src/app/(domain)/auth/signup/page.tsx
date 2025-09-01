@@ -295,7 +295,7 @@ export default function SignupPage() {
             {/* 기업명 - 타입어헤드 */}
             <div className="relative" ref={containerRef}>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                기업명 (company_name) * <span className="text-red-500">필수</span>
+                기업명 (corporation_name) * <span className="text-red-500">필수</span>
               </label>
               <div className="mt-1 relative">
                 <input

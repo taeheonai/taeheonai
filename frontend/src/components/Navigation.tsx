@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 interface NavigationProps {
   user?: {
     name: string;
-    company_id: string;
+    corporation_id: string;
   } | null;
 }
 
@@ -86,7 +86,7 @@ export default function Navigation({ user }: NavigationProps) {
             <div className="flex items-center space-x-4">
               {user && (
                 <span className="text-sm text-gray-700">
-                  {user.name} ({user.company_id})
+                  {user.name} ({user.corporation_id})
                 </span>
               )}
               <button

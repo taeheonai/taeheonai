@@ -8,8 +8,8 @@ type User = {
   id: string; 
   email?: string; 
   name: string;
-  company_id: string;
-  company_name?: string;
+  corporation_id: string;  // company_id → corporation_id로 변경
+  corporation_name?: string;  // company_name → corporation_name으로 변경
 };
 
 type CompanyState = {
@@ -43,9 +43,9 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           company: {
             isLoading: false,
-            info: u.company_name ? {
-              id: u.company_id,
-              name: u.company_name
+            info: u.corporation_name ? {
+              corporation_id: u.corporation_id,
+              corporation_name: u.corporation_name
             } : undefined,
             error: undefined
           }
