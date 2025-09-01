@@ -188,11 +188,20 @@ class MGRepository:
                     GriQuestion.key_alpha,
                     GriQuestion.question_text,
                     GriQuestion.display_order.label("question_order"),
+                    IssuePoolGRIEntity.frequency,
+                    IssuePoolGRIEntity.grade,
                 )
-                .join(IssuePoolGRIEntity, IssuePoolGRIEntity.gri_index == GriItem.index_no)
+                .select_from(GriItem)
                 .join(GriQuestion, GriItem.id == GriQuestion.item_id)
+                .outerjoin(
+                    IssuePoolGRIEntity,
+                    and_(
+                        IssuePoolGRIEntity.gri_index == GriItem.index_no,
+                        IssuePoolGRIEntity.category_id == category_id
+                    )
+                )
                 .where(
-                    IssuePoolGRIEntity.category_id == category_id,
+                    GriItem.category_id == category_id,
                     GriItem.index_no == gri_index
                 )
                 .order_by(GriQuestion.display_order)
