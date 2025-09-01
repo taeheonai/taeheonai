@@ -110,6 +110,7 @@ export default function IndexPolisher({
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
           debug_info: `user_company_id: ${user?.company_id}, company_name: ${user?.company_name}, corporation_id: ${corporationId}`
         }
+      });
       
       // 표 형식 답변과 윤문 답변 결합
       const tablesMd = buildTablesMarkdown();
