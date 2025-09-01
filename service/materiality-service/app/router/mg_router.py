@@ -7,6 +7,9 @@ from app.domain.schema.mg_schema import (
     MGResolveRequest,
     MGIndexMapResponse,
     MGIndexDTO,
+    # ✅ 신규: 인덱스 단위 윤문 DTO
+    MGPolishIndexRequest,
+    MGPolishIndexResponse,
 )
 from app.domain.controller.mg_controller import MGController
 import logging
@@ -62,6 +65,7 @@ async def resolve_indexes(
 
 # -----------------------------
 # 2) /polish : 원시 바디를 받아 스키마로 검증/보정 + 상세 로깅
+#    (레거시: MGIndexDTO[] 입력 → 컨트롤러.request_polish 로 위임)
 # -----------------------------
 @router.post("/polish")
 async def polish(
@@ -80,7 +84,7 @@ async def polish(
     if not isinstance(payload, list) or not payload:
         raise HTTPException(status_code=422, detail="items must be a non-empty array")
 
-    # 스키마로 밸리데이션 (여기서 MGIndexDTO는 nest된 gri_indexes를 포함한다고 가정)
+    # 스키마로 밸리데이션 (여기서 MGIndexDTO는 nest된 gri_indexes를 포함)
     valid_items: List[MGIndexDTO] = []
     for i, obj in enumerate(payload):
         try:
@@ -91,13 +95,12 @@ async def polish(
                 status_code=422,
                 detail=f"items[{i}] validation error"
             )
-        # 추가 수기 검증 (필요 시)
+        # 추가 검증
         if not getattr(item, "issuepool_id", None):
             raise HTTPException(status_code=422, detail=f"items[{i}]: issuepool_id missing")
         if not getattr(item, "gri_indexes", None):
             raise HTTPException(status_code=422, detail=f"items[{i}]: gri_indexes missing")
 
-        # gri_indexes 각 항목의 키 체크 (grade/frequency/gri_index)
         for j, gi in enumerate(item.gri_indexes):
             if not getattr(gi, "gri_index", None):
                 raise HTTPException(status_code=422, detail=f"items[{i}].gri_indexes[{j}]: gri_index missing")
@@ -112,3 +115,51 @@ async def polish(
     result = await controller.request_polish(x_session_key, x_thread_id, valid_items)
     logger.info("[MG] /polish OK (%s)", type(result).__name__)
     return result
+
+
+# -----------------------------
+# 3) /polish/index : 인덱스 단위(a,b,c 묶음) 윤문 (신규)
+#    - 프론트에서 하나의 gri_index에 대해 a,b,c 원문들을 함께 보내면
+#      컨트롤러.polish_index 가 질문 목록 조회 → LLM 1회 호출 → 통합 윤문 반환
+# -----------------------------
+@router.post("/polish/index", response_model=MGPolishIndexResponse)
+async def polish_index(
+    body: MGPolishIndexRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    logger.info(
+        "[MG] /polish/index session=%s..., category=%s, index=%s",
+        body.session_key[:8],
+        body.category_id,
+        body.gri_index,
+    )
+    controller = _controller(db)
+    result = await controller.polish_index(body)
+    logger.info("[MG] /polish/index OK")
+    return result
+
+@router.get("/questions", response_model=MGIndexResponse)
+async def list_questions(
+    category_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    controller = _controller(db)
+    return await controller.get_questions_by_category(category_id)
+
+    @router.get("/questions/index", response_model=MGIndexBlock)
+async def get_index_questions(
+    category_id: int,
+    gri_index: str,
+    db: AsyncSession = Depends(get_db),
+):
+    controller = _controller(db)
+    return await controller.get_questions_for_index(category_id, gri_index)
+
+@router.get("/questions/index", response_model=MGIndexBlock)
+async def get_index_questions(
+    category_id: int,
+    gri_index: str,
+    db: AsyncSession = Depends(get_db),
+):
+    controller = _controller(db)
+    return await controller.get_questions_for_index(category_id, gri_index)
