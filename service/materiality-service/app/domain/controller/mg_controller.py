@@ -10,7 +10,8 @@ from app.domain.schema.mg_schema import (
     # ✅ 신규 DTO
     MGPolishIndexRequest,
     MGPolishIndexResponse,
-    MGIndexBlock
+    MGIndexBlock,
+    MGIndexResponse
 )
 
 
