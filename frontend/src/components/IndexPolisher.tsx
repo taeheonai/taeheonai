@@ -5,6 +5,7 @@ import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuthStore } from "@/store/useAuthStore";
+import { usePolishStore } from "@/store/polishStore";
 
 type DisplayMode = 'table' | 'prose';
 
@@ -17,6 +18,10 @@ export default function IndexPolisher({
   const [polishedIndexText, setPolishedIndexText] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // polishStore에서 저장된 답변과 윤문 결과 가져오기
+  const { getPolishedItem, savePolishedItem } = usePolishStore();
+  const savedItem = getPolishedItem(griIndex);
+
   useEffect(() => {
     fetchIndexQuestions(categoryId, griIndex).then((b) => {
       setBlock(b);
@@ -24,16 +29,36 @@ export default function IndexPolisher({
       b.questions.forEach(q => { 
         const key = q.key_alpha ?? "";
         if (key) {
-          init[key] = ""; 
+          // 저장된 답변이 있으면 불러오기
+          init[key] = savedItem?.answers[key] || ""; 
           // 기본값으로 prose 모드 설정
           setDisplayMode(prev => ({ ...prev, [key]: 'prose' }));
         }
       });
       setAnswers(init);
+      
+      // 저장된 윤문 결과가 있으면 불러오기
+      if (savedItem?.polished_text) {
+        setPolishedIndexText(savedItem.polished_text);
+      }
     });
-  }, [categoryId, griIndex, setDisplayMode]);
+  }, [categoryId, griIndex, setDisplayMode, savedItem]);
 
-  const onChange = (k: string, v: string) => setAnswers(prev => ({ ...prev, [k]: v }));
+  const onChange = (k: string, v: string) => {
+    const newAnswers = { ...answers, [k]: v };
+    setAnswers(newAnswers);
+    
+    // 답변이 변경될 때마다 local storage에 저장
+    if (savedItem?.polished_text) {
+      savePolishedItem({
+        gri_index: griIndex,
+        category_id: categoryId,
+        polished_text: savedItem.polished_text,
+        answers: newAnswers,
+        last_modified: new Date().toISOString(),
+      });
+    }
+  };
 
   // 표 형식으로 변환
   function toMarkdownTable(answer: string) {
@@ -119,6 +144,15 @@ export default function IndexPolisher({
         : res.polished_index_text || "";
         
       setPolishedIndexText(combinedText);
+      
+      // 윤문 결과를 local storage에 저장
+      savePolishedItem({
+        gri_index: griIndex,
+        category_id: categoryId,
+        polished_text: combinedText,
+        answers: answers,
+        last_modified: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
     } finally {
