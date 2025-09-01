@@ -7,6 +7,7 @@ interface NavigationProps {
   user?: {
     name: string;
     corporation_id: string;
+    corporation_name?: string;
   } | null;
 }
 
@@ -85,9 +86,14 @@ export default function Navigation({ user }: NavigationProps) {
           <div className="flex items-center">
             <div className="flex items-center space-x-4">
               {user && (
-                <span className="text-sm text-gray-700">
-                  {user.name} ({user.corporation_id})
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-medium text-gray-900">
+                    {user.name}
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    {user.corporation_name || user.corporation_id}
+                  </span>
+                </div>
               )}
               <button
                 onClick={handleLogout}

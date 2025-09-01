@@ -41,10 +41,11 @@ export default function LoginPage() {
       
       if (response.data) {
         const userData = {
-          id: response.data.id || form.auth_id,
-          name: response.data.name || form.auth_id,
-          corporation_id: response.data.corporation_id || 'COMPANY-001',
-          email: response.data.email || `${form.auth_id}@company.com`
+          id: response.data.id,
+          name: response.data.name,
+          corporation_id: response.data.corporation_id,
+          corporation_name: response.data.corporation_name,
+          email: response.data.email
         };
         
         // Zustand store에 사용자 정보 저장
