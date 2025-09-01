@@ -120,7 +120,8 @@ class MGService:
             "session_key": req.session_key,
             "gri_index": req.gri_index,
             "answers": answers,
-            "extra_instructions": f"Style: {req.style}, Audience: {req.audience}"
+            "extra_instructions": f"Style: {req.style}, Audience: {req.audience}",
+            "extra_meta": req.extra_meta  # extra_meta 추가
         }
 
         try:
