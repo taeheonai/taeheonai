@@ -106,9 +106,9 @@ export default function IndexPolisher({
         corporation_id: corporationId,
         extra_meta: {
           company_id: user?.company_id,
-          company_name: user?.company_name,  // 회사 이름 추가
+          company_name: "한온시스템",  // 임시로 하드코딩
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
-          debug_info: `user_company_id: ${user?.company_id}, company_name: ${user?.company_name}, corporation_id: ${corporationId}`
+          debug_info: `user_company_id: ${user?.company_id}, company_name: 한온시스템, corporation_id: ${corporationId}`
         }
       });
       
