@@ -54,7 +54,7 @@ export const usePolishStore = create<PolishState>()(
   result: undefined,
   error: undefined,
   savedAt: undefined,
-  savedItems: {},  // 초기 상태 추가
+  savedItems: JSON.parse(localStorage.getItem('polish-storage')?.savedItems || '{}'),  // localStorage에서 복원
 
   fetchPolishResult: async (sessionKey, griIndex) => {
     // 🔧 이미 로딩 중이거나 같은 데이터를 요청 중이면 중복 호출 방지
@@ -133,13 +133,13 @@ export const usePolishStore = create<PolishState>()(
   setSavedAt: (timestamp: string) => set({ savedAt: timestamp }),
   
   // 기존 상태 초기화
-  reset: () => set({ 
+  reset: () => set((state) => ({ 
     status: 'idle', 
     result: undefined, 
     error: undefined, 
     savedAt: undefined,
-    savedItems: {}  // savedItems도 초기화
-  }),
+    savedItems: state.savedItems  // 기존 savedItems 유지
+  })),
 
   // Local Storage 관련 초기 상태 및 메서드
   savedItems: {},
