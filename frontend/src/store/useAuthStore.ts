@@ -69,12 +69,14 @@ export const useAuthStore = create<AuthState>()(
               error: undefined
             }
           }));
-        } catch (error) {
+        } catch (e) {
+          const errorMessage = e instanceof Error ? e.message : '회사 정보를 불러오지 못했습니다.';
+          console.error('회사 정보 조회 실패:', errorMessage);
           set(state => ({
             company: {
               ...state.company,
               isLoading: false,
-              error: '회사 정보를 불러오지 못했습니다.'
+              error: errorMessage
             }
           }));
         }
