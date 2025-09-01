@@ -16,12 +16,8 @@ type PolishState = {
   status: Status;
   result?: {
     polished_text: string;
-    meta: {
-      session_key?: string;
-      gri_index?: string;
-      model?: string;
-      created_at?: string;
-    };
+    model?: string;
+    created_at?: string;
   };
   error?: string;
   savedAt?: string;
@@ -49,8 +45,8 @@ export const usePolishStore = create<PolishState>((set, get) => ({
     
     // 🔧 이미 같은 결과가 있으면 API 호출하지 않음
     if (currentState.result && 
-        currentState.result.meta?.session_key === sessionKey && 
-        currentState.result.meta?.gri_index === griIndex) {
+        currentState.result.model === sessionKey && 
+        currentState.result.created_at === griIndex) {
       console.log('✅ 이미 결과가 있음, API 호출 생략');
       return;
     }
