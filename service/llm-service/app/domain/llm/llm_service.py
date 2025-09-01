@@ -97,7 +97,8 @@ class GriPolisher:
             "과장/과도한 수사는 금지. 표/숫자/근거가 있으면 유지하고, 중복은 제거하라. "
             "조직/연도 등 고유명사는 일관되게 표기하고 논리적 흐름(맥락→수치→의미)을 만든다. "
             "정량 데이터는 표 형식으로 제시하고, 정성적 설명은 서술형으로 작성하라. "
-            "출력은 한 개의 완성된 서술형 텍스트로 제공하라."
+            "출력은 한 개의 완성된 서술형 텍스트로 제공하라. "
+            "{company_context}"
         )
 
         # human 템플릿
@@ -145,7 +146,32 @@ class GriPolisher:
             await self._ensure_examples_loaded()
             
             items_block = self._build_items_block(items)
-            system = self.system_tmpl.format(gri_index=gri_index)
+            
+            # 기업 컨텍스트 추출 (extra_instructions에서)
+            company_context = ""
+            if extra_instructions:
+                import json
+                try:
+                    # extra_instructions에서 JSON 형식의 메타데이터 찾기
+                    meta_start = extra_instructions.find('{')
+                    meta_end = extra_instructions.rfind('}')
+                    if meta_start != -1 and meta_end != -1:
+                        meta_str = extra_instructions[meta_start:meta_end + 1]
+                        meta = json.loads(meta_str)
+                        if meta.get("company_context") == "true" and meta.get("company_name"):
+                            company_context = (
+                                f"중요: 이 응답은 {meta['company_name']} 기업의 ESG 보고서를 위한 것입니다. "
+                                f"모든 'ABC', '회사', '조직' 등의 표현을 '{meta['company_name']}'으로 대체하고, "
+                                f"기업 특성에 맞게 응답을 조정하세요."
+                            )
+                except:
+                    pass
+
+            system = self.system_tmpl.format(
+                gri_index=gri_index,
+                company_context=company_context
+            )
+            
             # 해당 GRI 인덱스의 예시 데이터 가져오기
             example_data = self.gri_examples.get(gri_index, {})
             example_instruction = example_data.get('instruction', '')
