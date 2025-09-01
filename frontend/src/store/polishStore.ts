@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { GRIApiService } from '@/lib/griApi';
 
 type Status = 'idle' | 'loading' | 'success' | 'error' | 'not_found';
@@ -12,6 +13,17 @@ interface ErrorResponse {
   message?: string;
 }
 
+// 저장된 윤문 결과 타입
+type PolishedItem = {
+  gri_index: string;
+  category_id: number;
+  polished_text: string;
+  last_modified: string;
+  answers: {
+    [key: string]: string;  // key_alpha를 키로 사용
+  };
+};
+
 type PolishState = {
   status: Status;
   result?: {
@@ -21,15 +33,23 @@ type PolishState = {
   };
   error?: string;
   savedAt?: string;
-  // 실행(POST)
+  // Local Storage 관련
+  savedItems: { [key: string]: PolishedItem };  // gri_index를 키로 사용
+  // API 관련
   polish: (args: Parameters<typeof GRIApiService.runPolish>[0]) => Promise<void>;
-  // 조회(GET)
   fetchPolishResult: (sessionKey: string, griIndex: string) => Promise<void>;
+  // Local Storage 관련 메서드
+  savePolishedItem: (item: PolishedItem) => void;
+  getPolishedItem: (gri_index: string) => PolishedItem | undefined;
+  getAllPolishedItems: () => PolishedItem[];
+  // 기타
   setSavedAt: (timestamp: string) => void;
   reset: () => void;
 };
 
-export const usePolishStore = create<PolishState>((set, get) => ({
+export const usePolishStore = create<PolishState>()(
+  persist(
+    (set, get) => ({
   status: 'idle',
   result: undefined,
   error: undefined,
@@ -111,5 +131,34 @@ export const usePolishStore = create<PolishState>((set, get) => ({
 
   setSavedAt: (timestamp: string) => set({ savedAt: timestamp }),
   
-  reset: () => set({ status: 'idle', result: undefined, error: undefined, savedAt: undefined }),
-}));
+  // 기존 상태 초기화
+  reset: () => set({ 
+    status: 'idle', 
+    result: undefined, 
+    error: undefined, 
+    savedAt: undefined 
+  }),
+
+  // Local Storage 관련 초기 상태 및 메서드
+  savedItems: {},
+
+  savePolishedItem: (item) => set((state) => ({
+    savedItems: {
+      ...state.savedItems,
+      [item.gri_index]: {
+        ...item,
+        last_modified: new Date().toISOString(),
+      },
+    },
+  })),
+
+  getPolishedItem: (gri_index) => get().savedItems[gri_index],
+
+  getAllPolishedItems: () => Object.values(get().savedItems),
+})),
+{
+  name: 'polish-storage',
+  storage: createJSONStorage(() => localStorage),
+  partialize: (state) => ({ savedItems: state.savedItems }), // local storage에는 savedItems만 저장
+})
+);
