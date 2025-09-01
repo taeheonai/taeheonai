@@ -46,7 +46,7 @@ class UserService:
                 "message": "회원가입이 완료되었습니다.",
                 "user_id": str(user_entity.id),
                 "auth_id": user_entity.auth_id,
-                "company_id": signup_data.corporation_id,
+                "corporation_id": signup_data.corporation_id,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
