@@ -18,11 +18,11 @@ class MGIndexDTO(BaseModel):
     """IssuePool별로 그룹화된 GRI 인덱스 데이터"""
     issuepool_id: int
     issue_pool: str
-    ranking: str
-    publish_year: str
-    corporation_id: int
+    ranking: Optional[str] = None
+    publish_year: Optional[str] = None
+    corporation_id: Optional[int] = None
     category_id: int
-    esg_classification_id: int
+    esg_classification_id: Optional[int] = None
     gri_indexes: List[GRIIndex]
     model_config = ConfigDict(from_attributes=True)
 
