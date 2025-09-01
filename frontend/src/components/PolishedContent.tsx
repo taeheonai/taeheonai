@@ -10,8 +10,8 @@ type Props = {
 };
 
 export default function PolishedContent({ gri_index, showLastModified = false }: Props) {
-  const { getItem } = usePolishStore();
-  const item = getItem(gri_index);
+  const { getPolishedItem } = usePolishStore();
+  const item = getPolishedItem(gri_index);
 
   if (!item) return null;
 

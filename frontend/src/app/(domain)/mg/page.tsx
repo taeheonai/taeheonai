@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { useMGStore } from '@/store/mgStore';
 import { useSessionStore } from '@/store/sessionStore';
 import IndexPolisher from '@/components/IndexPolisher';
@@ -28,6 +28,9 @@ export default function MGPage() {
     }
   }, [selected, loadIndexes]);
 
+  // 선택된 항목들의 ID를 문자열로 변환
+  const selectedIds = useMemo(() => selected.map(i => i.id).join(','), [selected]);
+
   useEffect(() => {
     if (selected.length === 0) {
       try {
@@ -45,7 +48,7 @@ export default function MGPage() {
       }
     }
     stableLoadIndexes();
-  }, [stableLoadIndexes, selected.map((i) => i.id).join(',')]);
+  }, [stableLoadIndexes, selectedIds, selected.length]);
 
   // 세션 준비 체크
   if (!sessionKey || !threadId) {
