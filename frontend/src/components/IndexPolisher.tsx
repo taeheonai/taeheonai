@@ -52,12 +52,6 @@ export default function IndexPolisher({
               onChange={(e) => onChange(q.key_alpha ?? "", e.target.value)}
               placeholder="여기에 원문을 입력하세요"
             />
-            {polished[q.key_alpha ?? ""] && (
-              <div className="mt-2 p-2 text-sm bg-gray-50 border rounded">
-                <div className="font-semibold mb-1">윤문 결과</div>
-                <div>{polished[q.key_alpha ?? ""]}</div>
-              </div>
-            )}
           </div>
         ))}
       </div>
@@ -72,9 +66,9 @@ export default function IndexPolisher({
       </div>
 
       {polishedIndexText && (
-        <div className="p-4 border rounded-xl bg-gray-50 mt-4">
-          <div className="font-semibold mb-1">인덱스 통합 윤문</div>
-          <div className="text-sm">{polishedIndexText}</div>
+        <div className="p-6 border-2 border-blue-100 rounded-xl bg-blue-50 mt-6">
+          <div className="font-semibold text-lg text-blue-900 mb-2">윤문 결과</div>
+          <div className="text-blue-800 whitespace-pre-wrap">{polishedIndexText}</div>
         </div>
       )}
     </div>
