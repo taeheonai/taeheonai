@@ -106,8 +106,9 @@ export default function IndexPolisher({
         corporation_id: corporationId,
         extra_meta: {
           company_id: user?.company_id,
+          company_name: user?.company_name,  // 회사 이름 추가
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
-          debug_info: `user_company_id: ${user?.company_id}, corporation_id: ${corporationId}`
+          debug_info: `user_company_id: ${user?.company_id}, company_name: ${user?.company_name}, corporation_id: ${corporationId}`
         }
       
       // 표 형식 답변과 윤문 답변 결합

@@ -7,6 +7,7 @@ type User = {
   email?: string; 
   name: string;
   company_id: string;
+  company_name?: string;  // 회사 이름 추가
 };
 
 type AuthState = {
