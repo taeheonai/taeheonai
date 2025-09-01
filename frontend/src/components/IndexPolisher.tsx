@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type DisplayMode = 'table' | 'prose';
 
@@ -87,9 +88,13 @@ export default function IndexPolisher({
     return md.trim();
   }
 
+  // 사용자의 기업 정보 가져오기
+  const user = useAuthStore(state => state.user);
+
   const onPolish = async () => {
     setIsLoading(true);
     try {
+      // 기업 정보를 extra_meta에 포함
       const res = await polishIndex({
         session_key: sessionKey,
         category_id: categoryId,
@@ -97,7 +102,10 @@ export default function IndexPolisher({
         answers_by_key: answers,
         thread_id: threadId,
         corporation_id: corporationId,
-      });
+        extra_meta: {
+          company_id: user?.company_id,
+          company_context: "true"  // 기업 컨텍스트 활성화 플래그
+        }
       
       // 표 형식 답변과 윤문 답변 결합
       const tablesMd = buildTablesMarkdown();
