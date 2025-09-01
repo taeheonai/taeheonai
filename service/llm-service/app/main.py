@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Dict, Any
 import os
 import logging
 from datetime import datetime
@@ -44,8 +44,7 @@ class PolishRequest(BaseModel):
     gri_index: str
     answers: List[RequirementItemIn]
     extra_instructions: Optional[str] = None
-    company_id: Optional[str] = None
-    company_context: Optional[bool] = False  # 기업 컨텍스트 활성화 여부
+    extra_meta: Optional[Dict[str, Any]] = None  # extra_meta 필드 추가  # 기업 컨텍스트 활성화 여부
 
 class PolishResponse(BaseModel):
     polished_text: str
@@ -88,10 +87,11 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
             
             if req.extra_meta and req.extra_meta.get("company_context") == "true":
                 company_id = req.extra_meta.get("company_id")
-                logger.info(f"Company context enabled for company_id: {company_id}")
+                company_name = req.extra_meta.get("company_name")
+                logger.info(f"Company context enabled for company_id: {company_id}, company_name: {company_name}")
                 
-                # 기업 정보 조회 (실제로는 DB에서 조회해야 함)
-                company_name = "한온시스템"  # 임시로 하드코딩
+                if not company_name:
+                    logger.warning("Company name not provided in extra_meta")
                 
                 # JSON 형식의 메타데이터 생성
                 company_meta = {
