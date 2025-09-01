@@ -171,34 +171,34 @@ class MGRepository:
             return []
 
 
-# 인덱스(=gri_item.index_no) 하나에 속한 질문(a,b,c..) 전부 조회
-async def get_questions_for_index(self, *, category_id: int, gri_index: str) -> List[Dict[str, Any]]:
-    """
-    반환 컬럼:
-    - gri_index, item_id, item_title
-    - question_id, key_alpha, question_text, question_order
-    """
-    try:
-        stmt = (
-            select(
-                GriItem.index_no.label("gri_index"),
-                GriItem.id.label("item_id"),
-                GriItem.title.label("item_title"),
-                GriQuestion.id.label("question_id"),
-                GriQuestion.key_alpha,
-                GriQuestion.question_text,
-                GriQuestion.display_order.label("question_order"),
+    # 인덱스(=gri_item.index_no) 하나에 속한 질문(a,b,c..) 전부 조회
+    async def get_questions_for_index(self, *, category_id: int, gri_index: str) -> List[Dict[str, Any]]:
+        """
+        반환 컬럼:
+        - gri_index, item_id, item_title
+        - question_id, key_alpha, question_text, question_order
+        """
+        try:
+            stmt = (
+                select(
+                    GriItem.index_no.label("gri_index"),
+                    GriItem.id.label("item_id"),
+                    GriItem.title.label("item_title"),
+                    GriQuestion.id.label("question_id"),
+                    GriQuestion.key_alpha,
+                    GriQuestion.question_text,
+                    GriQuestion.display_order.label("question_order"),
+                )
+                .join(GriQuestion, GriItem.id == GriQuestion.item_id)
+                .where(
+                    GriItem.category_id == category_id,
+                    GriItem.index_no == gri_index
+                )
+                .order_by(GriQuestion.display_order)
             )
-            .join(GriQuestion, GriItem.id == GriQuestion.item_id)
-            .where(
-                GriItem.category_id == category_id,
-                GriItem.index_no == gri_index
-            )
-            .order_by(GriQuestion.display_order)
-        )
-        res = await self.db.execute(stmt)
-        return res.mappings().all()
-    except Exception as e:
-        print(f"[MG Repository] get_questions_for_index 실패: {e}")
-        import traceback; traceback.print_exc()
-        return []
+            res = await self.db.execute(stmt)
+            return res.mappings().all()
+        except Exception as e:
+            print(f"[MG Repository] get_questions_for_index 실패: {e}")
+            import traceback; traceback.print_exc()
+            return []
