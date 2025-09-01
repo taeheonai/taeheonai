@@ -22,15 +22,21 @@ export default function IndexPolisher({
   const { getPolishedItem, savePolishedItem } = usePolishStore();
   const savedItem = getPolishedItem(griIndex);
 
+  // 초기 데이터 로드
   useEffect(() => {
-    fetchIndexQuestions(categoryId, griIndex).then((b) => {
+    const loadData = async () => {
+      const b = await fetchIndexQuestions(categoryId, griIndex);
       setBlock(b);
+      
+      // 저장된 데이터 가져오기
+      const saved = getPolishedItem(griIndex);
+      
       const init: Record<string, string> = {};
       b.questions.forEach(q => { 
         const key = q.key_alpha ?? "";
         if (key) {
           // 저장된 답변이 있으면 불러오기
-          init[key] = savedItem?.answers[key] || ""; 
+          init[key] = saved?.answers[key] || ""; 
           // 기본값으로 prose 모드 설정
           setDisplayMode(prev => ({ ...prev, [key]: 'prose' }));
         }
@@ -38,11 +44,13 @@ export default function IndexPolisher({
       setAnswers(init);
       
       // 저장된 윤문 결과가 있으면 불러오기
-      if (savedItem?.polished_text) {
-        setPolishedIndexText(savedItem.polished_text);
+      if (saved?.polished_text) {
+        setPolishedIndexText(saved.polished_text);
       }
-    });
-  }, [categoryId, griIndex, setDisplayMode, savedItem]);
+    };
+    
+    loadData();
+  }, [categoryId, griIndex, getPolishedItem]);
 
   const onChange = (k: string, v: string) => {
     const newAnswers = { ...answers, [k]: v };
