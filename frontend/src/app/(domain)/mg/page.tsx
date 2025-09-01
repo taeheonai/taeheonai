@@ -66,9 +66,6 @@ export default function MGPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">MG Index 윤문</h1>
-          <p className="mt-2 text-gray-600">
-            선택된 IssuePool의 GRI 인덱스를 윤문합니다.
-          </p>
         </div>
 
         <div className="space-y-8">
@@ -80,32 +77,17 @@ export default function MGPage() {
             return (
               <section key={issue.id} className="bg-white rounded-lg shadow-md p-6">
                 {/* 헤더 */}
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    IssuePool #{issue.id}
-                  </h2>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                    {issue.publish_year}
-                  </span>
-                </div>
-
-                {/* 메타 정보 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm text-gray-600">
-                  <div>
-                    <span className="font-medium">카테고리:</span> {issue.category_id}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <p className="text-lg text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                      {issue.issue_pool}
+                    </p>
                   </div>
-                  <div>
-                    <span className="font-medium">ESG 분류:</span> {issue.esg_classification_id}
+                  <div className="ml-4">
+                    <span className="px-4 py-2 bg-blue-50 text-blue-800 text-sm font-medium rounded-lg">
+                      카테고리 {issue.category_id}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-medium">순위:</span> {issue.ranking}
-                  </div>
-                </div>
-
-                {/* 이슈 풀 설명 */}
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-900 mb-2">Issue Pool:</h3>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded">{issue.issue_pool}</p>
                 </div>
 
                 {/* 인덱스 목록 */}
@@ -124,15 +106,6 @@ export default function MGPage() {
                               key={key}
                               className="relative border border-gray-200 rounded-lg p-4"
                             >
-                              {/* 숨기기 버튼 */}
-                              <button
-                                onClick={() => excludeIndex(issue.id, gri.gri_index)}
-                                className="absolute top-2 right-2 p-1 rounded hover:bg-red-50"
-                                title="이 인덱스를 숨깁니다"
-                              >
-                                <X className="w-4 h-4 text-gray-500 hover:text-red-600" />
-                              </button>
-
                               <div className="flex items-center justify-between">
                                 <div>
                                   <h4 className="font-medium text-gray-900">
@@ -142,12 +115,27 @@ export default function MGPage() {
                                     빈도: {gri.frequency}, 등급: {gri.grade}
                                   </p>
                                 </div>
-                                <button
-                                  onClick={() => toggleOpen(key)}
-                                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                >
-                                  {isOpen ? '접기' : '윤문하기'}
-                                </button>
+                                <div className="flex items-center space-x-2">
+                                  {/* 삭제 버튼 */}
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm(`${gri.gri_index} 인덱스를 삭제하시겠습니까?\n삭제된 인덱스는 하단의 '삭제된 인덱스 복원' 버튼으로 복원할 수 있습니다.`)) {
+                                        excludeIndex(issue.id, gri.gri_index);
+                                      }
+                                    }}
+                                    className="p-2 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 group"
+                                    title="이 인덱스를 삭제합니다"
+                                  >
+                                    <X className="w-5 h-5 text-gray-400 group-hover:text-red-500" />
+                                  </button>
+                                  {/* 윤문하기 버튼 */}
+                                  <button
+                                    onClick={() => toggleOpen(key)}
+                                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                                  >
+                                    {isOpen ? '접기' : '윤문하기'}
+                                  </button>
+                                </div>
                               </div>
 
                               {isOpen && (
@@ -166,17 +154,25 @@ export default function MGPage() {
                         })}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>표시할 인덱스가 없습니다.</p>
+                      <div className="text-center py-8">
+                        <p className="text-gray-500 mb-4">표시할 인덱스가 없습니다.</p>
                         {excluded.length > 0 && (
-                          <button
-                            onClick={() =>
-                              excluded.forEach((idx) => undoExclude(issue.id, idx))
-                            }
-                            className="mt-2 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                          >
-                            숨긴 {excluded.length}개 인덱스 복원
-                          </button>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 inline-block">
+                            <p className="text-sm text-gray-600 mb-3">
+                              삭제된 인덱스: {excluded.join(", ")}
+                            </p>
+                            <button
+                              onClick={() =>
+                                excluded.forEach((idx) => undoExclude(issue.id, idx))
+                              }
+                              className="px-4 py-2 bg-white text-blue-600 text-sm font-medium rounded-lg border border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors flex items-center justify-center mx-auto"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              삭제된 {excluded.length}개 인덱스 복원
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
