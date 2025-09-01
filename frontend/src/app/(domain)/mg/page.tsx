@@ -93,7 +93,20 @@ export default function MGPage() {
                 {/* 인덱스 목록 */}
                 {mgData ? (
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">GRI 인덱스:</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900">GRI 인덱스:</h3>
+                      {excluded.length > 0 && (
+                        <button
+                          onClick={() => excluded.forEach((idx) => undoExclude(issue.id, idx))}
+                          className="flex items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          삭제된 인덱스 복원 ({excluded.length})
+                        </button>
+                      )}
+                    </div>
 
                     {visible.length > 0 ? (
                       <div className="space-y-3">
