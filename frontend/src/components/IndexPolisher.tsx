@@ -2,6 +2,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type DisplayMode = 'table' | 'prose';
 
@@ -43,13 +45,24 @@ export default function IndexPolisher({
     const rows: string[] = [];
 
     for (const raw of lines) {
-      if (!/^\s*([-*•])\s+/.test(raw)) continue;
-      const line = raw.replace(/^\s*([-*•])\s+/, '');
-      const m = line.match(/^(.+?):\s*(.+)$/);
-      if (!m) continue;
-      const key = m[1].trim();
-      const value = m[2].trim().replace(/(?<=\d),(?=\d)/g, '');
-      rows.push(`| ${key} | ${value} |`);
+      // 1. "항목: 값" 형식
+      const colonMatch = raw.match(/^(.+?):\s*(.+)$/);
+      if (colonMatch) {
+        const [, key, value] = colonMatch;
+        rows.push(`| ${key.trim()} | ${value.trim()} |`);
+        continue;
+      }
+
+      // 2. "항목 값" 형식 (공백으로 첫 번째 단어와 나머지 구분)
+      const spaceMatch = raw.match(/^(\S+)\s+(.+)$/);
+      if (spaceMatch) {
+        const [, key, value] = spaceMatch;
+        rows.push(`| ${key.trim()} | ${value.trim()} |`);
+        continue;
+      }
+
+      // 3. 단순 값 (키는 "항목 N"으로 자동 생성)
+      rows.push(`| 항목 ${rows.length + 1} | ${raw.trim()} |`);
     }
 
     if (!rows.length) return '';
@@ -150,7 +163,7 @@ export default function IndexPolisher({
                     value={answers[key] ?? ""}
                     onChange={(e) => onChange(key, e.target.value)}
                     placeholder={mode === 'table' 
-                      ? "- 항목: 값\n- 항목: 값\n- 항목: 값" 
+                      ? "예시 형식:\n항목: 값\n키워드 나머지 설명\n단순 데이터" 
                       : "여기에 원문을 입력하세요"}
                   />
                 </div>
@@ -187,7 +200,35 @@ export default function IndexPolisher({
       {polishedIndexText && (
         <div className="p-6 border-2 border-blue-100 rounded-xl bg-blue-50 mt-6">
           <div className="font-semibold text-lg text-blue-900 mb-2">윤문 결과</div>
-          <div className="text-blue-800 whitespace-pre-wrap">{polishedIndexText}</div>
+          <div className="prose prose-blue max-w-none">
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table: props => (
+                  <table className="min-w-full divide-y divide-gray-300 my-4">
+                    {props.children}
+                  </table>
+                ),
+                thead: props => (
+                  <thead className="bg-gray-50">
+                    {props.children}
+                  </thead>
+                ),
+                th: props => (
+                  <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                    {props.children}
+                  </th>
+                ),
+                td: props => (
+                  <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                    {props.children}
+                  </td>
+                ),
+              }}
+            >
+              {polishedIndexText}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
