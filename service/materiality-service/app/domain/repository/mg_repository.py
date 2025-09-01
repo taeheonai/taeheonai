@@ -76,11 +76,11 @@ class MGRepository:
                 result.append({
                     "issuepool_id": issuepool.id,
                     "issue_pool": issuepool.issue_pool,
-                    "ranking": issuepool.ranking,
-                    "publish_year": issuepool.publish_year,
-                    "corporation_id": issuepool.corporation_id,
+                    "ranking": issuepool.ranking or "",  # None을 빈 문자열로 변환
+                    "publish_year": issuepool.publish_year or "",  # None을 빈 문자열로 변환
+                    "corporation_id": issuepool.corporation_id or 0,  # None을 0으로 변환
                     "category_id": issuepool.category_id,
-                    "esg_classification_id": issuepool.esg_classification_id,
+                    "esg_classification_id": issuepool.esg_classification_id or 0,  # None을 0으로 변환
                     "gri_indexes": gri_indexes
                 })
             print(f"[MG Repository] 총 {len(result)}개 IssuePool 그룹화 완료")
