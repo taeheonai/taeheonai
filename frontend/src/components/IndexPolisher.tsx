@@ -41,14 +41,6 @@ export default function IndexPolisher({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-lg font-semibold">{block.gri_index}</div>
-          <div className="text-sm text-gray-500">{block.item_title ?? "-"}</div>
-        </div>
-        <button onClick={onPolish} className="px-4 py-2 rounded-xl shadow border">인덱스 윤문</button>
-      </div>
-
       <div className="grid gap-4">
         {block.questions.map(q => (
           <div key={q.id} className="border rounded-xl p-4">
@@ -70,8 +62,17 @@ export default function IndexPolisher({
         ))}
       </div>
 
+      <div className="flex justify-end mt-4">
+        <button 
+          onClick={onPolish} 
+          className="px-4 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+        >
+          윤문 시작
+        </button>
+      </div>
+
       {polishedIndexText && (
-        <div className="p-4 border rounded-xl bg-gray-50">
+        <div className="p-4 border rounded-xl bg-gray-50 mt-4">
           <div className="font-semibold mb-1">인덱스 통합 윤문</div>
           <div className="text-sm">{polishedIndexText}</div>
         </div>
