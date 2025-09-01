@@ -10,6 +10,8 @@ from app.domain.schema.mg_schema import (
     # ✅ 신규: 인덱스 단위 윤문 DTO
     MGPolishIndexRequest,
     MGPolishIndexResponse,
+    MGIndexResponse,
+    MGIndexBlock,
 )
 from app.domain.controller.mg_controller import MGController
 import logging
