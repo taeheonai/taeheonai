@@ -1,5 +1,5 @@
 # app/domain/schema/mg_schema.py
-from typing import List, Literal, Optional, Dict
+from typing import List, Literal, Optional, Dict, Any
 from pydantic import BaseModel, ConfigDict, Field
 
 # ===== 공통 타입 =====
