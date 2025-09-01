@@ -146,15 +146,6 @@ async def list_questions(
     controller = _controller(db)
     return await controller.get_questions_by_category(category_id)
 
-    @router.get("/questions/index", response_model=MGIndexBlock)
-async def get_index_questions(
-    category_id: int,
-    gri_index: str,
-    db: AsyncSession = Depends(get_db),
-):
-    controller = _controller(db)
-    return await controller.get_questions_for_index(category_id, gri_index)
-
 @router.get("/questions/index", response_model=MGIndexBlock)
 async def get_index_questions(
     category_id: int,
@@ -163,3 +154,4 @@ async def get_index_questions(
 ):
     controller = _controller(db)
     return await controller.get_questions_for_index(category_id, gri_index)
+
