@@ -44,6 +44,8 @@ class PolishRequest(BaseModel):
     gri_index: str
     answers: List[RequirementItemIn]
     extra_instructions: Optional[str] = None
+    company_id: Optional[str] = None
+    company_context: Optional[bool] = False  # 기업 컨텍스트 활성화 여부
 
 class PolishResponse(BaseModel):
     polished_text: str
@@ -80,11 +82,24 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
         
         # 비동기로 윤문 처리 (타임아웃 설정)
         try:
+            # 기업 컨텍스트가 활성화된 경우 추가 지시사항 생성
+            extra_instructions = req.extra_instructions or ""
+            if req.company_context and req.company_id:
+                # 기업 정보 조회 (실제로는 DB에서 조회해야 함)
+                company_name = "한온시스템"  # 임시로 하드코딩
+                extra_instructions = f"""
+                이 응답은 {company_name} 기업의 ESG 보고서를 위한 것입니다.
+                모든 'ABC' 또는 '회사'라는 표현을 '{company_name}'으로 대체하고,
+                기업 특성에 맞게 응답을 조정해주세요.
+                
+                {extra_instructions}
+                """.strip()
+
             result = await asyncio.wait_for(
                 polisher.polish(
                     gri_index=req.gri_index,
                     items=[RequirementItem(**it.model_dump()) for it in req.answers],
-                    extra_instructions=req.extra_instructions,
+                    extra_instructions=extra_instructions,
                 ),
                 timeout=120.0  # 2분 타임아웃
             )
