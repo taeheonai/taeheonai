@@ -1,6 +1,6 @@
 # app/domain/repository/mg_repository.py
 from typing import List, Dict, Any, Tuple
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.entity.issuepool_entity import IssuePool
