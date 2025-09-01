@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuthStore } from '@/store/useAuthStore';
 import { useGriStore } from '@/store/useGriStore';
+import { useSessionStore } from '@/store/sessionStore';
 import { PolishResult } from '@/components/PolishResult';
 
 export default function GriReportPage() {
-  const user = useAuthStore((s) => s.user);
-  const { sessionKey, polishedByIndex, setPolished } = useGriStore();
+  const { polishedByIndex, setPolished } = useGriStore();
+  const { sessionKey } = useSessionStore(); // ✅ sessionStore에서 sessionKey 가져오기
   const [indices, setIndices] = useState<string[]>([]); // 보고서에 담을 index 리스트
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,11 +57,11 @@ export default function GriReportPage() {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50">
-          <Navigation user={user} />
-          <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+          <Navigation />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">보고서 데이터를 불러오는 중...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">윤문 데이터를 불러오는 중...</p>
             </div>
           </div>
         </div>
@@ -72,29 +72,48 @@ export default function GriReportPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Navigation user={user} />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">GRI 보고서</h1>
-            <p className="text-gray-600 mt-2">작성된 GRI 보고서 내용입니다.</p>
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">GRI Report</h1>
+            <p className="mt-2 text-gray-600">
+              윤문된 GRI 인덱스들을 보고서 형태로 확인하세요.
+            </p>
+            {/* 세션 정보 디버깅용 (개발 완료 후 제거 가능) */}
+            {sessionKey && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-md text-sm text-blue-700">
+                <p><strong>Session Key:</strong> {sessionKey.substring(0, 8)}...</p>
+              </div>
+            )}
           </div>
 
-          {indices.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <div className="text-gray-400 text-6xl mb-4">📝</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">아직 작성된 보고서가 없습니다</h3>
-              <p className="text-gray-600">GRI Intake 페이지에서 답변을 작성하고 저장해주세요.</p>
+          {indices.length > 0 ? (
+            <div className="space-y-6">
+              {indices.map((index) => (
+                <div key={index} className="bg-white rounded-lg shadow-md">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      GRI {index}
+                    </h3>
+                    <PolishResult 
+                      sessionKey={sessionKey || ''} 
+                      griIndex={index}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="space-y-6">
-              {indices.map((idx) => (
-                <section key={idx} className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">인덱스 {idx}</h2>
-                  {sessionKey && (
-                    <PolishResult sessionKey={sessionKey} griIndex={idx} />
-                  )}
-                </section>
-              ))}
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">아직 윤문된 결과가 없습니다</h3>
+              <p className="text-gray-500">
+                GRI Intake 페이지에서 윤문을 실행한 후 다시 확인해주세요.
+              </p>
             </div>
           )}
         </div>

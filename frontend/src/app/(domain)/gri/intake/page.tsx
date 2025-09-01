@@ -9,6 +9,7 @@ import { usePolishStore } from '@/store/polishStore';
 import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
+import { useSessionStore } from '@/store/sessionStore';
 
 type DisplayMode = 'table' | 'prose';
 
@@ -23,7 +24,17 @@ export default function GRIIntakePage() {
     setSelectedItem,
     setAnswers,
     setAnswer,
+    setSessionKey,
   } = useGriStore();
+
+  const ssKey = useSessionStore((s) => s.sessionKey);
+
+  // 세션키 동기화: GRI store의 키가 비어있을 때만 sessionStore에서 주입
+  useEffect(() => {
+    if (ssKey && !sessionKey) {
+      setSessionKey(ssKey);
+    }
+  }, [ssKey, sessionKey, setSessionKey]);
 
   const { status, result, polish } = usePolishStore();
 

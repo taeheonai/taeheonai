@@ -1,0 +1,81 @@
+// components/mg/IndexPolisher.tsx
+"use client";
+import { useEffect, useState } from "react";
+import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
+
+export default function IndexPolisher({
+  categoryId, griIndex, sessionKey, threadId, corporationId
+}: { categoryId: number; griIndex: string; sessionKey: string; threadId?: string; corporationId?: number }) {
+  const [block, setBlock] = useState<MGIndexBlock | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [polished, setPolished] = useState<Record<string, string>>({});
+  const [polishedIndexText, setPolishedIndexText] = useState<string>("");
+
+  useEffect(() => {
+    fetchIndexQuestions(categoryId, griIndex).then((b) => {
+      setBlock(b);
+      const init: Record<string, string> = {};
+      b.questions.forEach(q => { if (q.key_alpha) init[q.key_alpha] = ""; });
+      setAnswers(init);
+    });
+  }, [categoryId, griIndex]);
+
+  const onChange = (k: string, v: string) => setAnswers(prev => ({ ...prev, [k]: v }));
+
+  const onPolish = async () => {
+    const res = await polishIndex({
+      session_key: sessionKey,
+      category_id: categoryId,
+      gri_index: griIndex,
+      answers_by_key: answers,
+      thread_id: threadId,
+      corporation_id: corporationId,
+    });
+    const dict: Record<string, string> = {};
+    res.items.forEach(it => { if (it.key_alpha) dict[it.key_alpha] = it.polished_text; });
+    setPolished(dict);
+    setPolishedIndexText(res.polished_index_text || "");
+  };
+
+  if (!block) return <div className="text-sm text-gray-500">Loading…</div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-lg font-semibold">{block.gri_index}</div>
+          <div className="text-sm text-gray-500">{block.item_title ?? "-"}</div>
+        </div>
+        <button onClick={onPolish} className="px-4 py-2 rounded-xl shadow border">인덱스 윤문</button>
+      </div>
+
+      <div className="grid gap-4">
+        {block.questions.map(q => (
+          <div key={q.id} className="border rounded-xl p-4">
+            <div className="text-sm font-medium mb-1">{q.key_alpha ? `${q.key_alpha}. ` : ""}{q.text}</div>
+            <textarea
+              className="w-full border rounded-md p-2 text-sm"
+              rows={3}
+              value={answers[q.key_alpha ?? ""] ?? ""}
+              onChange={(e) => onChange(q.key_alpha ?? "", e.target.value)}
+              placeholder="여기에 원문을 입력하세요"
+            />
+            {polished[q.key_alpha ?? ""] && (
+              <div className="mt-2 p-2 text-sm bg-gray-50 border rounded">
+                <div className="font-semibold mb-1">윤문 결과</div>
+                <div>{polished[q.key_alpha ?? ""]}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {polishedIndexText && (
+        <div className="p-4 border rounded-xl bg-gray-50">
+          <div className="font-semibold mb-1">인덱스 통합 윤문</div>
+          <div className="text-sm">{polishedIndexText}</div>
+        </div>
+      )}
+    </div>
+  );
+}

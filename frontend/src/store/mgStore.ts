@@ -2,7 +2,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { MGIndexDTO, GRIIndex } from '@/lib/mg';
+import type { MGIndexDTO } from '@/lib/mg';
 import { fetchMGIndexes, requestMGPolish } from '@/lib/mg';
 
 type IssuePool = {
@@ -16,7 +16,7 @@ type MGState = {
   resultsByIndex: Record<string, { polished_text?: string; status: 'idle'|'loading'|'done'|'error'; savedAt?: string }>;
   setSelected: (items: IssuePool[]) => void;
   loadIndexes: () => Promise<void>;
-  runPolish: (sessionKey: string, threadId: string, indices?: GRIIndex[]) => Promise<void>;
+  runPolish: (sessionKey: string, threadId: string, items?: MGIndexDTO[]) => Promise<void>;
 };
 
 export const useMGStore = create<MGState>()(persist((set, get) => ({
@@ -38,17 +38,17 @@ export const useMGStore = create<MGState>()(persist((set, get) => ({
     set({ indexesByIssue: grouped });
   },
 
-  runPolish: async (sessionKey, threadId, indices) => {
-    // indices가 없으면 모든 GRI 인덱스를 평면화
-    const idx = indices ?? Object.values(get().indexesByIssue)
-      .flatMap(item => item.gri_indexes || []);
-    
-    // 상태 표시
+  runPolish: async (sessionKey, threadId, items) => {
+    // items가 없으면 현재 스토어의 issue 단위 데이터를 사용
+    const payload: MGIndexDTO[] = items ?? Object.values(get().indexesByIssue);
+    // 상태 표시를 위해 인덱스 목록 추출
+    const idxList = payload.flatMap(item => item.gri_indexes || []);
+
     const patch: Record<string, { status: 'loading' }> = {};
-    idx.forEach(i => patch[`${i.gri_index}`] = { status: 'loading' });
+    idxList.forEach(i => { patch[`${i.gri_index}`] = { status: 'loading' }; });
     set({ resultsByIndex: { ...get().resultsByIndex, ...patch } });
 
-    const res = await requestMGPolish(sessionKey, threadId, idx);
+    const res = await requestMGPolish(sessionKey, threadId, payload);
     // 응답 형태에 맞춰 저장
     const next = { ...get().resultsByIndex };
     for (const r of res.results ?? []) {
