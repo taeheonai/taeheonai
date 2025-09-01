@@ -3,38 +3,101 @@
 import { useEffect, useState } from "react";
 import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
 
+type DisplayMode = 'table' | 'prose';
+
 export default function IndexPolisher({
   categoryId, griIndex, sessionKey, threadId, corporationId
 }: { categoryId: number; griIndex: string; sessionKey: string; threadId?: string; corporationId?: number }) {
   const [block, setBlock] = useState<MGIndexBlock | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [polished, setPolished] = useState<Record<string, string>>({});
+  const [displayMode, setDisplayMode] = useState<Record<string, DisplayMode>>({});
   const [polishedIndexText, setPolishedIndexText] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchIndexQuestions(categoryId, griIndex).then((b) => {
       setBlock(b);
       const init: Record<string, string> = {};
-      b.questions.forEach(q => { if (q.key_alpha) init[q.key_alpha] = ""; });
+      b.questions.forEach(q => { 
+        const key = q.key_alpha ?? "";
+        if (key) {
+          init[key] = ""; 
+          // 기본값으로 prose 모드 설정
+          setDisplayMode(prev => ({ ...prev, [key]: 'prose' }));
+        }
+      });
       setAnswers(init);
     });
-  }, [categoryId, griIndex]);
+  }, [categoryId, griIndex, setDisplayMode]);
 
   const onChange = (k: string, v: string) => setAnswers(prev => ({ ...prev, [k]: v }));
 
+  // 표 형식으로 변환
+  function toMarkdownTable(answer: string) {
+    const lines = answer
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const rows: string[] = [];
+
+    for (const raw of lines) {
+      if (!/^\s*([-*•])\s+/.test(raw)) continue;
+      const line = raw.replace(/^\s*([-*•])\s+/, '');
+      const m = line.match(/^(.+?):\s*(.+)$/);
+      if (!m) continue;
+      const key = m[1].trim();
+      const value = m[2].trim().replace(/(?<=\d),(?=\d)/g, '');
+      rows.push(`| ${key} | ${value} |`);
+    }
+
+    if (!rows.length) return '';
+    return ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');
+  }
+
+  // 현재 표 모드로 선택된 답변들을 마크다운 테이블로 변환
+  function buildTablesMarkdown() {
+    if (!block) return '';
+    let md = '';
+    for (const q of block.questions) {
+      const key = q.key_alpha ?? "";
+      if (displayMode[key] !== 'table') continue;
+      const text = answers[key]?.trim();
+      if (!text) continue;
+
+      const table = toMarkdownTable(text);
+      if (!table) continue;
+
+      md += `\n\n#### ${griIndex}-${key}) ${q.text || ''}\n${table}\n`;
+    }
+    return md.trim();
+  }
+
   const onPolish = async () => {
-    const res = await polishIndex({
-      session_key: sessionKey,
-      category_id: categoryId,
-      gri_index: griIndex,
-      answers_by_key: answers,
-      thread_id: threadId,
-      corporation_id: corporationId,
-    });
-    const dict: Record<string, string> = {};
-    res.items.forEach(it => { if (it.key_alpha) dict[it.key_alpha] = it.polished_text; });
-    setPolished(dict);
-    setPolishedIndexText(res.polished_index_text || "");
+    setIsLoading(true);
+    try {
+      const res = await polishIndex({
+        session_key: sessionKey,
+        category_id: categoryId,
+        gri_index: griIndex,
+        answers_by_key: answers,
+        thread_id: threadId,
+        corporation_id: corporationId,
+      });
+      
+      // 표 형식 답변과 윤문 답변 결합
+      const tablesMd = buildTablesMarkdown();
+      const combinedText = tablesMd 
+        ? `${tablesMd}\n\n${res.polished_index_text || ""}`
+        : res.polished_index_text || "";
+        
+      setPolishedIndexText(combinedText);
+    } catch (error) {
+      console.error('윤문 처리 중 오류:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!block) return <div className="text-sm text-gray-500">Loading…</div>;
@@ -42,26 +105,82 @@ export default function IndexPolisher({
   return (
     <div className="space-y-4">
       <div className="grid gap-4">
-        {block.questions.map(q => (
-          <div key={q.id} className="border rounded-xl p-4">
-            <div className="text-sm font-medium mb-1">{q.key_alpha ? `${q.key_alpha}. ` : ""}{q.text}</div>
-            <textarea
-              className="w-full border rounded-md p-2 text-sm"
-              rows={3}
-              value={answers[q.key_alpha ?? ""] ?? ""}
-              onChange={(e) => onChange(q.key_alpha ?? "", e.target.value)}
-              placeholder="여기에 원문을 입력하세요"
-            />
-          </div>
-        ))}
+        {block.questions.map(q => {
+          const key = q.key_alpha ?? "";
+          const mode = displayMode[key] ?? 'prose';
+          
+          return (
+            <div key={q.id} className="border rounded-xl p-4">
+              <div className="flex items-start space-x-2">
+                <span className="text-sm font-medium text-gray-700 mt-1">{q.key_alpha}.</span>
+                <div className="flex-1">
+                  {/* 표/윤문 선택 토글 */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500">표/윤문</span>
+                    <div className="inline-flex rounded-md overflow-hidden border">
+                      <button
+                        type="button"
+                        onClick={() => setDisplayMode(m => ({ ...m, [key]: 'table' }))}
+                        className={
+                          mode === 'table'
+                            ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                            : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                        }
+                      >
+                        표
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDisplayMode(m => ({ ...m, [key]: 'prose' }))}
+                        className={
+                          mode === 'prose'
+                            ? 'px-2 py-1 text-xs bg-blue-600 text-white'
+                            : 'px-2 py-1 text-xs bg-white text-gray-700 hover:bg-gray-50'
+                        }
+                      >
+                        윤문
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-sm font-medium mb-2">{q.text}</div>
+                  <textarea
+                    className="w-full border rounded-md p-2 text-sm"
+                    rows={3}
+                    value={answers[key] ?? ""}
+                    onChange={(e) => onChange(key, e.target.value)}
+                    placeholder={mode === 'table' 
+                      ? "- 항목: 값\n- 항목: 값\n- 항목: 값" 
+                      : "여기에 원문을 입력하세요"}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex justify-end mt-4">
         <button 
-          onClick={onPolish} 
-          className="px-4 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+          onClick={onPolish}
+          disabled={isLoading} 
+          className={`px-4 py-2 font-medium rounded-xl transition-colors ${
+            isLoading 
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
-          윤문 시작
+          {isLoading ? (
+            <span className="flex items-center space-x-2">
+              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+              <span>윤문 중...</span>
+            </span>
+          ) : (
+            <span className="flex items-center space-x-2">
+              <span>✨</span>
+              <span>윤문 시작</span>
+            </span>
+          )}
         </button>
       </div>
 
