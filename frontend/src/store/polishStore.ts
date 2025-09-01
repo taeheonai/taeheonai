@@ -54,6 +54,7 @@ export const usePolishStore = create<PolishState>()(
   result: undefined,
   error: undefined,
   savedAt: undefined,
+  savedItems: {},  // 초기 상태 추가
 
   fetchPolishResult: async (sessionKey, griIndex) => {
     // 🔧 이미 로딩 중이거나 같은 데이터를 요청 중이면 중복 호출 방지
@@ -136,7 +137,8 @@ export const usePolishStore = create<PolishState>()(
     status: 'idle', 
     result: undefined, 
     error: undefined, 
-    savedAt: undefined 
+    savedAt: undefined,
+    savedItems: {}  // savedItems도 초기화
   }),
 
   // Local Storage 관련 초기 상태 및 메서드
