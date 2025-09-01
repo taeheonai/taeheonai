@@ -189,9 +189,10 @@ class MGRepository:
                     GriQuestion.question_text,
                     GriQuestion.display_order.label("question_order"),
                 )
+                .join(IssuePoolGRIEntity, IssuePoolGRIEntity.gri_index == GriItem.index_no)
                 .join(GriQuestion, GriItem.id == GriQuestion.item_id)
                 .where(
-                    GriItem.category_id == category_id,
+                    IssuePoolGRIEntity.category_id == category_id,
                     GriItem.index_no == gri_index
                 )
                 .order_by(GriQuestion.display_order)
