@@ -72,11 +72,37 @@ class UserService:
                     detail="아이디 또는 비밀번호가 올바르지 않습니다."
                 )
 
+            # 기업 정보 조회
+            corporation_info = None
+            if user_entity.corporation_id:
+                async with CorporationClient() as client:
+                    try:
+                        # 기업 정보 조회
+                        corporation_info = await client.get_corporation(user_entity.corporation_id)
+                        if corporation_info and isinstance(corporation_info, dict):
+                            corporation_name = corporation_info.get("companyname")
+                        else:
+                            # 기업 정보가 없으면 validate 엔드포인트로 재시도
+                            is_valid = await client.validate_corporation_exists(user_entity.corporation_id)
+                            if is_valid:
+                                corporation_name = f"기업 {user_entity.corporation_id}"
+                            else:
+                                corporation_name = None
+                    except Exception as e:
+                        logger.error(f"기업 정보 조회 실패: {e}")
+                        corporation_name = None
+            else:
+                corporation_name = None
+
             return {
                 "success": True,
                 "message": "로그인이 완료되었습니다.",
-                "user_id": str(user_entity.id),
+                "id": str(user_entity.id),
+                "name": user_entity.name,
                 "auth_id": user_entity.auth_id,
+                "email": user_entity.email,
+                "corporation_id": user_entity.corporation_id,
+                "corporation_name": corporation_name,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
