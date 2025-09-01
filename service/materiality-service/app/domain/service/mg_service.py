@@ -16,8 +16,10 @@ from app.domain.schema.mg_schema import (
 )
 
 # 🔧 LLM Service URL/Timeout
-LLM_BASE = os.getenv("LLM_SERVICE_URL", "http://localhost:8005")
+LLM_BASE = os.getenv("LLM_SERVICE_URL", "http://llm-service:8005")  # Docker 컨테이너 이름 사용
 LLM_TIMEOUT = float(os.getenv("LLM_HTTP_TIMEOUT", "60.0"))
+
+print(f"[MG Service] LLM Service URL: {LLM_BASE}")
 
 
 class MGService:
@@ -87,56 +89,83 @@ class MGService:
         item_id = first["item_id"]
         item_title = first.get("item_title")
 
-        llm_items: List[Dict[str, Any]] = []
+        # LLM 서비스 요청용 answers 구성
+        answers: List[Dict[str, Any]] = []
         for r in rows:
             qid = r["question_id"]
-            alpha = r.get("key_alpha")
+            alpha = r.get("key_alpha", "")
             qtext = r["question_text"]
             raw_answer = ans_by_id.get(qid, ans_by_key.get(alpha or "", ""))
 
-            llm_items.append({
-                "question_id": qid,
-                "key_alpha": alpha,
-                "question_text": qtext,
-                "raw_answer": raw_answer,
-            })
+            if raw_answer.strip():  # 답변이 있는 경우만 포함
+                answers.append({
+                    "question_id": qid,
+                    "key_alpha": alpha or "",  # LLM 서비스는 null을 허용하지 않음
+                    "text": raw_answer,  # 실제 답변 내용
+                })
 
+        # 답변이 없으면 빈 응답 반환
+        if not answers:
+            return MGPolishIndexResponse(
+                session_key=req.session_key,
+                gri_index=req.gri_index,
+                item_id=item_id,
+                item_title=item_title,
+                polished_index_text="답변이 없습니다.",
+                items=[]
+            )
+
+        # LLM 서비스 요청 payload
         payload = {
             "session_key": req.session_key,
-            "thread_id": req.thread_id,
-            "corporation_id": req.corporation_id,
-            "category_id": req.category_id,
             "gri_index": req.gri_index,
-            "item_id": item_id,
-            "item_title": item_title,
-            "items": llm_items,
-            "meta": {
-                "style": req.style,
-                "audience": req.audience,
-                "references": req.references or [req.gri_index],
-                **(req.extra_meta or {})
-            }
+            "answers": answers,
+            "extra_instructions": f"Style: {req.style}, Audience: {req.audience}"
         }
 
-        async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
-            resp = await client.post(f"{LLM_BASE}/v1/polish/index", json=payload)
-            resp.raise_for_status()
-            data = resp.json()
+        try:
+            print(f"[MG Service] Sending polish request to LLM service: {LLM_BASE}/v1/polish")
+            print(f"[MG Service] Payload: {payload}")
+            
+            async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
+                # API 키 헤더 추가
+                headers = {"x-api-key": os.getenv("SERVICE_API_KEY", "default-service-key")}
+                resp = await client.post(f"{LLM_BASE}/v1/polish", json=payload, headers=headers)
+                resp.raise_for_status()
+                data = resp.json().get("data", {})
+                
+            print(f"[MG Service] LLM response: {data}")
+        except Exception as e:
+            print(f"[MG Service] LLM request failed: {str(e)}")
+            # 에러는 기록하되 빈 응답 반환
+            return MGPolishIndexResponse(
+                session_key=req.session_key,
+                gri_index=req.gri_index,
+                item_id=item_id,
+                item_title=item_title,
+                polished_index_text="LLM 서비스 연결 실패",
+                items=[]
+            )
 
-        polished_items: List[MGPolishedSubAnswer] = []
-        for it in data.get("items", []):
-            polished_items.append(MGPolishedSubAnswer(
-                question_id=it["question_id"],
-                key_alpha=it.get("key_alpha"),
-                polished_text=it.get("polished_text", "")
-            ))
+        # LLM 서비스의 응답을 MGPolishIndexResponse 형식으로 변환
+        polished_text = data.get("polished_text", "")
+        
+        # 각 질문별 응답을 생성
+        polished_items = [
+            MGPolishedSubAnswer(
+                question_id=answer["question_id"],
+                key_alpha=answer["key_alpha"],
+                polished_text=polished_text  # 현재는 전체 텍스트를 각 항목에 동일하게 설정
+            )
+            for answer in answers
+        ]
 
         return MGPolishIndexResponse(
             session_key=req.session_key,
             gri_index=req.gri_index,
             item_id=item_id,
             item_title=item_title,
-            polished_index_text=data.get("polished_index_text"),
+            polished_index_text=polished_text,
             items=polished_items
         )
 
