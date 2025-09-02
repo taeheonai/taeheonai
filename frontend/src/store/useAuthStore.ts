@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthState>()(
       }),
       fetchCompanyInfo: async () => {
         const user = get().user;
-        if (!user?.company_id) return;
+        if (!user?.corporation_id) return;
 
         set(state => ({
           company: {
@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
         }));
 
         try {
-          const info = await AuthApiService.getCompanyInfo(user.company_id);
+          const info = await AuthApiService.getCompanyInfo(user.corporation_id);
           set(state => ({
             company: {
               ...state.company,
