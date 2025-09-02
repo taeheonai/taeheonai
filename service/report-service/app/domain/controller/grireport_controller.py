@@ -57,10 +57,33 @@ class GRIReportController:
         corporation_id: int,
         answers: dict
     ) -> bool:
-        """GRI 답변 저장"""
-        return await self._service.save_answers(
+        """GRI 답변 저장 (기본값: Materiality-GRI)"""        return await self._service.save_answers(
             corporation_id=corporation_id,
             answers=answers
+        )
+
+    async def save_intake_answers(
+        self,
+        corporation_id: int,
+        answers: dict
+    ) -> bool:
+        """GRI Intake 답변 저장 (ESG 분류 없음)"""
+        return await self._service.save_intake_answers(
+            corporation_id=corporation_id,
+            answers=answers
+        )
+
+    async def save_materiality_answers(
+        self,
+        corporation_id: int,
+        answers: dict,
+        issuepool_id: int
+    ) -> bool:
+        """Materiality-GRI 답변 저장 (ESG 분류 포함)"""
+        return await self._service.save_materiality_answers(
+            corporation_id=corporation_id,
+            answers=answers,
+            issuepool_id=issuepool_id
         )
 
     async def get_answers(

@@ -150,13 +150,18 @@ class GRIReportRepository:
     async def save_answers(
         self,
         corporation_id: int,
-        answers: dict
+        answers: dict,
+        report_type: str = 'materiality',  # 'intake' 또는 'materiality'
+        issuepool_id: Optional[int] = None  # Materiality-GRI에서만 사용
     ) -> bool:
-        """GRI 답변 저장"""
+        """GRI 답변 저장 (Materiality-GRI 또는 GRI Intake)"""
         try:
-            # 기존 답변 삭제
+            # 기존 답변 삭제 (해당 corporation과 report_type의 모든 답변)
             delete_query = select(GRIReport).where(
-                GRIReport.corporation_id == corporation_id
+                and_(
+                    GRIReport.corporation_id == corporation_id,
+                    GRIReport.report_type == report_type
+                )
             )
             result = await self._session.execute(delete_query)
             existing_reports = result.scalars().all()
@@ -166,15 +171,42 @@ class GRIReportRepository:
             # 새로운 답변 저장
             for index_id, questions in answers.items():
                 for question_id, answer_data in questions.items():
-                    new_report = GRIReport(
-                        corporation_id=corporation_id,
-                        standard_code=index_id,
-                        question_id=question_id,
-                        answer_text=answer_data.get('answer_text', ''),
-                        polished_text=answer_data.get('polished_text'),
-                        display_mode=answer_data.get('display_mode', 'table'),
-                        is_saved=True
-                    )
+                    if report_type == 'intake':
+                        # GRI Intake: ESG 분류 없이 저장
+                        new_report = GRIReport(
+                            corporation_id=corporation_id,
+                            issuepool_id=None,  # null
+                            standard_code=index_id,
+                            question_id=question_id,
+                            esg_classification_id=None,  # null
+                            answer_text=answer_data.get('answer_text', ''),
+                            polished_text=answer_data.get('polished_text'),
+                            display_mode=answer_data.get('display_mode', 'prose'),
+                            report_type='intake',
+                            is_saved=True
+                        )
+                    else:
+                        # Materiality-GRI: ESG 분류 포함하여 저장
+                        # issuepool_id는 프론트엔드에서 전달받은 값 사용
+                        if issuepool_id is None:
+                            raise ValueError("Materiality-GRI 저장 시 issuepool_id가 필요합니다")
+                        
+                        # esg_classification_id 결정: GRI 표준 코드 분석
+                        esg_classification_id = self._determine_esg_classification(index_id)
+                        
+                        new_report = GRIReport(
+                            corporation_id=corporation_id,
+                            issuepool_id=issuepool_id,  # 프론트엔드에서 전달받은 값
+                            standard_code=index_id,
+                            question_id=question_id,
+                            esg_classification_id=esg_classification_id,
+                            answer_text=answer_data.get('answer_text', ''),
+                            polished_text=answer_data.get('polished_text'),
+                            display_mode=answer_data.get('display_mode', 'prose'),
+                            report_type='materiality',
+                            is_saved=True
+                        )
+                    
                     self._session.add(new_report)
 
             await self._session.commit()
@@ -183,14 +215,33 @@ class GRIReportRepository:
             await self._session.rollback()
             raise e
 
+    async def save_intake_answers(
+        self,
+        corporation_id: int,
+        answers: dict
+    ) -> bool:
+        """GRI Intake 답변 저장 (ESG 분류 없음)"""
+        return await self.save_answers(corporation_id, answers, 'intake')
+
+    async def save_materiality_answers(
+        self,
+        corporation_id: int,
+        answers: dict,
+        issuepool_id: int
+    ) -> bool:
+        """Materiality-GRI 답변 저장 (ESG 분류 포함)"""
+        return await self.save_answers(corporation_id, answers, 'materiality', issuepool_id)
+
     async def get_answers(
         self,
-        corporation_id: int
+        corporation_id: int,
+        report_type: str = 'materiality'  # 'intake' 또는 'materiality'
     ) -> dict:
-        """저장된 GRI 답변 조회"""
+        """저장된 GRI 답변 조회 (Materiality-GRI 또는 GRI Intake)"""
         query = select(GRIReport).where(
             and_(
                 GRIReport.corporation_id == corporation_id,
+                GRIReport.report_type == report_type,
                 GRIReport.is_saved.is_(True)
             )
         )
@@ -211,3 +262,17 @@ class GRIReportRepository:
             }
 
         return answers
+
+    async def get_intake_answers(
+        self,
+        corporation_id: int
+    ) -> dict:
+        """GRI Intake 답변 조회 (ESG 분류 없음)"""
+        return await self.get_answers(corporation_id, 'intake')
+
+    async def get_materiality_answers(
+        self,
+        corporation_id: int
+    ) -> dict:
+        """Materiality-GRI 답변 조회 (ESG 분류 포함)"""
+        return await self.get_answers(corporation_id, 'materiality')
