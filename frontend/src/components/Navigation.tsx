@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 
-import { User } from '@/contexts/AuthContext';
+import type { User } from '@/contexts/AuthContext';
 
 interface NavigationProps {
   user?: User | null;

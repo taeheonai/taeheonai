@@ -8,7 +8,7 @@ export interface User {
   name: string;
   corporation_id: string;
   corporation_name?: string;
-  email: string;
+  email?: string;
 }
 
 interface AuthContextType {

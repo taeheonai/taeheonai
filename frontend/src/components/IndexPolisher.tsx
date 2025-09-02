@@ -131,7 +131,7 @@ export default function IndexPolisher({
       }
     };
     loadCompanyInfo();
-  }, [user?.corporation_id, fetchCompanyInfo]);
+  }, [user?.corporation_id, fetchCompanyInfo, user, company]);
 
   const onPolish = async () => {
     setIsLoading(true);
