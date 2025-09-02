@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,11 +55,14 @@ class GRIReportController:
     async def save_answers(
         self,
         corporation_id: int,
-        answers: dict
+        answers: dict,
+        issuepool_id: Optional[int] = None
     ) -> bool:
-        """GRI 답변 저장 (기본값: Materiality-GRI)"""        return await self._service.save_answers(
+        """GRI 답변 저장 (기본값: Materiality-GRI)"""
+        return await self._service.save_answers(
             corporation_id=corporation_id,
-            answers=answers
+            answers=answers,
+            issuepool_id=issuepool_id
         )
 
     async def save_intake_answers(

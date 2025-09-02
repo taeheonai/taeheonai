@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
+from typing import List, Optional
 
 from app.domain.controller.grireport_controller import GRIReportController
 from pydantic import BaseModel
@@ -11,6 +11,7 @@ from app.domain.schema.grireport_schema import (
 
 class SaveAnswersRequest(BaseModel):
     answers: dict
+    issuepool_id: Optional[int] = None  # Materiality-GRI에서만 사용
 
 # API 라우터 설정
 router = APIRouter(
@@ -96,10 +97,12 @@ async def save_answers(
     - **corporation_id**: 기업 ID
     - **payload**: 저장할 답변 데이터
         - answers: 답변 데이터 딕셔너리
+        - issuepool_id: 이슈풀 ID (Materiality-GRI에서만 사용, GRI Intake에서는 생략)
     """
-    return await controller.save_materiality_answers(
+    return await controller.save_answers(
         corporation_id=corporation_id,
-        answers=payload.answers
+        answers=payload.answers,
+        issuepool_id=payload.issuepool_id
     )
 
 @router.post(

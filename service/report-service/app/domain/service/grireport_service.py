@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 import logging
@@ -112,15 +112,24 @@ class GRIReportService:
     async def save_answers(
         self,
         corporation_id: int,
-        answers: dict
+        answers: dict,
+        issuepool_id: Optional[int] = None
     ) -> bool:
         """GRI 답변 저장 (기본값: Materiality-GRI)"""
         try:
-            return await self._repository.save_materiality_answers(
-                corporation_id=corporation_id,
-                answers=answers,
-                issuepool_id=1  # 기본값 (실제로는 프론트엔드에서 전달받아야 함)
-            )
+            if issuepool_id is None:
+                # issuepool_id가 없으면 GRI Intake로 저장
+                return await self._repository.save_intake_answers(
+                    corporation_id=corporation_id,
+                    answers=answers
+                )
+            else:
+                # issuepool_id가 있으면 Materiality-GRI로 저장
+                return await self._repository.save_materiality_answers(
+                    corporation_id=corporation_id,
+                    answers=answers,
+                    issuepool_id=issuepool_id
+                )
         except Exception as e:
             raise HTTPException(
                 status_code=500,
