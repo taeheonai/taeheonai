@@ -99,12 +99,12 @@ export const PolishResult: React.FC<PolishResultProps> = ({
     }
   }, [sessionKey, griIndex, onPolishRequest]);
 
-  /* 컴포넌트 마운트 시 자동으로 데이터 가져오기 */
-  useEffect(() => {
-    if (sessionKey && griIndex) {
-      stableFetchPolishResult();
-    }
-  }, [sessionKey, griIndex, stableFetchPolishResult]);
+  /* 컴포넌트 마운트 시 자동으로 데이터 가져오기 - 자동 실행 비활성화 */
+  // useEffect(() => {
+  //   if (sessionKey && griIndex) {
+  //     stableFetchPolishResult();
+  //   }
+  // }, [sessionKey, griIndex, stableFetchPolishResult]);
 
   /* 테이블 마크다운 렌더링 스타일 */
   const markdownComponents = {
