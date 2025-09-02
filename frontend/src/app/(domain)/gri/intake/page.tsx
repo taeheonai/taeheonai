@@ -353,7 +353,7 @@ export default function GRIIntakePage() {
               if (typeof answer.polished_text === 'string') {
                 polishedText = answer.polished_text;
               } else if (answer.polished_text && typeof answer.polished_text === 'object') {
-                const polishedObj = answer.polished_text as any;
+                const polishedObj = answer.polished_text as { text?: string };
                 polishedText = polishedObj.text || '';
               }
               
