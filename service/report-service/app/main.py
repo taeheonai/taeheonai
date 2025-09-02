@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, APIRouter
 # from fastapi.middleware.cors import CORSMiddleware  # 🚨 CORS 제거로 인해 불필요
 from fastapi.responses import JSONResponse
@@ -5,14 +6,22 @@ from pydantic import BaseModel
 from datetime import datetime
 import logging
 import os
+import traceback
+
+# .env 파일 로드
+load_dotenv()
+
+# GRI 라우터 임포트
+from app.router.grireport_router import router as gri_router
+from app.common.database import init_db, engine
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="GRI Report Service",
-    description="GRI Report Generation Service for TaeheonAI",
+    title="Report Service",
+    description="ESG Report Generation Service for TaeheonAI",
     version="1.0.0"
 )
 
@@ -26,35 +35,37 @@ app = FastAPI(
 # )
 
 # APIRouter 정의
-gri_report_router = APIRouter()
+report_router = APIRouter(prefix="/v1/report", tags=["Report Service"])
 
 # 요청 모델
-class GRIReportRequest(BaseModel):
+class ReportRequest(BaseModel):
     company_data: dict
-    gri_standards: list
+    standards: list
+    report_type: str = "gri"  # gri, esrs, tcfd 등
     report_format: str = "pdf"
 
-class GRIReportResponse(BaseModel):
+class ReportResponse(BaseModel):
     report_url: str
     timestamp: datetime
     report_id: str
+    report_type: str
     standards_covered: list
 
-@gri_report_router.get("/health")
+@report_router.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
     return {
         "status": "healthy",
-        "service": "gri-report-service",
+        "service": "report-service",
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"
     }
 
-@gri_report_router.get("/")
+@report_router.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
-        "message": "GRI Report Service",
+        "message": "Report Service",
         "version": "1.0.0",
         "endpoints": {
             "health": "/health",
@@ -64,29 +75,30 @@ async def root():
         }
     }
 
-@gri_report_router.post("/generate")
-async def generate_gri_report(request: GRIReportRequest):
-    """GRI 보고서 생성"""
+@report_router.post("/generate")
+async def generate_report(request: ReportRequest):
+    """ESG 보고서 생성"""
     try:
-        logger.info(f"GRI report generation request for standards {request.gri_standards}")
+        logger.info(f"{request.report_type.upper()} report generation request for standards {request.standards}")
         
-        # GRI 보고서 생성 로직 (실제로는 AI 모델 연동)
-        report_id = f"gri_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        report_url = f"https://reports.taeheonai.com/gri/{report_id}.{request.report_format}"
+        # 보고서 생성 로직 (실제로는 AI 모델 연동)
+        report_id = f"{request.report_type}_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        report_url = f"https://reports.taeheonai.com/{request.report_type}/{report_id}.{request.report_format}"
         
-        return GRIReportResponse(
+        return ReportResponse(
             report_url=report_url,
             timestamp=datetime.now(),
             report_id=report_id,
-            standards_covered=request.gri_standards
+            report_type=request.report_type,
+            standards_covered=request.standards
         )
     except Exception as e:
-        logger.error(f"GRI report generation error: {e}")
-        raise HTTPException(status_code=500, detail="GRI report generation error")
+        logger.error(f"Report generation error: {e}")
+        raise HTTPException(status_code=500, detail="Report generation error")
 
-@gri_report_router.get("/templates")
-async def get_gri_templates():
-    """GRI 보고서 템플릿 조회"""
+@report_router.get("/templates")
+async def get_templates():
+    """ESG 보고서 템플릿 조회"""
     try:
         return {
             "templates": [
@@ -118,12 +130,12 @@ async def get_gri_templates():
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        logger.error(f"GRI templates error: {e}")
-        raise HTTPException(status_code=500, detail="GRI templates retrieval error")
+        logger.error(f"Templates error: {e}")
+        raise HTTPException(status_code=500, detail="Templates retrieval error")
 
-@gri_report_router.get("/standards")
-async def get_gri_standards():
-    """GRI 표준 목록 조회"""
+@report_router.get("/standards/{report_type}")
+async def get_standards(report_type: str):
+    """ESG 표준 목록 조회"""
     try:
         return {
             "standards": [
@@ -164,26 +176,40 @@ async def get_gri_standards():
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        logger.error(f"GRI standards error: {e}")
-        raise HTTPException(status_code=500, detail="GRI standards retrieval error")
+        logger.error(f"Standards error: {e}")
+        raise HTTPException(status_code=500, detail="Standards retrieval error")
 
-@gri_report_router.get("/reports/{report_id}")
-async def get_gri_report_status(report_id: str):
-    """GRI 보고서 상태 조회"""
+@report_router.get("/reports/{report_id}")
+async def get_report_status(report_id: str):
+    """ESG 보고서 상태 조회"""
     try:
         return {
             "report_id": report_id,
             "status": "completed",
             "progress": 100,
-            "download_url": f"https://reports.taeheonai.com/gri/{report_id}.pdf",
+            "download_url": f"https://reports.taeheonai.com/reports/{report_id}.pdf",
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
-        logger.error(f"GRI report status error: {e}")
-        raise HTTPException(status_code=500, detail="GRI report status retrieval error")
+        logger.error(f"Report status error: {e}")
+        raise HTTPException(status_code=500, detail="Report status retrieval error")
+
+# 애플리케이션 시작 시 데이터베이스 초기화
+@app.on_event("startup")
+async def startup_event():
+    """애플리케이션 시작 시 데이터베이스를 초기화합니다."""
+    try:
+        logger.info("🚀 Report Service 시작 - 데이터베이스 초기화 중...")
+        await init_db()
+        logger.info("✅ 데이터베이스 초기화 완료!")
+    except Exception as e:
+        logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
+        logger.error(traceback.format_exc())
+        raise  # 데이터베이스 초기화 실패 시 서버 시작 중단
 
 # 라우터를 앱에 포함
-app.include_router(gri_report_router)
+app.include_router(report_router)
+app.include_router(gri_router)
 
 if __name__ == "__main__":
     import uvicorn

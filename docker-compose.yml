@@ -21,7 +21,7 @@ services:
       - corporation-service
       - gri-service
       - materiality-service
-      - grireport-service
+      - report-service
       - survey-service
       - redis
     dns:
@@ -164,15 +164,15 @@ services:
       retries: 3
       start_period: 40s
 
-  grireport-service:
+  report-service:
     build:
-      context: ./service/grireport-service
+      context: ./service/report-service
       dockerfile: Dockerfile
     ports:
       - "8004:8004"
     volumes:
-      - ./service/grireport-service/app:/app/app
-      - ./service/grireport-service/requirements.txt:/app/requirements.txt
+      - ./service/report-service/app:/app/app
+      - ./service/report-service/requirements.txt:/app/requirements.txt
     environment:
       - ENVIRONMENT=development
       - PORT=8004

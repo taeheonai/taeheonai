@@ -1,0 +1,28 @@
+# app/domain/entity/grireport_entity.py
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Integer, Text, DateTime, func
+from app.common.database import Base  # Declarative Base
+
+class GRIReport(Base):
+    __tablename__ = "grireport"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    corporation_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    issuepool_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    # GRI 표준 정보
+    standard_code: Mapped[str] = mapped_column(Text, nullable=False)  # GRI-101, GRI-102 등
+    question_id: Mapped[str] = mapped_column(Text, nullable=False)   # a, b, c 등 질문 식별자
+    
+    # ESG 분류 (issuepool과 동일)
+    esg_classification_id: Mapped[int] = mapped_column(Integer, nullable=False)  # 1:E, 2:S, 3:G
+    
+    # 답변 및 윤문 결과
+    answer_text: Mapped[str] = mapped_column(Text, nullable=False)   # 사용자가 입력한 답변
+    polished_text: Mapped[str] = mapped_column(Text, nullable=True)  # 윤문된 텍스트
+    display_mode: Mapped[str] = mapped_column(Text, nullable=False, default='prose')  # 표시 모드: 'table' 또는 'prose'
+    
+    # 메타데이터
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    is_saved: Mapped[bool] = mapped_column(Integer, nullable=False, default=False)  # 저장 버튼 눌렀는지 여부
