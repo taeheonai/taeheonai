@@ -314,7 +314,14 @@ export class GRIApiService {
   }
 
   // GRI Intake 페이지용 답변 저장 (ESG 분류 없음)
-  static async saveIntakeAnswers(corpId: number, answers: SavedAnswers) {
+  // corporation_id가 없어도 로컬 저장은 가능
+  static async saveIntakeAnswers(corpId: number | null, answers: SavedAnswers) {
+    // corporation_id가 없으면 백엔드 저장 건너뛰기
+    if (!corpId) {
+      console.log('corporation_id가 없어 백엔드 저장을 건너뜁니다. 로컬 저장만 완료됩니다.');
+      return;
+    }
+    
     try {
       await api.post(
         `/v1/report/gri-report/intake-answers/${corpId}`,
@@ -322,12 +329,19 @@ export class GRIApiService {
       );
     } catch (error: unknown) {
       console.error('GRI Intake 답변 저장 오류:', error);
+      // 백엔드 저장 실패해도 로컬 저장은 완료된 상태
       throw error;
     }
   }
 
   // GRI Intake 페이지용 답변 조회 (ESG 분류 없음)
-  static async fetchIntakeAnswers(corpId: number) {
+  // corporation_id가 없으면 빈 결과 반환
+  static async fetchIntakeAnswers(corpId: number | null) {
+    if (!corpId) {
+      console.log('corporation_id가 없어 백엔드 조회를 건너뜁니다.');
+      return { answers: {} };
+    }
+    
     try {
       const response = await api.get(
         `/v1/report/gri-report/intake-answers/${corpId}`

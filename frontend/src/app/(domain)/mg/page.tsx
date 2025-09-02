@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useMGStore } from '@/store/mgStore';
 import { useSessionStore } from '@/store/sessionStore';
 import IndexPolisher from '@/components/IndexPolisher';
@@ -10,7 +10,6 @@ export default function MGPage() {
   const {
     selected,
     indexesByIssue,
-    loadIndexes,
     excludeIndex,
     undoExclude,
     excludedByIssue,
@@ -22,14 +21,7 @@ export default function MGPage() {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const toggleOpen = (k: string) => setOpenKey((prev) => (prev === k ? null : k));
 
-  const stableLoadIndexes = useCallback(() => {
-    if (selected.length > 0) {
-      loadIndexes();
-    }
-  }, [selected, loadIndexes]);
 
-  // 선택된 항목들의 ID를 문자열로 변환
-  const selectedIds = useMemo(() => selected.map(i => i.id).join(','), [selected]);
 
   useEffect(() => {
     if (selected.length === 0) {
@@ -47,8 +39,14 @@ export default function MGPage() {
         console.error('세션 스토리지 복원 실패:', error);
       }
     }
-    stableLoadIndexes();
-  }, [stableLoadIndexes, selectedIds, selected.length]);
+    
+    // selected가 변경되었을 때만 loadIndexes 실행
+    if (selected.length > 0) {
+      // store에서 직접 함수 호출하여 참조 문제 방지
+      const { loadIndexes: storeLoadIndexes } = useMGStore.getState();
+      storeLoadIndexes();
+    }
+  }, [selected.length]); // selected.length만 의존성으로 사용
 
   // 세션 준비 체크
   if (!sessionKey || !threadId) {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
-import { usePolishStore } from '@/store/polishStore';
+import { useIntakeStore } from '@/store/intakeStore';
 import { useShallow } from 'zustand/react/shallow';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -16,6 +16,7 @@ interface PolishResultProps {
   keepFromLLM?: KeepMode | 'none';
   /** LLM 응답에서 제거할 질문/헤더 문구(요구사항 제목 등) */
   stripHeads?: string[];
+  onPolishRequest?: () => void;
 }
 
 /* ---------- 공통 상태 메시지 ---------- */
@@ -73,97 +74,63 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   prependMarkdown = '',
   keepFromLLM = 'both',
   stripHeads = [],
+  onPolishRequest,
 }) => {
   /* 셀렉터: 참조 안정화 */
-  const { status, result, error, savedAt } = usePolishStore(
+  const { savedItems } = useIntakeStore(
     useShallow((s) => ({
-      status: s.status,
-      result: s.result,
-      error: s.error,
-      savedAt: s.savedAt,
+      savedItems: s.savedItems,
     })),
   );
-  /* 액션은 별도 구독 */
-  const fetchPolishResult = usePolishStore((s) => s.fetchPolishResult);
 
   /* 안전 호출 */
   const stableFetchPolishResult = useCallback(async () => {
     if (!sessionKey || !griIndex) return;
     try {
-      await fetchPolishResult(sessionKey, griIndex);
+      // 윤문 실행 요청 시 부모 컴포넌트의 콜백 호출
+      if (onPolishRequest) {
+        onPolishRequest();
+      } else {
+        console.log('윤문 실행 요청됨 - onPolishRequest 콜백이 설정되지 않음');
+      }
     } catch (e) {
-      console.error('윤문 결과 조회 실패:', e);
+      console.error('윤문 실행 요청 실패:', e);
     }
-  }, [sessionKey, griIndex, fetchPolishResult]);
+  }, [sessionKey, griIndex, onPolishRequest]);
 
   /* 컴포넌트 마운트 시 자동으로 데이터 가져오기 */
   useEffect(() => {
-    if (sessionKey && griIndex && status === 'idle') {
+    if (sessionKey && griIndex) {
       stableFetchPolishResult();
     }
-  }, [sessionKey, griIndex, status, stableFetchPolishResult]);
+  }, [sessionKey, griIndex, stableFetchPolishResult]);
 
   /* 테이블 마크다운 렌더링 스타일 */
   const markdownComponents = {
     table: ({ children, ...props }: React.ComponentProps<'table'>) => (
-      <div className="overflow-x-auto my-4">
-        <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden" {...props}>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200" {...props}>
           {children}
         </table>
       </div>
     ),
-    thead: ({ children, ...props }: React.ComponentProps<'thead'>) => (
-      <thead className="bg-gray-50" {...props}>{children}</thead>
-    ),
-    tbody: ({ children, ...props }: React.ComponentProps<'tbody'>) => (
-      <tbody className="bg-white" {...props}>{children}</tbody>
-    ),
-    tr: ({ children, ...props }: React.ComponentProps<'tr'>) => (
-      <tr className="border-b border-gray-200" {...props}>{children}</tr>
-    ),
     th: ({ children, ...props }: React.ComponentProps<'th'>) => (
-      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700" {...props}>{children}</th>
+      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" {...props}>
+        {children}
+      </th>
     ),
     td: ({ children, ...props }: React.ComponentProps<'td'>) => (
-      <td className="px-4 py-3 text-sm text-gray-900" {...props}>{children}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" {...props}>
+        {children}
+      </td>
     ),
   };
 
-  /* 상태별 UI */
-  if (status === 'loading') {
-    return (
-      <StatusMessage
-        type="loading"
-        title="윤문 결과를 불러오는 중..."
-        message="잠시만 기다려주세요."
-        icon={
-          <svg className="h-5 w-5 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-        }
-      />
-    );
-  }
+  // 저장된 윤문 결과 확인
+  const savedItem = savedItems[griIndex];
+  const hasPolishedText = savedItem?.polished_text?.trim();
 
-  if (status === 'error') {
-    return (
-      <StatusMessage
-        type="error"
-        title="오류가 발생했습니다"
-        message={error || '알 수 없는 오류가 발생했습니다.'}
-        buttonText="다시 시도"
-        onButtonClick={stableFetchPolishResult}
-        icon={
-          <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }
-      />
-    );
-  }
-
-  if (status === 'not_found') {
+  if (!hasPolishedText) {
     return (
       <StatusMessage
         type="info"
@@ -180,109 +147,73 @@ export const PolishResult: React.FC<PolishResultProps> = ({
     );
   }
 
-  if (status === 'success' && result?.polished_text) {
-    // 서버에서 내려오는 polished_text 형식에 따라 안전 파싱
-    const raw = result.polished_text;
+  // 저장된 윤문 텍스트 사용
+  const polishedText = savedItem.polished_text;
 
-    // 본문/표 텍스트 분리
-    let proseText = '';
-    let tableText = '';
+  // 본문/표 텍스트 분리
+  let proseText = '';
+  let tableText = '';
 
-    if (typeof raw === 'string') {
-      // 서버가 순수 마크다운 문자열을 줄 때
-      proseText = raw;
-    } else if (raw && typeof raw === 'object') {
-      // { text, table, model, created_at, ... } 형태
-      const obj = raw as Record<string, unknown>;
-      proseText = String(obj.text ?? '');
-      tableText = String(obj.table ?? '');
-    }
-
-    // 메타(모델/시간) 코드블록
-    let metaJson = '';
-    if (raw && typeof raw === 'object' && 'model' in raw) {
-      const obj = raw as Record<string, unknown>;
-      metaJson =
-        '```json\n' +
-        JSON.stringify(
-          {
-            model: obj.model,
-            created_at: obj.created_at,
-          },
-          null,
-          2,
-        ) +
-        '\n```';
-    }
-
-    // 표시 모드에 따라 LLM 내용 선택
-    let contentToRender = '';
-    if (keepFromLLM === 'tables' && tableText) {
-      contentToRender = tableText;
-    } else if (keepFromLLM === 'prose' && proseText) {
-      contentToRender = proseText;
-    } else if (keepFromLLM === 'both') {
-      contentToRender = (tableText ? `${tableText}\n\n` : '') + proseText;
-    } // 'none'이면 비움
-
-    // 표(프론트 생성) + LLM 내용 + 메타 합치기
-    const mergedMarkdown =
-      (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
-      (contentToRender ?? '') +
-      (metaJson ? `\n\n${metaJson}` : '');
-
-    // stripHeads/모드에 따른 필터링
-    const filteredMarkdown =
-      keepFromLLM === 'none' ? (prependMarkdown?.trim() ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
-
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
-        <div className="prose max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {filteredMarkdown || '_표시할 내용이 없습니다._'}
-          </ReactMarkdown>
-        </div>
-        <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
-          {savedAt && <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>}
-        </div>
-      </div>
-    );
+  if (typeof polishedText === 'string') {
+    // 순수 마크다운 문자열
+    proseText = polishedText;
+  } else if (polishedText && typeof polishedText === 'object') {
+    // { text, table, model, created_at, ... } 형태
+    const obj = polishedText as Record<string, unknown>;
+    proseText = String(obj.text ?? '');
+    tableText = String(obj.table ?? '');
   }
 
-  // idle 및 그 외 안전 처리
-  if (status === 'idle') {
-    return (
-      <StatusMessage
-        type="info"
-        title="윤문 결과 확인"
-        message="윤문을 실행했거나 저장된 결과가 있는지 확인해보세요."
-        buttonText="윤문 결과 확인하기"
-        onButtonClick={stableFetchPolishResult}
-        icon={
-          <svg className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }
-      />
-    );
+  // 메타(모델/시간) 코드블록
+  let metaJson = '';
+  if (polishedText && typeof polishedText === 'object' && 'model' in polishedText) {
+    const obj = polishedText as Record<string, unknown>;
+    metaJson =
+      '```json\n' +
+      JSON.stringify(
+        {
+          model: obj.model,
+          created_at: obj.created_at,
+        },
+        null,
+        2,
+      ) +
+      '\n```';
   }
 
-  // 폴백
-  const polishedText =
-    typeof result?.polished_text === 'string'
-      ? result?.polished_text
-      : JSON.stringify(result?.polished_text ?? {}, null, 2);
+  // 표시 모드에 따라 LLM 내용 선택
+  let contentToRender = '';
+  if (keepFromLLM === 'tables' && tableText) {
+    contentToRender = tableText;
+  } else if (keepFromLLM === 'prose' && proseText) {
+    contentToRender = proseText;
+  } else if (keepFromLLM === 'both') {
+    contentToRender = (tableText ? `${tableText}\n\n` : '') + proseText;
+  } // 'none'이면 비움
+
+  // 표(프론트 생성) + LLM 내용 + 메타 합치기
+  const mergedMarkdown =
+    (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
+    (contentToRender ?? '') +
+    (metaJson ? `\n\n${metaJson}` : '');
+
+  // stripHeads/모드에 따른 필터링
+  const filteredMarkdown =
+    keepFromLLM === 'none' ? (prependMarkdown?.trim() ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
       <div className="prose max-w-none">
-        <div className="whitespace-pre-wrap">{polishedText}</div>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+          {filteredMarkdown || '_표시할 내용이 없습니다._'}
+        </ReactMarkdown>
       </div>
-              <div className="mt-4 text-sm text-gray-500 flex justify-between items-center">
-          {savedAt && <p>저장 시간: {new Date(savedAt).toLocaleString()}</p>}
+      {savedItem.last_modified && (
+        <div className="mt-4 text-xs text-gray-500 text-right">
+          마지막 수정: {new Date(savedItem.last_modified).toLocaleString('ko-KR')}
         </div>
+      )}
     </div>
   );
 };
