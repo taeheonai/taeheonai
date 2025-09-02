@@ -287,6 +287,38 @@ export default function GRIIntakePage() {
     }
   };
 
+  // 데이터 검증 유틸리티 함수
+  const validateServerDataStructure = (data: Record<string, Record<string, { answer_text: string; polished_text: string; display_mode: 'prose' }>>) => {
+    const validKeys = ['a', 'b', 'c', 'd'];
+    const errors: string[] = [];
+    
+    for (const [griIndex, section] of Object.entries(data)) {
+      for (const [keyAlpha, answer] of Object.entries(section)) {
+        // key_alpha 검증
+        if (!validKeys.includes(keyAlpha)) {
+          errors.push(`Invalid key_alpha '${keyAlpha}' in GRI index '${griIndex}'. Must be one of: ${validKeys.join(', ')}`);
+        }
+        
+        // polished_text 타입 검증
+        if (typeof answer.polished_text !== 'string') {
+          errors.push(`Invalid polished_text type in ${griIndex}.${keyAlpha}: expected string, got ${typeof answer.polished_text}`);
+        }
+        
+        // answer_text 타입 검증
+        if (typeof answer.answer_text !== 'string') {
+          errors.push(`Invalid answer_text type in ${griIndex}.${keyAlpha}: expected string, got ${typeof answer.answer_text}`);
+        }
+        
+        // display_mode 검증
+        if (answer.display_mode !== 'prose') {
+          errors.push(`Invalid display_mode in ${griIndex}.${keyAlpha}: expected 'prose', got '${answer.display_mode}'`);
+        }
+      }
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  };
+
   // 윤문 결과 저장
   const savePolishResult = async () => {
     if (!selectedItem?.index_no || !savedItems[selectedItem.index_no]?.polished_text) return;
@@ -305,59 +337,68 @@ export default function GRIIntakePage() {
       // 3. intakeStore에서 모든 저장된 데이터 가져오기
       const polishedItems = savedItems;
       
-      // 4. report-storage 형식으로 데이터 변환
-      const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
+            // 4. 서버가 기대하는 스키마로 데이터 변환
+      // 서버 스키마: { "2-1": { "a": { answer_text, polished_text, display_mode }, "b": {...} } }
+      const serverData = Object.keys(polishedItems).reduce((acc, griIndex) => {
         const item = polishedItems[griIndex];
         if (item.answers && selectedItem) {
           acc[griIndex] = {};
+          
+          // key_alpha를 그대로 사용 (a, b, c, d)
           Object.keys(item.answers).forEach((keyAlpha) => {
-            // key_alpha를 question_id로 변환
-            const question = selectedItem.questions.find(q => q.key_alpha === keyAlpha);
-            if (question && typeof question.id === 'number') {
-                          acc[griIndex][question.id.toString()] = {
-              answer_text: item.answers[keyAlpha]?.answer_text || '',
-              polished_text: item.polished_text || '',
-              display_mode: 'prose' as const
-            };
+            const answer = item.answers[keyAlpha];
+            if (answer) {
+              // polished_text를 문자열로 변환
+              let polishedText = '';
+              if (typeof answer.polished_text === 'string') {
+                polishedText = answer.polished_text;
+              } else if (answer.polished_text && typeof answer.polished_text === 'object') {
+                const polishedObj = answer.polished_text as any;
+                polishedText = polishedObj.text || '';
+              }
+              
+              acc[griIndex][keyAlpha] = {
+                answer_text: answer.answer_text || '',
+                polished_text: polishedText,
+                display_mode: 'prose' as const
+              };
             }
           });
         }
         return acc;
-      }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
+      }, {} as Record<string, Record<string, { answer_text: string; polished_text: string; display_mode: 'prose' }>>);
 
-      // 5. 데이터 검증
-      const validateReportData = (data: Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>) => {
-        for (const griIndex in data) {
-          for (const questionId in data[griIndex]) {
-            // questionId가 숫자인지 확인
-            if (isNaN(Number(questionId))) {
-              console.error(`Invalid question_id: ${questionId} for gri_index: ${griIndex}`);
-              return false;
-            }
-          }
-        }
-        return true;
-      };
-
-      // 데이터 검증 후 저장
-      if (!validateReportData(reportData)) {
-        throw new Error('Invalid data structure: question_id must be a number');
+      // 5. 데이터 검증 - key_alpha가 올바른지 확인
+      const validationResult = validateServerDataStructure(serverData);
+      if (!validationResult.isValid) {
+        console.error('Data validation failed:', validationResult.errors);
+        throw new Error(`데이터 구조 검증 실패: ${validationResult.errors.join(', ')}`);
       }
 
-      // 디버깅: 변환된 데이터 구조 확인
-      console.log('Transformed report data:', reportData);
+      // 디버깅: 변환된 서버 데이터 구조 확인
+      console.log('=== 서버 전송 데이터 구조 ===');
+      console.log('Transformed server data:', JSON.stringify(serverData, null, 2));
       console.log('Selected item questions:', selectedItem.questions);
       
-      // 6. report-storage에 데이터 저장
-      // setSavedAnswers(reportData); // useIntakeStore에서 관리
+      // 데이터 구조 검증 로그
+      for (const [griIndex, section] of Object.entries(serverData)) {
+        console.log(`GRI Index ${griIndex}:`);
+        for (const [keyAlpha, answer] of Object.entries(section)) {
+          console.log(`  ${keyAlpha}:`, {
+            answer_text: answer.answer_text,
+            polished_text: answer.polished_text,
+            display_mode: answer.display_mode
+          });
+        }
+      }
       
-             // 7. 백엔드 DB에 저장 (GRI Intake용 엔드포인트 사용)
-       if (user?.corporation_id) {
-         await GRIApiService.saveIntakeAnswers(Number(user.corporation_id), reportData);
-         setMessage('윤문 결과가 저장되었습니다. 공통 섹션에서 확인할 수 있습니다.');
-       } else {
-         setMessage('기업 정보를 찾을 수 없습니다.');
-       }
+      // 6. 백엔드 DB에 저장 (GRI Intake용 엔드포인트 사용)
+      if (user?.corporation_id) {
+        await GRIApiService.saveIntakeAnswers(Number(user.corporation_id), serverData);
+        setMessage('윤문 결과가 저장되었습니다. 공통 섹션에서 확인할 수 있습니다.');
+      } else {
+        setMessage('기업 정보를 찾을 수 없습니다.');
+      }
     } catch (error) {
       console.error('저장 중 오류 발생:', error);
       setMessage('저장 중 오류가 발생했습니다.');
