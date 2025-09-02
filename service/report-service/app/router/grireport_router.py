@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, RootModel, field_validator
 
 from app.domain.controller.grireport_controller import GRIReportController
 from app.domain.schema.grireport_schema import (
@@ -14,10 +14,10 @@ class AnswerUnit(BaseModel):
     polished_text: str = ""
     display_mode: str = "prose"
 
-class SectionAnswers(BaseModel):
-    __root__: Dict[str, AnswerUnit]  # "a", "b", "c", "d" 키만 허용
+class SectionAnswers(RootModel[Dict[str, AnswerUnit]]):  # "a", "b", "c", "d" 키만 허용
     
-    @validator("__root__")
+    @field_validator("root")
+    @classmethod
     def validate_alpha_keys(cls, v):
         valid_keys = {"a", "b", "c", "d"}
         for key in v.keys():
@@ -29,7 +29,8 @@ class SaveAnswersRequest(BaseModel):
     answers: Dict[str, SectionAnswers]  # "2-1", "306-3" 등의 GRI 인덱스
     issuepool_id: Optional[int] = None  # Materiality-GRI에서만 사용
     
-    @validator("answers")
+    @field_validator("answers")
+    @classmethod
     def validate_answers_structure(cls, v):
         for gri_index, section in v.items():
             if not isinstance(section, SectionAnswers):
@@ -149,7 +150,7 @@ async def save_intake_answers(
         # Pydantic 검증이 이미 완료됨 (payload: SaveAnswersRequest)
         # 추가 검증: polished_text가 문자열인지 확인
         for gri_index, section in payload.answers.items():
-            for key_alpha, answer in section.__root__.items():
+            for key_alpha, answer in section.root.items():
                 if not isinstance(answer.polished_text, str):
                     raise HTTPException(
                         status_code=422,
