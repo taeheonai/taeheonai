@@ -10,6 +10,8 @@ class GRIAnswerData(BaseModel):
     polished_text: Optional[str]
     display_mode: str
     is_saved: bool
+    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 # ESG 섹션별 GRI 데이터
 class GRIESGSectionData(BaseModel):
@@ -26,7 +28,7 @@ class GRIReportStructureResponse(BaseModel):
     environmental: List[GRIESGSectionData]
     social: List[GRIESGSectionData]
     governance: List[GRIESGSectionData]
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
 
 # 중복 GRI 인덱스 정보
 class DuplicateGRIIndexInfo(BaseModel):
