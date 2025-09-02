@@ -24,7 +24,7 @@ AUTH_SERVICE_URL=https://auth-service-xxx.up.railway.app
 CHATBOT_SERVICE_URL=https://chatbot-service-xxx.up.railway.app
 MATERIALITY_SERVICE_URL=https://materiality-service-xxx.up.railway.app
 GRI_SERVICE_URL=https://gri-service-xxx.up.railway.app
-GRIREPORT_SERVICE_URL=https://grireport-service-xxx.up.railway.app
+REPORT_SERVICE_URL=https://report-service-xxx.up.railway.app
 
 SURVEY_SERVICE_URL=https://survey-service-xxx.up.railway.app
 ```

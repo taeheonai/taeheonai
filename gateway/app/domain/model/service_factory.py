@@ -12,7 +12,7 @@ class ServiceType(str, Enum):
     chatbot = "chatbot"
     gri = "gri"
     materiality = "materiality"
-    grireport = "grireport"
+    report = "report"
     auth = "auth"
     corporation = "corporation"
     llm = "llm"  # LLM 서비스 추가
@@ -27,7 +27,7 @@ class ServiceProxyFactory:
             ServiceType.chatbot: os.getenv("CHATBOT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.gri: os.getenv("GRI_SERVICE_URL", "https://gri-service-production.up.railway.app"),
             ServiceType.materiality: os.getenv("MATERIALITY_SERVICE_URL", "https://materiality-service-production-6720.up.railway.app"),
-            ServiceType.grireport: os.getenv("GRIREPORT_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
+            ServiceType.report: os.getenv("REPORT_SERVICE_URL", "https://report-service-production-b2ad.up.railway.app"),
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
             ServiceType.llm: os.getenv("LLM_SERVICE_URL", "https://llm-service-production-c83a.up.railway.app"),  # LLM 서비스 URL 추가
@@ -53,7 +53,7 @@ class ServiceProxyFactory:
             ServiceType.chatbot: "/v1/chatbot",
             ServiceType.gri: "/v1/gri",
             ServiceType.materiality: "/v1/materiality",
-            ServiceType.grireport: "/v1/grireport",
+            ServiceType.report: "/v1/report",
             ServiceType.corporation: "/v1/corporation",
             ServiceType.llm: "/v1/llm",  # LLM 서비스 prefix 추가
         }

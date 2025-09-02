@@ -12,7 +12,7 @@ TaeheonAI/
 │   ├── chatbot-service/     # 챗봇 (8001)
 │   ├── corporation-service/ # 기업 정보 (8009)
 │   ├── gri-service/        # GRI 표준 (8003)
-│   ├── grireport-service/  # GRI 보고서 (8004)
+│   ├── report-service/     # GRI 보고서 (8004)
 │   ├── llm-service/        # LLM 윤문 (8005)
 │   ├── materiality-service/# 중대성 평가 (8002)
 │   └── survey-service/     # 설문 (8007)
@@ -48,7 +48,7 @@ docker-compose up -d gateway auth-service corporation-service
 | Chatbot Service | 8001 | 챗봇 | /v1/chatbot/* |
 | Corporation Service | 8009 | 기업 정보 | /v1/corporation/* |
 | GRI Service | 8003 | GRI 표준 | /v1/gri/* |
-| GRI Report Service | 8004 | GRI 보고서 | /v1/grireport/* |
+| Report Service | 8004 | GRI 보고서 | /v1/report/* |
 | LLM Service | 8005 | LLM 윤문 | /v1/llm/* |
 | Materiality Service | 8002 | 중대성 평가 | /v1/materiality/* |
 | Survey Service | 8007 | 설문 | /v1/survey/* |
