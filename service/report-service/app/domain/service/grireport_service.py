@@ -37,10 +37,13 @@ class GRIReportService:
                     section.answers[-1].last_modified
                     for sections in [environmental, social, governance]
                     for section in sections
-                    if section.answers
+                    if section.answers and len(section.answers) > 0
                 ], default=None)
             )
         except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception(f"GRI report structure 조회 실패: corporation_id={corporation_id}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get GRI report structure: {str(e)}"
