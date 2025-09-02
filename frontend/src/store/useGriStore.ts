@@ -1,29 +1,23 @@
 'use client';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { GRIItem } from '@/lib/griApi';
-
-type Answers = Record<string /*question_id*/, string>;
-type Polished = Record<string /*gri_index*/, string>;
+import type { GRIItem } from '@/types/gri';
 
 type GriState = {
   sessionKey: string | null;
   selectedCategoryId: number | null;
   selectedItemId: number | null;
   selectedItem: GRIItem | null;
-  answers: Answers;
-  polishedByIndex: Polished;
-  lastSavedAt?: string;
-  companyname?: string;
-
+  answers: Record<string, string>;
+  lastSavedAt: string | undefined;
+  companyname: string | undefined;
   setSessionKey: (k: string) => void;
-  setSelected: (catId: number|null, itemId: number|null) => void;
+  setSelected: (catId: number, itemId: number) => void;
   setSelectedItem: (item: GRIItem | null) => void;
   setAnswer: (qid: string, val: string) => void;
-  setAnswers: (answers: Answers) => void;
-  setBulkAnswers: (a: Answers) => void;
-  setPolished: (indexNo: string, text: string) => void;
-  resetItemAnswers: (itemId?: number|null) => void;
+  setAnswers: (answers: Record<string, string>) => void;
+  setBulkAnswers: (a: Record<string, string>) => void;
+  resetItemAnswers: () => void;
   setCompanyName: (companyname: string) => void;
   getCompanyName: () => string | undefined;
   resetAll: () => void;
@@ -37,12 +31,12 @@ export const useGriStore = create<GriState>()(
       selectedItemId: null,
       selectedItem: null,
       answers: {},
-      polishedByIndex: {},
       lastSavedAt: undefined,
+      companyname: undefined,
 
       setSessionKey: (k) => set({ sessionKey: k }),
       setSelected: (catId, itemId) => set({ selectedCategoryId: catId, selectedItemId: itemId }),
-      setSelectedItem: (item) => set({ selectedItem: item }),
+      setSelectedItem: (item: GRIItem | null) => set({ selectedItem: item }),
       setAnswer: (qid, val) => set({ 
         answers: { ...get().answers, [qid]: val },
         lastSavedAt: new Date().toISOString()
@@ -50,10 +44,6 @@ export const useGriStore = create<GriState>()(
       setAnswers: (answers) => set({ answers }),
       setBulkAnswers: (a) => set({ 
         answers: { ...get().answers, ...a },
-        lastSavedAt: new Date().toISOString()
-      }),
-      setPolished: (idx, text) => set({ 
-        polishedByIndex: { ...get().polishedByIndex, [idx]: text },
         lastSavedAt: new Date().toISOString()
       }),
       resetItemAnswers: () => set({ answers: {} }),
@@ -65,7 +55,6 @@ export const useGriStore = create<GriState>()(
         selectedItemId: null,
         selectedItem: null,
         answers: {}, 
-        polishedByIndex: {},
         lastSavedAt: undefined,
         companyname: undefined
       }),
@@ -79,11 +68,23 @@ export const useGriStore = create<GriState>()(
         selectedItemId: state.selectedItemId,
         selectedItem: state.selectedItem,
         answers: state.answers,
-        polishedByIndex: state.polishedByIndex,
         lastSavedAt: state.lastSavedAt,
         companyname: state.companyname,
       }),
-      version: 1,
+      version: 2, // polishedByIndex 제거를 위한 버전 업데이트
+      migrate: (persisted: unknown, fromVersion: number) => {
+        if (fromVersion < 2) {
+          // v1 -> v2: polishedByIndex 제거
+          if (persisted && typeof persisted === 'object' && persisted !== null && 'state' in persisted) {
+            const state = (persisted as { state: Record<string, unknown> }).state;
+            if (state && 'polishedByIndex' in state) {
+              delete state.polishedByIndex;
+              console.log('🗑️ gri-storage.polishedByIndex 제거 완료');
+            }
+          }
+        }
+        return persisted;
+      },
     }
   )
 );

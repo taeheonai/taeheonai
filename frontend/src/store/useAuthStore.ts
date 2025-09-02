@@ -25,6 +25,8 @@ type AuthState = {
   setUser: (u: User) => void;
   clear: () => void;
   fetchCompanyInfo: () => Promise<void>;
+  // 404 무한루프 방지를 위한 1회 시도 플래그
+  hasTriedFetchCompany: boolean;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -37,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
         info: undefined,
         error: undefined,
       },
+      hasTriedFetchCompany: false, // 404 무한루프 방지 플래그
       setUser: (u) => {
         set({ 
           user: u, 
@@ -48,7 +51,8 @@ export const useAuthStore = create<AuthState>()(
               companyname: u.companyname
             } : undefined,
             error: undefined
-          }
+          },
+          hasTriedFetchCompany: false // 사용자 변경 시 플래그 리셋
         });
       },
       clear: () => set({ 
@@ -58,13 +62,21 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           info: undefined,
           error: undefined,
-        }
+        },
+        hasTriedFetchCompany: false
       }),
       fetchCompanyInfo: async () => {
-        const user = get().user;
-        if (!user?.corporation_id) return;
+        const currentState = get();
+        const user = currentState.user;
+        
+        // 🔴 404 무한루프 방지: 이미 시도했거나 로딩 중이면 즉시 리턴
+        if (!user?.corporation_id || currentState.hasTriedFetchCompany || currentState.company.isLoading) {
+          return;
+        }
 
+        // 🔴 1회 시도 플래그 설정
         set(state => ({
+          hasTriedFetchCompany: true,
           company: {
             ...state.company,
             isLoading: true,
@@ -83,13 +95,14 @@ export const useAuthStore = create<AuthState>()(
             }
           }));
         } catch (e) {
-          const errorMessage = e instanceof Error ? e.message : '회사 정보를 불러오지 못했습니다.';
-          console.error('회사 정보 조회 실패:', errorMessage);
+          // 🔴 404든 뭐든 에러 발생 시 조용히 포기하고 더 이상 재시도하지 않음
+          console.error('회사 정보 조회 실패 (1회 시도 후 포기):', e);
           set(state => ({
             company: {
               ...state.company,
               isLoading: false,
-              error: errorMessage
+              info: undefined,
+              error: undefined // 에러 메시지도 제거하여 재시도 트리거 방지
             }
           }));
         }

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useGriStore } from '@/store/useGriStore';
-import { usePolishStore } from '@/store/polishStore';
-import { useReportStore } from '@/store/reportStore';
+import { useIntakeStore } from '@/store/intakeStore';
+import { useGriUIStore } from '@/store/griUIStore';
 import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
@@ -20,28 +19,29 @@ export default function GRIIntakePage() {
   const {
     sessionKey,
     selectedItem,
-    answers,
-    setPolished,
     setSelectedItem,
-    setAnswers,
-    setAnswer,
     setSessionKey,
-  } = useGriStore();
+  } = useGriUIStore();
+
+  const {
+    savedItems,
+    setCorp,
+    setCompanyName,
+    saveItem,
+    setAnswer,
+    setAnswers,
+  } = useIntakeStore();
 
   const ssKey = useSessionStore((s) => s.sessionKey);
 
-  // 세션키 동기화: GRI store의 키가 비어있을 때만 sessionStore에서 주입
+  // 세션키 동기화: GRI UI store의 키가 비어있을 때만 sessionStore에서 주입
   useEffect(() => {
     if (ssKey && !sessionKey) {
       setSessionKey(ssKey);
     }
   }, [ssKey, sessionKey, setSessionKey]);
 
-  const { setSavedAnswers, setCompanyName: setReportCompanyName } = useReportStore();
-  const { status, result, polish, setCompanyName: setPolishCompanyName } = usePolishStore();
-  const { setCompanyName: setGriCompanyName } = useGriStore();
-
-  // auth-storage의 companyname을 다른 storage들과 동기화
+  // auth-storage의 companyname을 intake store와 동기화
   useEffect(() => {
     const syncCompanyName = () => {
       const authStorage = localStorage.getItem('auth-storage');
@@ -49,11 +49,13 @@ export default function GRIIntakePage() {
         try {
           const authData = JSON.parse(authStorage);
           const companyname = authData?.state?.user?.companyname;
+          const corporationId = authData?.state?.user?.corporation_id;
           if (companyname) {
-            // 모든 storage에 companyname 동기화
-            setReportCompanyName(companyname);
-            setPolishCompanyName(companyname);
-            setGriCompanyName(companyname);
+            // intake store에 company 정보 동기화
+            setCompanyName(companyname);
+            if (corporationId) {
+              setCorp(corporationId, companyname);
+            }
           }
         } catch (e) {
           console.warn('auth-storage 파싱 실패:', e);
@@ -63,38 +65,7 @@ export default function GRIIntakePage() {
 
     // 페이지 로드 시 동기화
     syncCompanyName();
-  }, [setReportCompanyName, setPolishCompanyName, setGriCompanyName]);
-
-  // 기존 polish-storage 데이터를 report-storage로 동기화
-  useEffect(() => {
-    const syncPolishedDataToReport = () => {
-      const polishedItems = usePolishStore.getState().savedItems;
-      if (Object.keys(polishedItems).length > 0) {
-        // polish-storage의 데이터를 report-storage 형식으로 변환
-        // 주의: 이 단계에서는 실제 question_id 매핑이 불가능하므로 key_alpha를 그대로 사용
-        const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
-          const item = polishedItems[griIndex];
-          if (item.answers) {
-            acc[griIndex] = {};
-            Object.keys(item.answers).forEach((keyAlpha) => {
-              // key_alpha를 임시로 사용 (실제 저장 시에는 question_id로 변환됨)
-              acc[griIndex][keyAlpha] = {
-                answer_text: item.answers[keyAlpha] || '',
-                polished_text: item.polished_text || '',
-                display_mode: 'prose' as const
-              };
-            });
-          }
-          return acc;
-        }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
-        
-        setSavedAnswers(reportData);
-      }
-    };
-
-    // 페이지 로드 시 동기화
-    syncPolishedDataToReport();
-  }, [setSavedAnswers]);
+  }, [setCompanyName, setCorp]);
 
   // 상태
   const [categories, setCategories] = useState<GRICategory[]>([]);
@@ -104,9 +75,6 @@ export default function GRIIntakePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [message, setMessage] = useState('');
-  
-  // API 호출 제어를 위한 ref
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   // UI 토글
   const [showCategoryList, setShowCategoryList] = useState(true);
@@ -154,10 +122,10 @@ export default function GRIIntakePage() {
     if (!selectedItem) return '';
     let md = '';
     for (const q of selectedItem.questions) {
-      const qid = String(q.id);
-      if (displayMode[qid] !== 'table') continue;
-      const text = answers[qid]?.trim();
-      if (!text) continue;
+              const qid = String(q.id);
+        if (displayMode[qid] !== 'table') continue;
+        const text = savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text || '';
+        if (!text) continue;
 
       const table = toMarkdownTable(text);
       if (!table) continue;
@@ -218,33 +186,33 @@ export default function GRIIntakePage() {
   const handleCategorySelect = (category: GRICategory) => {
     setSelectedCategory(category);
     setSelectedItem(null);
-    setAnswers({});
+    // setAnswers({}); // useIntakeStore에서 관리
     setDisplayMode({});
   };
 
   const handleItemSelect = (item: GRIItem) => {
     setSelectedItem(item);
     
-    // polishStore에서 저장된 답변 불러오기
-    const savedItem = usePolishStore.getState().getPolishedItem(item.index_no);
+    // intakeStore에서 저장된 답변 불러오기
+    const savedItem = savedItems[item.index_no];
     if (savedItem?.answers) {
       // key_alpha를 question_id로 변환하여 저장
       const newAnswers: Record<string, string> = {};
       item.questions.forEach(q => {
         if (q.key_alpha && savedItem.answers[q.key_alpha]) {
-          newAnswers[q.id.toString()] = savedItem.answers[q.key_alpha];
+          newAnswers[q.id.toString()] = savedItem.answers[q.key_alpha].answer_text;
         }
       });
-      setAnswers(newAnswers);
+      setAnswers(item.index_no, newAnswers);
     } else {
-      setAnswers({});
+      setAnswers(item.index_no, {});
     }
     
     setDisplayMode({});
   };
 
   const answeredQuestions =
-    selectedItem?.questions?.filter((q: GRIQuestion) => answers[q.id.toString()]?.trim() !== '')
+    selectedItem?.questions?.filter((q: GRIQuestion) => savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim() !== '')
       .length ?? 0;
 
   // 저장 (스텁)
@@ -252,52 +220,65 @@ export default function GRIIntakePage() {
     setMessage('답변이 저장되었습니다.');
   };
 
-  // 윤문 실행 (중복 요청 방지 + AbortController 사용)
+  // 윤문 실행
   const polishAnswers = async () => {
     if (!sessionKey || !selectedItem) return;
-    if (isLoading) return; // 이미 로딩 중이면 중복 요청 방지
 
     setIsLoading(true);
     setMessage('');
-    
-    // 이전 요청이 있다면 취소
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
-    
     try {
-      await polish({
-        session_key: sessionKey,
-        gri_index: selectedItem.index_no,
-        item_title: selectedItem.title,
-        answers: selectedItem.questions
-          .filter((q) => answers[q.id.toString()]?.trim())
-          .map((q) => ({
-            question_id: q.id,
-            key_alpha: q.key_alpha,
-            text: answers[q.id.toString()].trim(),
-          })),
-        extra_instructions: 'kor_gri_v1',
+      // 윤문 API 호출
+      const answers = selectedItem.questions
+        .filter((q) => savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim())
+        .map((q) => ({
+          question_id: q.id,
+          key_alpha: q.key_alpha,
+          text: savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim(),
+        }));
+
+      if (answers.length === 0) {
+        setMessage('윤문할 답변이 없습니다. 먼저 답변을 입력해주세요.');
+        return;
+      }
+
+      // GRI 윤문 API 호출 (올바른 엔드포인트 사용)
+      const response = await fetch('/v1/gri/polish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_key: sessionKey,
+          gri_index: selectedItem.index_no,
+          item_title: selectedItem.title,
+          answers: answers,
+          extra_instructions: 'kor_gri_v1',
+        }),
       });
-      setMessage('윤문이 완료되었습니다. 윤문 결과를 자동으로 저장합니다...');
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`윤문 요청 실패: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
       
-      // 윤문 완료 후 자동으로 저장
-      setTimeout(() => {
-        savePolishResult();
-      }, 1000);
+      // 윤문 결과를 intake store에 저장
+      if (result.polished_text) {
+        saveItem(selectedItem.index_no, { 
+          polished_text: result.polished_text,
+          last_modified: new Date().toISOString()
+        });
+        setMessage('윤문이 완료되었습니다. 윤문 결과를 자동으로 저장합니다...');
+        
+        // 윤문 완료 후 자동으로 저장
+        setTimeout(() => {
+          savePolishResult();
+        }, 1000);
+      } else {
+        throw new Error('윤문 결과가 없습니다.');
+      }
     } catch (err) {
-      // AbortError는 조용히 무시 (사용자가 취소한 경우)
-      if (err instanceof Error && err.name === 'AbortError') {
-        console.log('윤문 요청이 취소되었습니다.');
-        return;
-      }
-      
-      // 타임아웃 에러인 경우 사용자 친화적인 메시지
-      if (err && typeof err === 'object' && 'code' in err && err.code === 'ECONNABORTED') {
-        setMessage('윤문 처리 시간이 초과되었습니다. 서버가 혼잡할 수 있으니 잠시 후 다시 시도해주세요.');
-        console.error('윤문 타임아웃:', err);
-        return;
-      }
-      
       const msg = err instanceof Error ? err.message : '윤문 중 오류가 발생했습니다.';
       setMessage(msg);
       console.error('윤문 오류:', err);
@@ -308,38 +289,36 @@ export default function GRIIntakePage() {
 
   // 윤문 결과 저장
   const savePolishResult = async () => {
-    if (!result?.polished_text || !selectedItem) return;
+    if (!selectedItem?.index_no || !savedItems[selectedItem.index_no]?.polished_text) return;
     
     try {
-      // 1. polish-storage에 윤문 결과 저장
-      const timestamp = new Date().toISOString();
-      setPolished(selectedItem.index_no, result.polished_text);
-      usePolishStore.getState().setSavedAt(timestamp);
+              // 1. intakeStore에 윤문 결과 저장
+        if (selectedItem?.index_no) {
+          saveItem(selectedItem.index_no, { polished_text: savedItems[selectedItem.index_no]?.polished_text || "" });
+        }
       
       // 2. companyname 동기화 확인
       if (user?.companyname) {
-        setReportCompanyName(user.companyname);
-        setPolishCompanyName(user.companyname);
-        setGriCompanyName(user.companyname);
+        setCompanyName(user.companyname);
       }
       
-      // 3. polish-storage에서 모든 저장된 데이터 가져오기
-      const polishedItems = usePolishStore.getState().savedItems;
+      // 3. intakeStore에서 모든 저장된 데이터 가져오기
+      const polishedItems = savedItems;
       
       // 4. report-storage 형식으로 데이터 변환
       const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
         const item = polishedItems[griIndex];
-        if (item.answers) {
+        if (item.answers && selectedItem) {
           acc[griIndex] = {};
           Object.keys(item.answers).forEach((keyAlpha) => {
             // key_alpha를 question_id로 변환
             const question = selectedItem.questions.find(q => q.key_alpha === keyAlpha);
             if (question && typeof question.id === 'number') {
-              acc[griIndex][question.id.toString()] = {
-                answer_text: item.answers[keyAlpha] || '',
-                polished_text: item.polished_text || '',
-                display_mode: 'prose' as const
-              };
+                          acc[griIndex][question.id.toString()] = {
+              answer_text: item.answers[keyAlpha]?.answer_text || '',
+              polished_text: item.polished_text || '',
+              display_mode: 'prose' as const
+            };
             }
           });
         }
@@ -370,7 +349,7 @@ export default function GRIIntakePage() {
       console.log('Selected item questions:', selectedItem.questions);
       
       // 6. report-storage에 데이터 저장
-      setSavedAnswers(reportData);
+      // setSavedAnswers(reportData); // useIntakeStore에서 관리
       
              // 7. 백엔드 DB에 저장 (GRI Intake용 엔드포인트 사용)
        if (user?.corporation_id) {
@@ -551,27 +530,16 @@ export default function GRIIntakePage() {
                                   placeholder={mode === 'table' 
                                     ? "예시 형식:\n항목: 값\n키워드 나머지 설명\n단순 데이터" 
                                     : "여기에 원문을 입력하세요"}
-                                  value={answers[qid] || ''}
-                                  onChange={(e) => {
-                                    setAnswer(qid, e.target.value);
-                                    // polishStore에도 저장
-                                    if (selectedItem) {
-                                      const savedItem = usePolishStore.getState().getPolishedItem(selectedItem.index_no);
-                                      usePolishStore.getState().savePolishedItem({
-                                        gri_index: selectedItem.index_no,
-                                        category_id: selectedCategory?.id || 0,
-                                        polished_text: savedItem?.polished_text || "",
-                                        answers: {
-                                          ...savedItem?.answers || {},
-                                          [q.key_alpha || ""]: e.target.value
-                                        },
-                                        last_modified: new Date().toISOString(),
-                                      });
-                                    }
-                                  }}
+                                                                     value={savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text || ''}
+                                                                      onChange={(e) => {
+                                      // intakeStore에 답변 저장
+                                      if (selectedItem && q.key_alpha) {
+                                        setAnswer(selectedItem.index_no, q.key_alpha, e.target.value);
+                                      }
+                                    }}
                                   className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                                {answers[qid]?.trim() && (
+                                                                 {savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim() && (
                                   <div className="flex items-center space-x-1 mt-2 text-green-600">
                                     <span className="text-sm">✓</span>
                                     <span className="text-sm">답변 완료</span>
@@ -619,7 +587,7 @@ export default function GRIIntakePage() {
                         {isLoading ? (
                           <span className="flex items-center space-x-2">
                             <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                            <span>윤문 처리 중... (최대 60초)</span>
+                            <span>윤문 중...</span>
                           </span>
                         ) : (
                           <span className="flex items-center space-x-2">
@@ -663,11 +631,12 @@ export default function GRIIntakePage() {
                             prependMarkdown={tablesMd}
                             keepFromLLM={keepFromLLM}
                             stripHeads={stripHeads}
+                            onPolishRequest={polishAnswers}
                           />
                         );
                       })()}
 
-                      {status === 'success' && result?.polished_text && (
+                      {savedItems[selectedItem?.index_no]?.polished_text && (
                         <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-3">
                           <button
                             onClick={polishAnswers}
