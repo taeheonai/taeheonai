@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useGriStore } from '@/store/useGriStore';
 import { usePolishStore } from '@/store/polishStore';
+import { useReportStore } from '@/store/reportStore';
 import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
@@ -36,7 +37,63 @@ export default function GRIIntakePage() {
     }
   }, [ssKey, sessionKey, setSessionKey]);
 
-  const { status, result, polish } = usePolishStore();
+  const { setSavedAnswers, setCompanyName: setReportCompanyName } = useReportStore();
+  const { status, result, polish, setCompanyName: setPolishCompanyName } = usePolishStore();
+  const { setCompanyName: setGriCompanyName } = useGriStore();
+
+  // auth-storage의 companyname을 다른 storage들과 동기화
+  useEffect(() => {
+    const syncCompanyName = () => {
+      const authStorage = localStorage.getItem('auth-storage');
+      if (authStorage) {
+        try {
+          const authData = JSON.parse(authStorage);
+          const companyname = authData?.state?.user?.companyname;
+          if (companyname) {
+            // 모든 storage에 companyname 동기화
+            setReportCompanyName(companyname);
+            setPolishCompanyName(companyname);
+            setGriCompanyName(companyname);
+          }
+        } catch (e) {
+          console.warn('auth-storage 파싱 실패:', e);
+        }
+      }
+    };
+
+    // 페이지 로드 시 동기화
+    syncCompanyName();
+  }, [setReportCompanyName, setPolishCompanyName, setGriCompanyName]);
+
+  // 기존 polish-storage 데이터를 report-storage로 동기화
+  useEffect(() => {
+    const syncPolishedDataToReport = () => {
+      const polishedItems = usePolishStore.getState().savedItems;
+      if (Object.keys(polishedItems).length > 0) {
+        // polish-storage의 데이터를 report-storage 형식으로 변환
+        const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
+          const item = polishedItems[griIndex];
+          if (item.answers) {
+            acc[griIndex] = {};
+            Object.keys(item.answers).forEach((keyAlpha) => {
+              // 임시로 빈 객체로 설정 (실제 question_id는 나중에 매핑)
+              acc[griIndex][keyAlpha] = {
+                answer_text: item.answers[keyAlpha] || '',
+                polished_text: item.polished_text || '',
+                display_mode: 'prose' as const
+              };
+            });
+          }
+          return acc;
+        }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
+        
+        setSavedAnswers(reportData);
+      }
+    };
+
+    // 페이지 로드 시 동기화
+    syncPolishedDataToReport();
+  }, [setSavedAnswers]);
 
   // 상태
   const [categories, setCategories] = useState<GRICategory[]>([]);
@@ -211,7 +268,12 @@ export default function GRIIntakePage() {
           })),
         extra_instructions: 'kor_gri_v1',
       });
-      setMessage('윤문이 완료되었습니다.');
+      setMessage('윤문이 완료되었습니다. 윤문 결과를 자동으로 저장합니다...');
+      
+      // 윤문 완료 후 자동으로 저장
+      setTimeout(() => {
+        savePolishResult();
+      }, 1000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '윤문 중 오류가 발생했습니다.';
       setMessage(msg);
@@ -221,12 +283,59 @@ export default function GRIIntakePage() {
   };
 
   // 윤문 결과 저장
-  const savePolishResult = () => {
+  const savePolishResult = async () => {
     if (!result?.polished_text || !selectedItem) return;
-    const timestamp = new Date().toISOString();
-    setPolished(selectedItem.index_no, result.polished_text);
-    usePolishStore.getState().setSavedAt(timestamp);
-    setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
+    
+    try {
+      // 1. polish-storage에 윤문 결과 저장
+      const timestamp = new Date().toISOString();
+      setPolished(selectedItem.index_no, result.polished_text);
+      usePolishStore.getState().setSavedAt(timestamp);
+      
+      // 2. companyname 동기화 확인
+      if (user?.companyname) {
+        setReportCompanyName(user.companyname);
+        setPolishCompanyName(user.companyname);
+        setGriCompanyName(user.companyname);
+      }
+      
+      // 3. polish-storage에서 모든 저장된 데이터 가져오기
+      const polishedItems = usePolishStore.getState().savedItems;
+      
+      // 4. report-storage 형식으로 데이터 변환
+      const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
+        const item = polishedItems[griIndex];
+        if (item.answers) {
+          acc[griIndex] = {};
+          Object.keys(item.answers).forEach((keyAlpha) => {
+            // key_alpha를 question_id로 변환
+            const question = selectedItem.questions.find(q => q.key_alpha === keyAlpha);
+            if (question) {
+              acc[griIndex][question.id.toString()] = {
+                answer_text: item.answers[keyAlpha] || '',
+                polished_text: item.polished_text || '',
+                display_mode: 'prose' as const
+              };
+            }
+          });
+        }
+        return acc;
+      }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
+      
+      // 5. report-storage에 데이터 저장
+      setSavedAnswers(reportData);
+      
+      // 6. 백엔드 DB에 저장
+      if (user?.corporation_id) {
+        await GRIApiService.saveReportAnswers(Number(user.corporation_id), reportData);
+        setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
+      } else {
+        setMessage('기업 정보를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('저장 중 오류 발생:', error);
+      setMessage('저장 중 오류가 발생했습니다.');
+    }
   };
 
   // 로딩 화면

@@ -33,6 +33,7 @@ type PolishState = {
   };
   error?: string;
   savedAt?: string;
+  companyname?: string;
   // Local Storage 관련
   savedItems: { [key: string]: PolishedItem };  // gri_index를 키로 사용
   // API 관련
@@ -44,6 +45,8 @@ type PolishState = {
   getAllPolishedItems: () => PolishedItem[];
   // 기타
   setSavedAt: (timestamp: string) => void;
+  setCompanyName: (companyname: string) => void;
+  getCompanyName: () => string | undefined;
   reset: () => void;
 };
 
@@ -149,11 +152,16 @@ export const usePolishStore = create<PolishState>()(
 
       setSavedAt: (timestamp: string) => set({ savedAt: timestamp }),
       
+      setCompanyName: (companyname: string) => set({ companyname }),
+      
+      getCompanyName: () => get().companyname,
+      
       reset: () => set((state) => ({ 
         status: 'idle', 
         result: undefined, 
         error: undefined, 
         savedAt: undefined,
+        companyname: state.companyname,
         savedItems: state.savedItems
       })),
 
@@ -174,7 +182,10 @@ export const usePolishStore = create<PolishState>()(
     {
       name: 'polish-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ savedItems: state.savedItems }),
+      partialize: (state) => ({ 
+        savedItems: state.savedItems,
+        companyname: state.companyname 
+      }),
     }
   )
 );

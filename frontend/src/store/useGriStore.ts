@@ -14,6 +14,7 @@ type GriState = {
   answers: Answers;
   polishedByIndex: Polished;
   lastSavedAt?: string;
+  companyname?: string;
 
   setSessionKey: (k: string) => void;
   setSelected: (catId: number|null, itemId: number|null) => void;
@@ -23,6 +24,8 @@ type GriState = {
   setBulkAnswers: (a: Answers) => void;
   setPolished: (indexNo: string, text: string) => void;
   resetItemAnswers: (itemId?: number|null) => void;
+  setCompanyName: (companyname: string) => void;
+  getCompanyName: () => string | undefined;
   resetAll: () => void;
 };
 
@@ -54,6 +57,8 @@ export const useGriStore = create<GriState>()(
         lastSavedAt: new Date().toISOString()
       }),
       resetItemAnswers: () => set({ answers: {} }),
+      setCompanyName: (companyname: string) => set({ companyname }),
+      getCompanyName: () => get().companyname,
       resetAll: () => set({ 
         sessionKey: null, 
         selectedCategoryId: null, 
@@ -61,7 +66,8 @@ export const useGriStore = create<GriState>()(
         selectedItem: null,
         answers: {}, 
         polishedByIndex: {},
-        lastSavedAt: undefined
+        lastSavedAt: undefined,
+        companyname: undefined
       }),
     }),
     {
@@ -75,6 +81,7 @@ export const useGriStore = create<GriState>()(
         answers: state.answers,
         polishedByIndex: state.polishedByIndex,
         lastSavedAt: state.lastSavedAt,
+        companyname: state.companyname,
       }),
       version: 1,
     }
