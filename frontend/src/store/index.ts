@@ -19,5 +19,6 @@ export { useAuthStore } from './useAuthStore';
 export { useGriStore } from './useGriStore';
 export { useMGStore } from './mgStore';
 export { usePolishStore } from './polishStore';
+export { useReportStore } from './reportStore';
 export { useSessionStore } from './sessionStore';
 export { useHasHydrated } from './useHasHydrated'; 
