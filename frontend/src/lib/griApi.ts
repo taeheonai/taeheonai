@@ -291,6 +291,45 @@ export class GRIApiService {
       throw apiError;
     }
   }
+
+  // GRI Intake 페이지용 답변 저장 (ESG 분류 없음)
+  static async saveIntakeAnswers(corpId: number, answers: SavedAnswers) {
+    try {
+      await api.post(
+        `/v1/report/gri-report/intake-answers/${corpId}`,
+        { answers }
+      );
+    } catch (error: unknown) {
+      console.error('GRI Intake 답변 저장 오류:', error);
+      throw error;
+    }
+  }
+
+  // GRI Intake 페이지용 답변 조회 (ESG 분류 없음)
+  static async fetchIntakeAnswers(corpId: number) {
+    try {
+      const response = await api.get(
+        `/v1/report/gri-report/intake-answers/${corpId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error('GRI Intake 답변 조회 오류:', error);
+      throw error;
+    }
+  }
+
+  // Materiality-GRI 페이지용 답변 조회 (ESG 분류 포함)
+  static async fetchMaterialityAnswers(corpId: number) {
+    try {
+      const response = await api.get(
+        `/v1/report/gri-report/answers/${corpId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Materiality-GRI 답변 조회 오류:', error);
+      throw error;
+    }
+  }
 }
 
 export default GRIApiService;

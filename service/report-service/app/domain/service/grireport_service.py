@@ -114,11 +114,12 @@ class GRIReportService:
         corporation_id: int,
         answers: dict
     ) -> bool:
-        """GRI 답변 저장"""
+        """GRI 답변 저장 (기본값: Materiality-GRI)"""
         try:
-            return await self._repository.save_answers(
+            return await self._repository.save_materiality_answers(
                 corporation_id=corporation_id,
-                answers=answers
+                answers=answers,
+                issuepool_id=1  # 기본값 (실제로는 프론트엔드에서 전달받아야 함)
             )
         except Exception as e:
             raise HTTPException(
@@ -126,15 +127,81 @@ class GRIReportService:
                 detail=f"Failed to save GRI answers: {str(e)}"
             )
 
+    async def save_intake_answers(
+        self,
+        corporation_id: int,
+        answers: dict
+    ) -> bool:
+        """GRI Intake 답변 저장 (ESG 분류 없음)"""
+        try:
+            return await self._repository.save_intake_answers(
+                corporation_id=corporation_id,
+                answers=answers
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to save GRI Intake answers: {str(e)}"
+            )
+
+    async def save_materiality_answers(
+        self,
+        corporation_id: int,
+        answers: dict,
+        issuepool_id: int
+    ) -> bool:
+        """Materiality-GRI 답변 저장 (ESG 분류 포함)"""
+        try:
+            return await self._repository.save_materiality_answers(
+                corporation_id=corporation_id,
+                answers=answers,
+                issuepool_id=issuepool_id
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to save Materiality-GRI answers: {str(e)}"
+            )
+
     async def get_answers(
         self,
-        corporation_id: int
+        corporation_id: int,
+        report_type: str = 'materiality'
     ) -> dict:
-        """저장된 GRI 답변 조회"""
+        """저장된 GRI 답변 조회 (기본값: Materiality-GRI)"""
         try:
-            return await self._repository.get_answers(corporation_id)
+            return await self._repository.get_answers(
+                corporation_id=corporation_id,
+                report_type=report_type
+            )
         except Exception as e:
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get GRI answers: {str(e)}"
+            )
+
+    async def get_intake_answers(
+        self,
+        corporation_id: int
+    ) -> dict:
+        """GRI Intake 답변 조회 (ESG 분류 없음)"""
+        try:
+            return await self._repository.get_intake_answers(corporation_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get GRI Intake answers: {str(e)}"
+            )
+
+    async def get_materiality_answers(
+        self,
+        corporation_id: int
+    ) -> dict:
+        """Materiality-GRI 답변 조회 (ESG 분류 포함)"""
+        try:
+            return await self._repository.get_materiality_answers(corporation_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get Materiality-GRI answers: {str(e)}"
             )

@@ -97,7 +97,29 @@ async def save_answers(
     - **payload**: 저장할 답변 데이터
         - answers: 답변 데이터 딕셔너리
     """
-    return await controller.save_answers(
+    return await controller.save_materiality_answers(
+        corporation_id=corporation_id,
+        answers=payload.answers
+    )
+
+@router.post(
+    "/intake-answers/{corporation_id}",
+    response_model=bool,
+    summary="GRI Intake 답변 저장 (ESG 분류 없음)"
+)
+async def save_intake_answers(
+    corporation_id: int,
+    payload: SaveAnswersRequest,
+    controller: GRIReportController = Depends()
+):
+    """
+    GRI Intake 페이지 답변을 저장합니다 (ESG 분류 없이 공통 섹션으로).
+
+    - **corporation_id**: 기업 ID
+    - **payload**: 저장할 답변 데이터
+        - answers: 답변 데이터 딕셔너리
+    """
+    return await controller.save_intake_answers(
         corporation_id=corporation_id,
         answers=payload.answers
     )
@@ -119,3 +141,18 @@ async def get_answers(
     return await controller.get_answers(
         corporation_id=corporation_id
     )
+
+@router.get(
+    "/intake-answers/{corporation_id}",
+    summary="GRI Intake 답변 조회 (ESG 분류 없음)"
+)
+async def get_intake_answers(
+    corporation_id: int,
+    controller: GRIReportController = Depends()
+):
+    """
+    GRI Intake 페이지 답변을 조회합니다 (ESG 분류 없이 공통 섹션으로).
+
+    - **corporation_id**: 기업 ID
+    """
+    return await controller.get_intake_answers(corporation_id=corporation_id)

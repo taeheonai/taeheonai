@@ -349,13 +349,13 @@ export default function GRIIntakePage() {
       // 6. report-storage에 데이터 저장
       setSavedAnswers(reportData);
       
-      // 7. 백엔드 DB에 저장
-      if (user?.corporation_id) {
-        await GRIApiService.saveReportAnswers(Number(user.corporation_id), reportData);
-        setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
-      } else {
-        setMessage('기업 정보를 찾을 수 없습니다.');
-      }
+             // 7. 백엔드 DB에 저장 (GRI Intake용 엔드포인트 사용)
+       if (user?.corporation_id) {
+         await GRIApiService.saveIntakeAnswers(Number(user.corporation_id), reportData);
+         setMessage('윤문 결과가 저장되었습니다. 공통 섹션에서 확인할 수 있습니다.');
+       } else {
+         setMessage('기업 정보를 찾을 수 없습니다.');
+       }
     } catch (error) {
       console.error('저장 중 오류 발생:', error);
       setMessage('저장 중 오류가 발생했습니다.');
