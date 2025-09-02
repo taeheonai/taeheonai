@@ -189,9 +189,30 @@ export class GRIApiService {
   // ✅ 실행(POST): 답변과 함께 윤문을 돌림
   static async runPolish(request: PolishRequest) {
     try {
-      const { data } = await api.post('/v1/gri/polish', request);
+      // LLM 윤문은 시간이 오래 걸리므로 타임아웃을 60초로 설정
+      const { data } = await api.post('/v1/gri/polish', request, { 
+        timeout: 60000 // 60초로 상향
+      });
       return this.normalizePolish(data);
     } catch (error: unknown) {
+      // 타임아웃 에러인 경우 재시도
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ECONNABORTED') {
+        console.log('윤문 요청 타임아웃, 재시도 중...');
+        try {
+          const { data } = await api.post('/v1/gri/polish', request, { 
+            timeout: 60000 
+          });
+          return this.normalizePolish(data);
+        } catch (retryError: unknown) {
+          console.error('윤문 재시도 실패:', retryError);
+          const apiError: APIError = {
+            message: retryError instanceof Error ? retryError.message : '윤문 재시도 중 오류가 발생했습니다.',
+            status: (retryError as { response?: { status: number } })?.response?.status
+          };
+          throw apiError;
+        }
+      }
+      
       console.error('윤문 요청 오류:', error);
       const apiError: APIError = {
         message: error instanceof Error ? error.message : '윤문 요청 중 오류가 발생했습니다.',
