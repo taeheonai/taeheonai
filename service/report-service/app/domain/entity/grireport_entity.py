@@ -1,6 +1,6 @@
 # app/domain/entity/grireport_entity.py
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, Text, DateTime, func
+from sqlalchemy import Integer, Text, DateTime, Boolean, func, text
 from app.common.database import Base  # Declarative Base
 
 class GRIReport(Base):
@@ -25,4 +25,6 @@ class GRIReport(Base):
     # 메타데이터
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
-    is_saved: Mapped[bool] = mapped_column(Integer, nullable=False, default=False)  # 저장 버튼 눌렀는지 여부
+    is_saved: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text('false')
+    )  # 저장 버튼 눌렀는지 여부

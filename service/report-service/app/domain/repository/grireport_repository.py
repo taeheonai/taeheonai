@@ -24,7 +24,7 @@ class GRIReportRepository:
             and_(
                 GRIReport.corporation_id == corporation_id,
                 GRIReport.esg_classification_id == esg_classification_id,
-                GRIReport.is_saved == True  # 저장된 답변만 조회
+                GRIReport.is_saved.is_(True)  # 저장된 답변만 조회 (Boolean 비교)
             )
         ).order_by(GRIReport.issuepool_id, GRIReport.standard_code, GRIReport.question_id)
 
@@ -76,7 +76,7 @@ class GRIReportRepository:
         query = select(GRIReport).where(
             and_(
                 GRIReport.corporation_id == corporation_id,
-                GRIReport.is_saved == True
+                GRIReport.is_saved.is_(True)
             )
         ).order_by(GRIReport.standard_code, GRIReport.issuepool_id)
 
@@ -191,7 +191,7 @@ class GRIReportRepository:
         query = select(GRIReport).where(
             and_(
                 GRIReport.corporation_id == corporation_id,
-                GRIReport.is_saved == True
+                GRIReport.is_saved.is_(True)
             )
         )
         result = await self._session.execute(query)
