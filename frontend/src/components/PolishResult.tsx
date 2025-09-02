@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useIntakeStore } from '@/store/intakeStore';
 import { useShallow } from 'zustand/react/shallow';
 import ReactMarkdown from 'react-markdown';
