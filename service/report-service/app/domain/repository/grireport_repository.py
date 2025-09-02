@@ -173,18 +173,22 @@ class GRIReportRepository:
                 for question_id, answer_data in questions.items():
                     if report_type == 'intake':
                         # GRI Intake: ESG 분류 없이 저장
-                        new_report = GRIReport(
-                            corporation_id=corporation_id,
-                            issuepool_id=None,  # null
-                            standard_code=index_id,
-                            question_id=question_id,
-                            esg_classification_id=None,  # null
-                            answer_text=answer_data.get('answer_text', ''),
-                            polished_text=answer_data.get('polished_text'),
-                            display_mode=answer_data.get('display_mode', 'prose'),
-                            report_type='intake',
-                            is_saved=True
-                        )
+                        # None 값인 컬럼은 제외하고, DB 기본값 사용
+                        insert_data = {
+                            'corporation_id': corporation_id,
+                            'standard_code': index_id,
+                            'question_id': question_id,
+                            'answer_text': answer_data.get('answer_text', ''),
+                            'polished_text': answer_data.get('polished_text'),
+                            'display_mode': answer_data.get('display_mode', 'prose'),
+                            'report_type': 'intake',
+                            'is_saved': True
+                        }
+                        
+                        # None 값인 컬럼 제거
+                        clean_data = {k: v for k, v in insert_data.items() if v is not None}
+                        
+                        new_report = GRIReport(**clean_data)
                     else:
                         # Materiality-GRI: ESG 분류 포함하여 저장
                         # issuepool_id는 프론트엔드에서 전달받은 값 사용
@@ -194,18 +198,23 @@ class GRIReportRepository:
                         # esg_classification_id 결정: GRI 표준 코드 분석
                         esg_classification_id = self._determine_esg_classification(index_id)
                         
-                        new_report = GRIReport(
-                            corporation_id=corporation_id,
-                            issuepool_id=issuepool_id,  # 프론트엔드에서 전달받은 값
-                            standard_code=index_id,
-                            question_id=question_id,
-                            esg_classification_id=esg_classification_id,
-                            answer_text=answer_data.get('answer_text', ''),
-                            polished_text=answer_data.get('polished_text'),
-                            display_mode=answer_data.get('display_mode', 'prose'),
-                            report_type='materiality',
-                            is_saved=True
-                        )
+                        insert_data = {
+                            'corporation_id': corporation_id,
+                            'issuepool_id': issuepool_id,
+                            'standard_code': index_id,
+                            'question_id': question_id,
+                            'esg_classification_id': esg_classification_id,
+                            'answer_text': answer_data.get('answer_text', ''),
+                            'polished_text': answer_data.get('polished_text'),
+                            'display_mode': answer_data.get('display_mode', 'prose'),
+                            'report_type': 'materiality',
+                            'is_saved': True
+                        }
+                        
+                        # None 값인 컬럼 제거
+                        clean_data = {k: v for k, v in insert_data.items() if v is not None}
+                        
+                        new_report = GRIReport(**clean_data)
                     
                     self._session.add(new_report)
 
