@@ -241,27 +241,14 @@ export default function GRIIntakePage() {
         return;
       }
 
-      // GRI 윤문 API 호출 (올바른 엔드포인트 사용)
-      const response = await fetch('/v1/gri/polish', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_key: sessionKey,
-          gri_index: selectedItem.index_no,
-          item_title: selectedItem.title,
-          answers: answers,
-          extra_instructions: 'kor_gri_v1',
-        }),
+      // GRI 윤문 API 호출 (GRIApiService 사용)
+      const result = await GRIApiService.runPolish({
+        session_key: sessionKey,
+        gri_index: selectedItem.index_no,
+        item_title: selectedItem.title,
+        answers: answers,
+        extra_instructions: 'kor_gri_v1',
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`윤문 요청 실패: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
       
       // 윤문 결과를 intake store에 저장
       if (result.polished_text) {
