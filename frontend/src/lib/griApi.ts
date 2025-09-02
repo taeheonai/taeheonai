@@ -11,6 +11,7 @@ import type {
   GRIReportStructure,
   SavedAnswers
 } from '@/types/gri';
+import { safeParseCategories, safeParseGRICompleteData } from '@/lib/schemas';
 
 // API 에러 응답 타입
 interface ErrorResponse {
@@ -42,7 +43,8 @@ export class GRIApiService {
   static async getCategories(): Promise<{ categories: GRICategory[]; count: number }> {
     try {
       const response = await api.get('/v1/gri/categories');
-      return response.data;
+      // 스키마 검증 적용
+      return safeParseCategories(response.data);
     } catch (error: unknown) {
       console.error('카테고리 조회 오류:', error);
       const err = error as ErrorResponse;
@@ -58,7 +60,12 @@ export class GRIApiService {
   static async getCompleteData(categoryId: number): Promise<GRICompleteData> {
     try {
       const response = await api.get(`/v1/gri/complete/${categoryId}`);
-      return response.data;
+      // 스키마 검증 적용
+      const parsedData = safeParseGRICompleteData(response.data);
+      if (!parsedData) {
+        throw new Error('GRI 데이터 파싱 실패');
+      }
+      return parsedData;
     } catch (error: unknown) {
       console.error('GRI 데이터 조회 오류:', error);
       const err = error as ErrorResponse;

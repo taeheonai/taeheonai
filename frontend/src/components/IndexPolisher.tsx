@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePolishStore } from "@/store/polishStore";
+import { safeTrim } from "@/lib/utils";
 
 type DisplayMode = 'table' | 'prose';
 
@@ -71,7 +72,7 @@ export default function IndexPolisher({
     const lines = answer
       .replace(/\r\n/g, '\n')
       .split('\n')
-      .map((s) => s.trim())
+      .map((s) => safeTrim(s))
       .filter(Boolean);
 
     const rows: string[] = [];
@@ -81,7 +82,7 @@ export default function IndexPolisher({
       const colonMatch = raw.match(/^(.+?):\s*(.+)$/);
       if (colonMatch) {
         const [, key, value] = colonMatch;
-        rows.push(`| ${key.trim()} | ${value.trim()} |`);
+        rows.push(`| ${safeTrim(key)} | ${safeTrim(value)} |`);
         continue;
       }
 
@@ -89,12 +90,12 @@ export default function IndexPolisher({
       const spaceMatch = raw.match(/^(\S+)\s+(.+)$/);
       if (spaceMatch) {
         const [, key, value] = spaceMatch;
-        rows.push(`| ${key.trim()} | ${value.trim()} |`);
+        rows.push(`| ${safeTrim(key)} | ${safeTrim(value)} |`);
         continue;
       }
 
       // 3. 단순 값 (키는 "항목 N"으로 자동 생성)
-      rows.push(`| 항목 ${rows.length + 1} | ${raw.trim()} |`);
+      rows.push(`| 항목 ${rows.length + 1} | ${safeTrim(raw)} |`);
     }
 
     if (!rows.length) return '';
@@ -108,7 +109,7 @@ export default function IndexPolisher({
     for (const q of block.questions) {
       const key = q.key_alpha ?? "";
       if (displayMode[key] !== 'table') continue;
-      const text = answers[key]?.trim();
+      const text = safeTrim(answers[key]);
       if (!text) continue;
 
       const table = toMarkdownTable(text);
@@ -116,7 +117,7 @@ export default function IndexPolisher({
 
       md += `\n\n#### ${griIndex}-${key}) ${q.text || ''}\n${table}\n`;
     }
-    return md.trim();
+    return safeTrim(md);
   }
 
   // 사용자와 회사 정보 가져오기
