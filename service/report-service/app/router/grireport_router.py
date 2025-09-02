@@ -1,17 +1,40 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, validator
 
 from app.domain.controller.grireport_controller import GRIReportController
-from pydantic import BaseModel
 from app.domain.schema.grireport_schema import (
     GRIReportStructureResponse,
     DuplicateGRIIndexInfo,
     ResolveDuplicateGRIRequest
 )
 
+class AnswerUnit(BaseModel):
+    answer_text: str = ""
+    polished_text: str = ""
+    display_mode: str = "prose"
+
+class SectionAnswers(BaseModel):
+    __root__: Dict[str, AnswerUnit]  # "a", "b", "c", "d" 키만 허용
+    
+    @validator("__root__")
+    def validate_alpha_keys(cls, v):
+        valid_keys = {"a", "b", "c", "d"}
+        for key in v.keys():
+            if key not in valid_keys:
+                raise ValueError(f"Invalid key '{key}'. Must be one of: {', '.join(valid_keys)}")
+        return v
+
 class SaveAnswersRequest(BaseModel):
-    answers: dict
+    answers: Dict[str, SectionAnswers]  # "2-1", "306-3" 등의 GRI 인덱스
     issuepool_id: Optional[int] = None  # Materiality-GRI에서만 사용
+    
+    @validator("answers")
+    def validate_answers_structure(cls, v):
+        for gri_index, section in v.items():
+            if not isinstance(section, SectionAnswers):
+                raise ValueError(f"Invalid section structure for {gri_index}")
+        return v
 
 # API 라우터 설정
 router = APIRouter(
@@ -122,10 +145,32 @@ async def save_intake_answers(
     - **payload**: 저장할 답변 데이터
         - answers: 답변 데이터 딕셔너리
     """
-    return await controller.save_intake_answers(
-        corporation_id=corporation_id,
-        answers=payload.answers
-    )
+    try:
+        # Pydantic 검증이 이미 완료됨 (payload: SaveAnswersRequest)
+        # 추가 검증: polished_text가 문자열인지 확인
+        for gri_index, section in payload.answers.items():
+            for key_alpha, answer in section.__root__.items():
+                if not isinstance(answer.polished_text, str):
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"answers.{gri_index}.{key_alpha}.polished_text must be a string, got {type(answer.polished_text)}"
+                    )
+        
+        return await controller.save_intake_answers(
+            corporation_id=corporation_id,
+            answers=payload.answers
+        )
+    except HTTPException:
+        # 이미 HTTPException이면 그대로 전파
+        raise
+    except Exception as e:
+        # 예상치 못한 에러는 로깅하고 500 반환
+        import logging
+        logging.error(f"Unexpected error in save_intake_answers: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error occurred while saving intake answers"
+        )
 
 @router.get(
     "/answers/{corporation_id}",

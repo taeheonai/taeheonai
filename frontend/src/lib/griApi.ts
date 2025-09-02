@@ -336,7 +336,22 @@ export class GRIApiService {
       );
     } catch (error: unknown) {
       console.error('GRI Intake 답변 저장 오류:', error);
-      // 백엔드 저장 실패해도 로컬 저장은 완료된 상태
+      
+      // 에러 응답을 더 자세히 분석
+      const err = error as ErrorResponse;
+      const status = err.response?.status;
+      const detail = err.response?.data?.detail || err.response?.data?.message;
+      
+      // 422 (Validation Error) 또는 400 (Bad Request)인 경우 더 자세한 메시지 제공
+      if (status === 422 || status === 400) {
+        const apiError: APIError = {
+          message: `데이터 형식 오류: ${detail || '잘못된 데이터 구조입니다.'}`,
+          status: status
+        };
+        throw apiError;
+      }
+      
+      // 기타 에러는 그대로 전파
       throw error;
     }
   }
