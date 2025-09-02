@@ -42,8 +42,11 @@ export default function GriReportPage() {
           setSavedAnswers({});
         }
       } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : 'GRI 데이터를 불러오지 못했습니다.';
-        setErr(errorMessage);
+        console.error('GRI 리포트 구조 조회 오류:', e);
+        // 사용자 메시지
+        const error = e as { response?: { data?: { detail?: string } }; message?: string };
+        const detail = error?.response?.data?.detail || error?.message || '서버 오류';
+        setErr(`구조 조회 실패: ${detail}`);
       } finally {
         setLoading(false);
       }

@@ -48,11 +48,14 @@ class GRIReportRepository:
                     answer_text=report.answer_text,
                     polished_text=report.polished_text,
                     display_mode=report.display_mode,
-                    is_saved=report.is_saved
+                    is_saved=report.is_saved,
+                    updated_at=report.updated_at,  # 최소 하나의 타임스탬프 키
+                    created_at=report.created_at
                 )
             )
 
-        return [
+        # None 반환 금지, 항상 리스트 반환
+        result = [
             GRIESGSectionData(
                 section_id=esg_classification_id,
                 section_name=self._get_section_name(esg_classification_id),
@@ -60,6 +63,9 @@ class GRIReportRepository:
             )
             for data in grouped_data.values()
         ]
+        
+        # 빈 리스트라도 반환 (None 금지)
+        return result
 
     async def find_duplicate_indexes(
         self,
