@@ -251,7 +251,7 @@ export class GRIApiService {
       console.error('GRI 리포트 구조 조회 오류:', error);
       const err = error as ErrorResponse;
       const apiError: APIError = {
-        message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 리포트 구조 조회 중 오류가 발생했습니다.',
+        message: err.response?.data?.detail || err.response?.data?.message || err.message || 'GRI 리포트 구조 조회 중 오류가 발생했습니다.',
         status: err.response?.status
       };
       throw apiError;

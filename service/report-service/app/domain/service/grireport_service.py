@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
+import logging
 
 from app.domain.repository.grireport_repository import GRIReportRepository
 from app.domain.schema.grireport_schema import (
@@ -9,6 +10,8 @@ from app.domain.schema.grireport_schema import (
     DuplicateGRIIndexInfo,
     ResolveDuplicateGRIRequest
 )
+
+logger = logging.getLogger(__name__)
 
 class GRIReportService:
     def __init__(self, session: AsyncSession):
@@ -21,29 +24,55 @@ class GRIReportService:
     ) -> GRIReportStructureResponse:
         """ESG 섹션별 GRI 보고서 구조 조회"""
         try:
-            # 각 ESG 섹션별 데이터 조회
-            environmental = await self._repository.get_esg_section_data(corporation_id, 1)
-            social = await self._repository.get_esg_section_data(corporation_id, 2)
-            governance = await self._repository.get_esg_section_data(corporation_id, 3)
+            # 1) 레포에서 None이 오더라도 리스트 보장
+            environmental = await self._repository.get_esg_section_data(corporation_id, 1) or []
+            social = await self._repository.get_esg_section_data(corporation_id, 2) or []
+            governance = await self._repository.get_esg_section_data(corporation_id, 3) or []
 
-            # 응답 구성
+            # 2) last_updated 안전 계산
+            def _collect_timestamps(items: List[Any]) -> List[Any]:
+                ts: List[Any] = []
+                for sec in items or []:
+                    # answers가 None/dict/리스트 무엇이 와도 안전하게
+                    answers = getattr(sec, "answers", None) or []
+                    if isinstance(answers, dict):
+                        answers = list(answers.values())
+                    for ans in answers:
+                        # dict/obj 모두 처리
+                        val = (
+                            (ans.get("last_modified") if isinstance(ans, dict) else getattr(ans, "last_modified", None))
+                            or (ans.get("updated_at") if isinstance(ans, dict) else getattr(ans, "updated_at", None))
+                            or (ans.get("created_at") if isinstance(ans, dict) else getattr(ans, "created_at", None))
+                        )
+                        if val:
+                            ts.append(val)
+                return ts
+
+            try:
+                timestamps = (
+                    _collect_timestamps(environmental)
+                    + _collect_timestamps(social)
+                    + _collect_timestamps(governance)
+                )
+                last_updated = max(timestamps) if timestamps else None
+            except Exception:
+                logger.exception("failed to compute last_updated")
+                last_updated = None
+
+            # 3) Pydantic이 직렬화할 수 있도록 리스트 보장한 값을 그대로 넣음
             return GRIReportStructureResponse(
                 corporation_id=corporation_id,
                 companyname=companyname or "Unknown Corporation",
                 environmental=environmental,
                 social=social,
                 governance=governance,
-                last_updated=max([
-                    section.answers[-1].last_modified
-                    for sections in [environmental, social, governance]
-                    for section in sections
-                    if section.answers and len(section.answers) > 0
-                ], default=None)
+                last_updated=last_updated,
             )
+
+        except HTTPException:
+            raise
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.exception(f"GRI report structure 조회 실패: corporation_id={corporation_id}")
+            logger.exception("get_report_structure failed")
             raise HTTPException(
                 status_code=500,
                 detail=f"Failed to get GRI report structure: {str(e)}"

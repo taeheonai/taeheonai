@@ -20,10 +20,17 @@ class GRIReportController:
         companyname: str | None = None
     ) -> GRIReportStructureResponse:
         """GRI 보고서 구조 조회"""
-        return await self._service.get_report_structure(
+        data = await self._service.get_report_structure(
             corporation_id=corporation_id,
             companyname=companyname
         )
+        
+        # 기업/데이터 없음은 404로 처리
+        if (not data.environmental and not data.social and not data.governance):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="No GRI data for this corporation_id")
+            
+        return data
 
     async def find_duplicate_indexes(
         self,
