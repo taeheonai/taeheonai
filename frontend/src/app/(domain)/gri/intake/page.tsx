@@ -71,12 +71,13 @@ export default function GRIIntakePage() {
       const polishedItems = usePolishStore.getState().savedItems;
       if (Object.keys(polishedItems).length > 0) {
         // polish-storage의 데이터를 report-storage 형식으로 변환
+        // 주의: 이 단계에서는 실제 question_id 매핑이 불가능하므로 key_alpha를 그대로 사용
         const reportData = Object.keys(polishedItems).reduce((acc, griIndex) => {
           const item = polishedItems[griIndex];
           if (item.answers) {
             acc[griIndex] = {};
             Object.keys(item.answers).forEach((keyAlpha) => {
-              // 임시로 빈 객체로 설정 (실제 question_id는 나중에 매핑)
+              // key_alpha를 임시로 사용 (실제 저장 시에는 question_id로 변환됨)
               acc[griIndex][keyAlpha] = {
                 answer_text: item.answers[keyAlpha] || '',
                 polished_text: item.polished_text || '',
@@ -310,7 +311,7 @@ export default function GRIIntakePage() {
           Object.keys(item.answers).forEach((keyAlpha) => {
             // key_alpha를 question_id로 변환
             const question = selectedItem.questions.find(q => q.key_alpha === keyAlpha);
-            if (question) {
+            if (question && typeof question.id === 'number') {
               acc[griIndex][question.id.toString()] = {
                 answer_text: item.answers[keyAlpha] || '',
                 polished_text: item.polished_text || '',
@@ -321,11 +322,34 @@ export default function GRIIntakePage() {
         }
         return acc;
       }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
+
+      // 5. 데이터 검증
+      const validateReportData = (data: any) => {
+        for (const griIndex in data) {
+          for (const questionId in data[griIndex]) {
+            // questionId가 숫자인지 확인
+            if (isNaN(Number(questionId))) {
+              console.error(`Invalid question_id: ${questionId} for gri_index: ${griIndex}`);
+              return false;
+            }
+          }
+        }
+        return true;
+      };
+
+      // 데이터 검증 후 저장
+      if (!validateReportData(reportData)) {
+        throw new Error('Invalid data structure: question_id must be a number');
+      }
+
+      // 디버깅: 변환된 데이터 구조 확인
+      console.log('Transformed report data:', reportData);
+      console.log('Selected item questions:', selectedItem.questions);
       
-      // 5. report-storage에 데이터 저장
+      // 6. report-storage에 데이터 저장
       setSavedAnswers(reportData);
       
-      // 6. 백엔드 DB에 저장
+      // 7. 백엔드 DB에 저장
       if (user?.corporation_id) {
         await GRIApiService.saveReportAnswers(Number(user.corporation_id), reportData);
         setMessage('윤문 결과가 저장되었습니다. GRI Report 페이지에서 확인할 수 있습니다.');
