@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { filterMarkdown, KeepMode } from '@/lib/mdFilter';
+import { safeTrim } from '@/lib/utils';
 
 interface PolishResultProps {
   sessionKey: string;
@@ -128,7 +129,7 @@ export const PolishResult: React.FC<PolishResultProps> = ({
 
   // 저장된 윤문 결과 확인
   const savedItem = savedItems[griIndex];
-  const hasPolishedText = savedItem?.polished_text?.trim();
+  const hasPolishedText = safeTrim(savedItem?.polished_text);
 
   if (!hasPolishedText) {
     return (
@@ -193,13 +194,13 @@ export const PolishResult: React.FC<PolishResultProps> = ({
 
   // 표(프론트 생성) + LLM 내용 + 메타 합치기
   const mergedMarkdown =
-    (prependMarkdown?.trim() ? `${prependMarkdown.trim()}\n\n` : '') +
+            (safeTrim(prependMarkdown) ? `${safeTrim(prependMarkdown)}\n\n` : '') +
     (contentToRender ?? '') +
     (metaJson ? `\n\n${metaJson}` : '');
 
   // stripHeads/모드에 따른 필터링
   const filteredMarkdown =
-    keepFromLLM === 'none' ? (prependMarkdown?.trim() ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
+          keepFromLLM === 'none' ? (safeTrim(prependMarkdown) ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">

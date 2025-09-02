@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
   // SPA 라우팅을 위한 설정
   trailingSlash: false,
   
+  // 프로덕션에서도 소스맵 활성화 (에러 디버깅용)
+  productionBrowserSourceMaps: true,
+  
   // RSC 관련 설정
   experimental: {
     serverActions: {

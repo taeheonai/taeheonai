@@ -6,6 +6,7 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAStatus from "@/components/PWAStatus";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SessionInitializer from "@/components/SessionInitializer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,11 +65,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <SessionInitializer />
-          <ManifestDebug />
-          <PWAStatus />
-          {children}
-          <PWAInstallPrompt />
+          <ErrorBoundary>
+            <SessionInitializer />
+            <ManifestDebug />
+            <PWAStatus />
+            {children}
+            <PWAInstallPrompt />
+          </ErrorBoundary>
         </AuthProvider>
       </body>
     </html>

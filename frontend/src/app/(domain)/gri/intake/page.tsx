@@ -10,6 +10,7 @@ import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
 import { useSessionStore } from '@/store/sessionStore';
+import { safeTrim } from '@/lib/utils';
 
 type DisplayMode = 'table' | 'prose';
 
@@ -89,7 +90,7 @@ export default function GRIIntakePage() {
     const lines = answer
       .replace(/\r\n/g, '\n')
       .split('\n')
-      .map((s) => s.trim())
+      .map((s) => safeTrim(s))
       .filter(Boolean);
 
     const rows: string[] = [];
@@ -105,10 +106,10 @@ export default function GRIIntakePage() {
       const m = line.match(/^(.+?):\s*(.+)$/);
       if (!m) continue;
 
-      const key = m[1].trim();
+      const key = safeTrim(m[1]);
 
       // 값에서 "숫자,숫자" 형태의 콤마만 제거(텍스트 콤마는 보존)
-      const value = m[2].trim().replace(/(?<=\d),(?=\d)/g, '');
+      const value = safeTrim(m[2]).replace(/(?<=\d),(?=\d)/g, '');
 
       rows.push(`| ${key} | ${value} |`);
     }
@@ -132,7 +133,7 @@ export default function GRIIntakePage() {
 
       md += `\n\n#### ${selectedItem.index_no}-${q.key_alpha}) ${q.question_text || ''}\n${table}\n`;
     }
-    return md.trim();
+    return safeTrim(md);
   }
 
   // 초기 로드
@@ -140,7 +141,13 @@ export default function GRIIntakePage() {
     (async () => {
       try {
         setIsLoadingData(true);
+        console.log('[TRIM-CANDIDATE] 카테고리 조회 시작');
         const data = await GRIApiService.getCategories();
+        console.log('[TRIM-CANDIDATE] 카테고리 응답:', { 
+          categories: data.categories, 
+          count: data.count,
+          firstCategory: data.categories?.[0] 
+        });
         setCategories(data.categories || []);
         if (data.categories?.length) setSelectedCategory(data.categories[0]);
       } catch (err) {
@@ -158,7 +165,13 @@ export default function GRIIntakePage() {
     (async () => {
       try {
         setIsLoadingData(true);
+        console.log('[TRIM-CANDIDATE] GRI 데이터 조회 시작:', selectedCategory.id);
         const data = await GRIApiService.getCompleteData(selectedCategory.id);
+        console.log('[TRIM-CANDIDATE] GRI 데이터 응답:', { 
+          category: data.category,
+          itemCount: data.item_count,
+          firstItem: data.items?.[0]
+        });
         setGriData(data);
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'GRI 데이터 로드 중 오류가 발생했습니다.';
@@ -212,7 +225,7 @@ export default function GRIIntakePage() {
   };
 
   const answeredQuestions =
-    selectedItem?.questions?.filter((q: GRIQuestion) => savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim() !== '')
+            selectedItem?.questions?.filter((q: GRIQuestion) => safeTrim(savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text) !== '')
       .length ?? 0;
 
   // 저장 (스텁)
@@ -229,11 +242,11 @@ export default function GRIIntakePage() {
     try {
       // 윤문 API 호출
       const answers = selectedItem.questions
-        .filter((q) => savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim())
+        .filter((q) => safeTrim(savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text))
         .map((q) => ({
           question_id: q.id,
           key_alpha: q.key_alpha,
-          text: savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim(),
+          text: safeTrim(savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text),
         }));
 
       if (answers.length === 0) {
@@ -526,7 +539,7 @@ export default function GRIIntakePage() {
                                     }}
                                   className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                                                                 {savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text?.trim() && (
+                                                                 {safeTrim(savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text) && (
                                   <div className="flex items-center space-x-1 mt-2 text-green-600">
                                     <span className="text-sm">✓</span>
                                     <span className="text-sm">답변 완료</span>
