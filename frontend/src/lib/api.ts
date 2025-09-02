@@ -72,7 +72,7 @@ const getApiBaseUrl = () => {
 const createApiInstance = () => {
   return axios.create({
     baseURL: getApiBaseUrl(),
-    timeout: 10000,
+    timeout: 30000, // 30초로 상향 (LLM 요청은 개별적으로 더 긴 타임아웃 설정)
     withCredentials: true, // 쿠키 인증이면 켜기 (서버 CORS도 allow_credentials=True)
   });
 };

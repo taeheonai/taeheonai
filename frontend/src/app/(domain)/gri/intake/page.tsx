@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -104,6 +104,9 @@ export default function GRIIntakePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [message, setMessage] = useState('');
+  
+  // API 호출 제어를 위한 ref
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // UI 토글
   const [showCategoryList, setShowCategoryList] = useState(true);
@@ -249,12 +252,18 @@ export default function GRIIntakePage() {
     setMessage('답변이 저장되었습니다.');
   };
 
-  // 윤문 실행
+  // 윤문 실행 (중복 요청 방지 + AbortController 사용)
   const polishAnswers = async () => {
     if (!sessionKey || !selectedItem) return;
+    if (isLoading) return; // 이미 로딩 중이면 중복 요청 방지
 
     setIsLoading(true);
     setMessage('');
+    
+    // 이전 요청이 있다면 취소
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+    
     try {
       await polish({
         session_key: sessionKey,
@@ -276,8 +285,22 @@ export default function GRIIntakePage() {
         savePolishResult();
       }, 1000);
     } catch (err) {
+      // AbortError는 조용히 무시 (사용자가 취소한 경우)
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('윤문 요청이 취소되었습니다.');
+        return;
+      }
+      
+      // 타임아웃 에러인 경우 사용자 친화적인 메시지
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'ECONNABORTED') {
+        setMessage('윤문 처리 시간이 초과되었습니다. 서버가 혼잡할 수 있으니 잠시 후 다시 시도해주세요.');
+        console.error('윤문 타임아웃:', err);
+        return;
+      }
+      
       const msg = err instanceof Error ? err.message : '윤문 중 오류가 발생했습니다.';
       setMessage(msg);
+      console.error('윤문 오류:', err);
     } finally {
       setIsLoading(false);
     }
@@ -596,7 +619,7 @@ export default function GRIIntakePage() {
                         {isLoading ? (
                           <span className="flex items-center space-x-2">
                             <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                            <span>윤문 중...</span>
+                            <span>윤문 처리 중... (최대 60초)</span>
                           </span>
                         ) : (
                           <span className="flex items-center space-x-2">
