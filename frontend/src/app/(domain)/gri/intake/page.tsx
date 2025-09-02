@@ -324,7 +324,7 @@ export default function GRIIntakePage() {
       }, {} as Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>);
 
       // 5. 데이터 검증
-      const validateReportData = (data: any) => {
+      const validateReportData = (data: Record<string, Record<string, { answer_text: string; polished_text?: string; display_mode: 'table' | 'prose' }>>) => {
         for (const griIndex in data) {
           for (const questionId in data[griIndex]) {
             // questionId가 숫자인지 확인
