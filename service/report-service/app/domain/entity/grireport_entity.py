@@ -27,7 +27,7 @@ class GRIReport(Base):
     
     # 메타데이터
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     is_saved: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text('false')
     )  # 저장 버튼 눌렀는지 여부
