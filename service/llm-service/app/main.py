@@ -87,9 +87,9 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
             logger.info(f"Received request with extra_meta: {req.extra_meta}")
             
             if req.extra_meta and req.extra_meta.get("company_context") == "true":
-                company_id = req.extra_meta.get("company_id")
+                corporation_id = req.extra_meta.get("corporation_id")
                 company_name = req.extra_meta.get("company_name")
-                logger.info(f"Company context enabled for company_id: {company_id}, company_name: {company_name}")
+                logger.info(f"Company context enabled for corporation_id: {corporation_id}, company_name: {company_name}")
                 
                 if not company_name:
                     logger.warning("Company name not provided in extra_meta")
@@ -97,8 +97,8 @@ async def polish(req: PolishRequest, x_api_key: str = Header(None, alias="x-api-
                 # JSON 형식의 메타데이터 생성
                 company_meta = {
                     "company_context": "true",
-                    "company_name": company_name,
-                    "company_id": company_id
+                    "companyname": company_name,  # ✅ DB 컬럼명과 일치
+                    "corporation_id": corporation_id
                 }
                 
                 extra_instructions = f"""

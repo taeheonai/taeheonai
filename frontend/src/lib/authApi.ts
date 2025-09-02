@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export interface CompanyInfo {
   corporation_id: string;
-  corporation_name: string;
+  companyname: string;
   // 필요한 다른 회사 정보 필드들...
 }
 

@@ -148,9 +148,9 @@ export default function IndexPolisher({
         corporation_id: corporationId,
         extra_meta: {
           corporation_id: user?.corporation_id,
-          corporation_name: user?.corporation_name,  // 로그인 시 저장된 회사 이름
+          companyname: user?.companyname,  // 로그인 시 저장된 회사 이름
           company_context: "true",  // 기업 컨텍스트 활성화 플래그
-          debug_info: `corporation_id: ${user?.corporation_id}, corporation_name: ${user?.corporation_name}, corporation_id: ${corporationId}`
+          debug_info: `corporation_id: ${user?.corporation_id}, companyname: ${user?.companyname}, corporation_id: ${corporationId}`
         }
       });
       

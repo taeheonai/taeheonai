@@ -22,7 +22,7 @@ class GRIESGSectionData(BaseModel):
 # GRI 보고서 구조 응답
 class GRIReportStructureResponse(BaseModel):
     corporation_id: int
-    corporation_name: str
+    companyname: str
     environmental: List[GRIESGSectionData]
     social: List[GRIESGSectionData]
     governance: List[GRIESGSectionData]

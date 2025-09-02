@@ -7,7 +7,9 @@ import type {
   AnswerResponse,
   ProgressResponse,
   PolishRequest,
-  APIError
+  APIError,
+  GRIReportStructure,
+  SavedAnswers
 } from '@/types/gri';
 
 // API 에러 응답 타입
@@ -26,6 +28,10 @@ interface ErrorResponse {
 export type { 
   GRIQuestion, 
   GRIItem,
+  GRIItemExtended,
+  GRIReportStructure,
+  DisplayMode,
+  SavedAnswers,
   PolishRequest,
   PolishResponse 
 } from '@/types/gri';
@@ -35,30 +41,11 @@ export class GRIApiService {
   // 카테고리 목록 조회
   static async getCategories(): Promise<{ categories: GRICategory[]; count: number }> {
     try {
-      // 🚨 디버깅 로그 추가
-      console.log('🔍 카테고리 조회 시작');
-      console.log('🔗 API URL:', api.defaults.baseURL);
-      
       const response = await api.get('/v1/gri/categories');
-      
-      // 🚨 응답 로깅
-      console.log('✅ 카테고리 조회 성공:', response.data);
       return response.data;
-      
     } catch (error: unknown) {
-      // 🚨 상세 에러 로깅
-      console.error('❌ 카테고리 조회 오류:', error);
-      
+      console.error('카테고리 조회 오류:', error);
       const err = error as ErrorResponse;
-      console.error('❌ 에러 상태:', err.response?.status);
-      console.error('❌ 에러 데이터:', err.response?.data);
-      
-      // 502 에러 특별 처리
-      if (err.response?.status === 502) {
-        console.error('❌ Gateway 오류 감지');
-        throw new Error('서비스 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.');
-      }
-      
       const apiError: APIError = {
         message: err.response?.data?.message || err.response?.data?.detail || err.message || '알 수 없는 오류가 발생했습니다.',
         status: err.response?.status
@@ -74,7 +61,6 @@ export class GRIApiService {
       return response.data;
     } catch (error: unknown) {
       console.error('GRI 데이터 조회 오류:', error);
-      
       const err = error as ErrorResponse;
       const apiError: APIError = {
         message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 데이터 조회 중 오류가 발생했습니다.',
@@ -247,6 +233,59 @@ export class GRIApiService {
       const err = error as ErrorResponse;
       const apiError: APIError = {
         message: err.response?.data?.message || err.response?.data?.detail || err.message || '윤문 결과 목록을 가져오는데 실패했습니다.',
+        status: err.response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  // GRI 리포트 관련 메서드들
+  static async fetchReportStructure(corpId: number, corpName?: string) {
+    try {
+      const response = await api.get<GRIReportStructure>(
+        `/v1/report/gri-report/structure/${corpId}`,
+        { params: { companyname: corpName } }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error('GRI 리포트 구조 조회 오류:', error);
+      const err = error as ErrorResponse;
+      const apiError: APIError = {
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 리포트 구조 조회 중 오류가 발생했습니다.',
+        status: err.response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  static async fetchReportAnswers(corpId: number) {
+    try {
+      const response = await api.get<SavedAnswers>(
+        `/v1/report/gri-report/answers/${corpId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error('GRI 리포트 답변 조회 오류:', error);
+      const err = error as ErrorResponse;
+      const apiError: APIError = {
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 리포트 답변 조회 중 오류가 발생했습니다.',
+        status: err.response?.status
+      };
+      throw apiError;
+    }
+  }
+
+  static async saveReportAnswers(corpId: number, answers: SavedAnswers) {
+    try {
+      await api.post(
+        `/v1/report/gri-report/answers/${corpId}`,
+        { answers }
+      );
+    } catch (error: unknown) {
+      console.error('GRI 리포트 답변 저장 오류:', error);
+      const err = error as ErrorResponse;
+      const apiError: APIError = {
+        message: err.response?.data?.message || err.response?.data?.detail || err.message || 'GRI 리포트 답변 저장 중 오류가 발생했습니다.',
         status: err.response?.status
       };
       throw apiError;

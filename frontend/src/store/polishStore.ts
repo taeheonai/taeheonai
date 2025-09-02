@@ -115,7 +115,31 @@ export const usePolishStore = create<PolishState>()(
       polish: async (args) => {
         set({ status: 'loading', error: undefined });
         try {
-          const data = await GRIApiService.runPolish(args);
+          // localStorage에서 사용자 정보 가져오기
+          const userStr = localStorage.getItem('user');
+          let extra_meta = args.extra_meta || {};
+          
+                     if (userStr) {
+             try {
+               const user = JSON.parse(userStr);
+               if (user.corporation_id && user.companyname) {
+                 extra_meta = {
+                   ...extra_meta,
+                   company_context: "true",
+                   corporation_id: user.corporation_id,
+                   companyname: user.companyname, // ✅ DB 컬럼명과 일치
+                 };
+               }
+             } catch (e) {
+               console.warn('사용자 정보 파싱 실패:', e);
+             }
+           }
+          
+          // extra_meta를 포함하여 API 호출
+          const data = await GRIApiService.runPolish({
+            ...args,
+            extra_meta
+          });
           set({ status: 'success', result: data, error: undefined });
         } catch (e: unknown) {
           const error = e instanceof Error ? e.message : 'polish failed';

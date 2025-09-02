@@ -131,7 +131,7 @@ export default function DashboardPage() {
         <div className="px-4 py-6 sm:px-0">
           <h1 className="text-3xl font-bold text-gray-900">대시보드</h1>
           <p className="mt-2 text-gray-600">
-            {user?.corporation_name || user?.corporation_id}의 ESG 관리 현황을 한눈에 확인하세요.
+            {user?.companyname || user?.corporation_id}의 ESG 관리 현황을 한눈에 확인하세요.
           </p>
         </div>
 
