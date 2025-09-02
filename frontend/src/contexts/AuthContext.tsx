@@ -7,7 +7,7 @@ export interface User {
   id: string;
   name: string;
   corporation_id: string;
-  corporation_name?: string;
+  companyname?: string;
   email?: string;
 }
 

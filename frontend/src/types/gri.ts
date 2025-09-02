@@ -66,6 +66,7 @@ export interface PolishRequest {
     text: string;
   }>;
   extra_instructions?: string;
+  extra_meta?: Record<string, unknown>; // ✅ 기업 컨텍스트를 위한 메타데이터
 }
 
 export interface PolishResponse {
@@ -83,6 +84,35 @@ export interface PolishEnvelope {
   data: PolishResponse | null;
   message?: string;
 }
+
+// 리포트 관련 새로운 타입들
+export type DisplayMode = 'prose' | 'table';
+
+export interface GRIReportStructure {
+  corporation_id: number;
+  companyname: string;
+  environmental: GRIItem[];
+  social: GRIItem[];
+  governance: GRIItem[];
+  last_updated?: string | null;
+}
+
+// 기존 타입들과 통합하여 사용할 수 있도록 확장
+export interface GRIItemExtended extends GRIItem {
+  esg_classification_id?: number;
+  polished_text?: string | null;
+  display_mode?: DisplayMode;
+  last_modified?: string | null;
+}
+
+export interface SavedAnswer {
+  answer_text?: string;
+  polished_text?: string | null;
+  display_mode?: DisplayMode;
+  last_modified?: string | null;
+}
+
+export type SavedAnswers = Record<string /*index_no*/, Record<string /*question_id*/, SavedAnswer>>;
 
 export interface APIError {
   message: string;

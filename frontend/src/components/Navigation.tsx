@@ -89,7 +89,7 @@ export default function Navigation({ user }: NavigationProps) {
                     {user.name}
                   </span>
                   <span className="text-xs text-gray-600">
-                    {user.corporation_name || user.corporation_id}
+                    {user.companyname || user.corporation_id}
                   </span>
                 </div>
               )}

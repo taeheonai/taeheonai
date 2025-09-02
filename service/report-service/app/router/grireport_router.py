@@ -25,18 +25,18 @@ router = APIRouter(
 )
 async def get_report_structure(
     corporation_id: int,
-    corporation_name: str | None = None,
+    companyname: str | None = None,
     controller: GRIReportController = Depends()
 ):
     """
     ESG 섹션별 GRI 보고서 구조를 조회합니다.
 
     - **corporation_id**: 기업 ID
-    - **corporation_name**: 기업명 (쿼리 파라미터)
+    - **companyname**: 기업명 (쿼리 파라미터)
     """
     return await controller.get_report_structure(
         corporation_id=corporation_id,
-        corporation_name=corporation_name
+        companyname=companyname
     )
 
 @router.get(

@@ -87,6 +87,10 @@ const nextConfig: NextConfig = {
         source: '/materiality',
         destination: '/materiality'
       },
+      {
+        source: '/report',
+        destination: '/gri/report'
+      },
       // RSC 요청 처리
       {
         source: '/:path*/_rsc/:params*',

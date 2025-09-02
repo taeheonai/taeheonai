@@ -250,6 +250,7 @@ export default function SignupPage() {
           name: form.name || form.auth_id,
           email: form.email,
           corporation_id: form.corporation_id,
+          companyname: form.companyname, // ✅ 기업명 추가 (DB 컬럼명과 일치)
           industry: form.industry,
           birth: form.birth,
         };
@@ -295,7 +296,7 @@ export default function SignupPage() {
             {/* 기업명 - 타입어헤드 */}
             <div className="relative" ref={containerRef}>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                기업명 (corporation_name) * <span className="text-red-500">필수</span>
+                기업명 (companyname) * <span className="text-red-500">필수</span>
               </label>
               <div className="mt-1 relative">
                 <input
@@ -384,7 +385,7 @@ export default function SignupPage() {
             {/* 기업 ID 표시 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                기업 ID (company_id)
+                기업 ID (corporation_id)
               </label>
               <div className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-300 px-3 py-2">
                 {form.corporation_id ? `(${form.corporation_id})` : '(기업명 선택 시 자동 설정)'}

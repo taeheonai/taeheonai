@@ -44,12 +44,15 @@ export default function LoginPage() {
           id: response.data.id,
           name: response.data.name,
           corporation_id: response.data.corporation_id,
-          corporation_name: response.data.corporation_name,
+          companyname: response.data.companyname, // ✅ DB 컬럼명과 일치
           email: response.data.email
         };
         
         // Zustand store에 사용자 정보 저장
         setUser(userData);
+        
+        // localStorage에도 사용자 정보 저장 (기업명 포함)
+        localStorage.setItem('user', JSON.stringify(userData));
         
         // 대시보드로 이동
         router.push('/dashboard');

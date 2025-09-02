@@ -1,3 +1,4 @@
+import logging
 from fastapi import HTTPException
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,6 +6,8 @@ from app.domain.schema.user_schema import SignupIn, LoginIn
 from app.domain.repository.user_repository import UserRepository
 from app.common.corporation_client import CorporationClient
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 class UserService:
     def __init__(self, db: AsyncSession):
@@ -73,26 +76,35 @@ class UserService:
                 )
 
             # 기업 정보 조회
-            corporation_info = None
+            companyname = None
             if user_entity.corporation_id:
                 async with CorporationClient() as client:
                     try:
                         # 기업 정보 조회
-                        corporation_info = await client.get_corporation(user_entity.corporation_id)
+                        corporation_info = await client.get_corporation_by_id(user_entity.corporation_id)
+                        
+                        # 다양한 키 케이스 허용
                         if corporation_info and isinstance(corporation_info, dict):
-                            corporation_name = corporation_info.get("companyname")
+                            companyname = (
+                                corporation_info.get("companyname")
+                                or corporation_info.get("companyname")
+                                or corporation_info.get("company_name")
+                                or None
+                            )
                         else:
                             # 기업 정보가 없으면 validate 엔드포인트로 재시도
                             is_valid = await client.validate_corporation_exists(user_entity.corporation_id)
                             if is_valid:
-                                corporation_name = f"기업 {user_entity.corporation_id}"
+                                companyname = f"기업 {user_entity.corporation_id}"
                             else:
-                                corporation_name = None
+                                companyname = None
                     except Exception as e:
-                        logger.error(f"기업 정보 조회 실패: {e}")
-                        corporation_name = None
-            else:
-                corporation_name = None
+                        # 로거가 혹시라도 문제여도 절대 여기서 또 터지지 않게
+                        try:
+                            logger.exception("기업 정보 조회 실패")
+                        except Exception:
+                            print(f"[WARN] 기업 정보 조회 실패: {e}")
+                        companyname = None
 
             return {
                 "success": True,
@@ -102,7 +114,7 @@ class UserService:
                 "auth_id": user_entity.auth_id,
                 "email": user_entity.email,
                 "corporation_id": user_entity.corporation_id,
-                "corporation_name": corporation_name,
+                "companyname": companyname,  # ✅ DB 컬럼명과 일치
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
