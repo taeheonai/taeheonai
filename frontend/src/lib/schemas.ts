@@ -24,7 +24,7 @@ export const GRIItemSchema = z.object({
   id: z.number(),
   index_no: z.string(),
   title: z.string(),
-  questions: z.array(GRIQuestionSchema).catch([]),
+  questions: z.array(GRIQuestionSchema),
 });
 
 // GRI 완전 데이터 스키마
