@@ -67,16 +67,22 @@ export default function GriReportPage() {
 
   // 로컬 스토리지와 서버 데이터 통합
   useEffect(() => {
-    if (mgData && intakeData) {
-      const integrated = integrateReportData(mgData, intakeData, savedAnswers);
-      setIntegratedData(integrated);
-      
-      // 디버깅: 통합된 데이터 구조 로깅
-      console.log('=== Report 페이지 데이터 통합 결과 ===');
-      console.log('MG 데이터:', mgData);
-      console.log('Intake 데이터:', intakeData);
-      console.log('서버 데이터:', savedAnswers);
-      console.log('통합된 데이터:', integrated);
+    try {
+      if (mgData && intakeData) {
+        const integrated = integrateReportData(mgData, intakeData, savedAnswers);
+        
+        // 데이터 검증: integrated가 유효한 객체인지 확인
+        if (integrated && typeof integrated === 'object' && !Array.isArray(integrated)) {
+          setIntegratedData(integrated);
+          console.log('✅ 데이터 통합 성공:', Object.keys(integrated).length, '개 인덱스');
+        } else {
+          console.warn('⚠️ 통합된 데이터가 유효하지 않음:', integrated);
+          setIntegratedData({});
+        }
+      }
+    } catch (error) {
+      console.error('❌ 데이터 통합 중 오류:', error);
+      setIntegratedData({});
     }
   }, [mgData, intakeData, savedAnswers]);
 
@@ -162,72 +168,140 @@ export default function GriReportPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                <span className="text-sm text-gray-700">
-                  MG (Materiality→GRI): {Object.keys(integratedData).filter(idx => 
-                    Object.values(integratedData[idx]).some(answer => answer.source === 'mg')
-                  ).length}개 인덱스
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                <span className="text-sm text-gray-700">
-                  GRI Intake: {Object.keys(integratedData).filter(idx => 
-                    Object.values(integratedData[idx]).some(answer => answer.source === 'intake')
-                  ).length}개 인덱스
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 bg-gray-500 rounded-full"></span>
-                <span className="text-sm text-gray-700">
-                  Server (기존): {Object.keys(integratedData).filter(idx => 
-                    Object.values(integratedData[idx]).some(answer => answer.source === 'server')
-                  ).length}개 인덱스
-                </span>
-              </div>
-            </div>
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div className="flex items-center space-x-2">
+                 <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                 <span className="text-sm text-gray-700">
+                   MG (Materiality→GRI): {(() => {
+                     try {
+                       return Object.keys(integratedData || {}).filter(idx => {
+                         const indexData = integratedData[idx];
+                         return indexData && typeof indexData === 'object' && 
+                                Object.values(indexData).some(answer => answer?.source === 'mg');
+                       }).length;
+                     } catch {
+                       return 0;
+                     }
+                   })()}개 인덱스
+                 </span>
+               </div>
+               <div className="flex items-center space-x-2">
+                 <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                 <span className="text-sm text-gray-700">
+                   GRI Intake: {(() => {
+                     try {
+                       return Object.keys(integratedData || {}).filter(idx => {
+                         const indexData = integratedData[idx];
+                         return indexData && typeof indexData === 'object' && 
+                                Object.values(indexData).some(answer => answer?.source === 'intake');
+                       }).length;
+                     } catch {
+                       return 0;
+                     }
+                   })()}개 인덱스
+                 </span>
+               </div>
+               <div className="flex items-center space-x-2">
+                 <span className="w-3 h-3 bg-gray-500 rounded-full"></span>
+                 <span className="text-sm text-gray-700">
+                   Server (기존): {(() => {
+                     try {
+                       return Object.keys(integratedData || {}).filter(idx => {
+                         const indexData = integratedData[idx];
+                         return indexData && typeof indexData === 'object' && 
+                                Object.values(indexData).some(answer => answer?.source === 'server');
+                       }).length;
+                     } catch {
+                       return 0;
+                     }
+                   })()}개 인덱스
+                 </span>
+               </div>
+             </div>
           </div>
 
-          {/* 로컬 데이터 전용 표시 (서버 구조 사용하지 않음) */}
-          {Object.keys(integratedData).length > 0 ? (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">로컬 저장 데이터</h2>
-              <div className="text-sm text-gray-600 mb-4">
-                로컬에 저장된 윤문 데이터를 표시합니다.
-              </div>
-              
-              {/* 로컬 데이터 요약 표시 */}
-              <div className="space-y-4">
-                {Object.entries(integratedData).map(([griIndex, indexData]) => (
-                  <div key={griIndex} className="border rounded p-4">
-                    <h3 className="font-medium text-gray-900 mb-2">GRI {griIndex}</h3>
-                    <div className="space-y-2">
-                      {Object.entries(indexData).map(([questionKey, answer]) => (
-                        <div key={questionKey} className="text-sm">
-                          <span className="font-medium text-gray-700">Q{questionKey}:</span>
-                          <span className="ml-2 text-gray-600">{getDisplayText(answer)}</span>
-                          <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                            answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
-                            answer.source === 'intake' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {getSourceBadge(answer)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow p-6 text-center">
-              <p className="text-gray-500">로컬에 저장된 윤문 데이터가 없습니다.</p>
-              <p className="text-sm text-gray-400 mt-2">MG 페이지에서 윤문을 진행해보세요.</p>
-            </div>
-          )}
+                     {/* 로컬 데이터 전용 표시 (서버 구조 사용하지 않음) */}
+           {(() => {
+             try {
+               const dataKeys = Object.keys(integratedData || {});
+               if (dataKeys.length > 0) {
+                 return (
+                   <div className="bg-white rounded-lg shadow p-6">
+                     <h2 className="text-xl font-semibold mb-4">로컬 저장 데이터</h2>
+                     <div className="text-sm text-gray-600 mb-4">
+                       로컬에 저장된 윤문 데이터를 표시합니다.
+                     </div>
+                     
+                     {/* 로컬 데이터 요약 표시 */}
+                     <div className="space-y-4">
+                       {dataKeys.map((griIndex) => {
+                         try {
+                           const indexData = integratedData[griIndex];
+                           if (!indexData || typeof indexData !== 'object') {
+                             return null;
+                           }
+                           
+                           const questionKeys = Object.keys(indexData);
+                           return (
+                             <div key={griIndex} className="border rounded p-4">
+                               <h3 className="font-medium text-gray-900 mb-2">GRI {griIndex}</h3>
+                               <div className="space-y-2">
+                                 {questionKeys.map((questionKey) => {
+                                   try {
+                                     const answer = indexData[questionKey];
+                                     if (!answer || typeof answer !== 'object') {
+                                       return null;
+                                     }
+                                     
+                                     return (
+                                       <div key={questionKey} className="text-sm">
+                                         <span className="font-medium text-gray-700">Q{questionKey}:</span>
+                                         <span className="ml-2 text-gray-600">
+                                           {getDisplayText ? getDisplayText(answer) : '데이터 로드 중...'}
+                                         </span>
+                                         <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                           answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
+                                           answer.source === 'intake' ? 'bg-green-100 text-green-800' :
+                                           'bg-gray-100 text-gray-800'
+                                         }`}>
+                                           {getSourceBadge ? getSourceBadge(answer) : 'Unknown'}
+                                         </span>
+                                       </div>
+                                     );
+                                   } catch (error) {
+                                     console.warn(`질문 ${questionKey} 렌더링 오류:`, error);
+                                     return null;
+                                   }
+                                 })}
+                               </div>
+                             </div>
+                           );
+                         } catch (error) {
+                           console.warn(`GRI 인덱스 ${griIndex} 렌더링 오류:`, error);
+                           return null;
+                         }
+                       })}
+                     </div>
+                   </div>
+                 );
+               } else {
+                 return (
+                   <div className="bg-white rounded-lg shadow p-6 text-center">
+                     <p className="text-gray-500">로컬에 저장된 윤문 데이터가 없습니다.</p>
+                     <p className="text-sm text-gray-400 mt-2">MG 페이지에서 윤문을 진행해보세요.</p>
+                   </div>
+                 );
+               }
+             } catch (error) {
+               console.error('데이터 렌더링 중 오류:', error);
+               return (
+                 <div className="bg-white rounded-lg shadow p-6 text-center">
+                   <p className="text-red-500">데이터 표시 중 오류가 발생했습니다.</p>
+                   <p className="text-sm text-gray-400 mt-2">페이지를 새로고침해주세요.</p>
+                 </div>
+               );
+             }
+           })()}
         </div>
       </div>
     </ProtectedRoute>
