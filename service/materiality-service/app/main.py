@@ -1,147 +1,253 @@
-from fastapi import FastAPI, HTTPException, APIRouter, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel
-from datetime import datetime
-import logging
+"""
+Materiality 서비스 메인 애플리케이션 진입점
+"""
 import os
+import logging
+import sys
 import traceback
+import json
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from datetime import datetime
+
+# 라우터
+from app.router.media_router import media_router
+from app.router.search_router import search_router
+from app.router.issuepool_router import issuepool_router
+from app.router.middleissue_router import middleissue_router
+from app.router.category_router import category_router
+from app.router.survey_router import survey_router
+from app.router.email_router import email_router
+
+# 환경 변수 로드 (Railway 환경에서는 건너뛰기)
+if os.getenv("RAILWAY_ENVIRONMENT") != "true":
+    load_dotenv()
+
+# Railway 환경변수 처리
+PORT = os.getenv("PORT", "8002")
+if not PORT.isdigit():
+    PORT = "8002"
 
 # 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("materiality_service")
 
+# FastAPI 앱 생성
 app = FastAPI(
-    title="Materiality Service",
-    description="Materiality Assessment Service for TaeheonAI",
-    version="1.0.0"
+    title="Materiality Service API",
+    description="기업의 지속가능성 중대성 평가를 위한 서비스",
+    version="0.1.0"
 )
 
-# 🔧 전역 예외 핸들러 추가 (진단용)
-@app.exception_handler(Exception)
-async def all_exc_handler(request: Request, exc: Exception):
-    """모든 예외를 잡아서 상세한 로그를 남기고 500 응답"""
-    import traceback
-    
-    # 상세한 에러 로그
-    logger.error(f"🚨 Unhandled error in {request.method} {request.url}: {exc}")
-    logger.error(f"🚨 Error type: {type(exc).__name__}")
-    logger.error(f"🚨 Error details: {str(exc)}")
-    logger.error(f"🚨 Full traceback: {traceback.format_exc()}")
-    
-    # 클라이언트에는 간단한 메시지만
-    return PlainTextResponse(
-        f"Internal Server Error: {type(exc).__name__}: {str(exc)}", 
-        status_code=500
+# CORS 미들웨어 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 프로덕션에서는 특정 도메인으로 제한 권장
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
+)
+
+# TrustedHost 미들웨어 설정
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # 프로덕션에서는 특정 호스트로 제한 권장
+)
+
+# 422 검증 오류 핸들러 추가
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Pydantic 검증 오류 상세 로깅"""
+    try:
+        body = await request.body()
+        body_text = body.decode("utf-8") if body else ""
+    except Exception:
+        body_text = "<unreadable>"
+
+    logger.error(
+        "422 ValidationError %s %s\nHeaders: %s\nBody: %s\nErrors: %s",
+        request.method, request.url.path,
+        dict(request.headers),
+        body_text,
+        json.dumps(exc.errors(), ensure_ascii=False)
+    )
+    return JSONResponse(
+        status_code=422, 
+        content={
+            "detail": exc.errors(),
+            "message": "요청 데이터 검증에 실패했습니다. 필드명과 타입을 확인해주세요."
+        }
     )
 
-# APIRouter 정의
-materiality_router = APIRouter(prefix="/v1/materiality")
+# ─────────────────────────────────────────────────────────
+# 라우터 등록 (prefix는 여기에서만 부여)
+# ─────────────────────────────────────────────────────────
+# app.include_router(media_router,  prefix="/materiality-service", tags=["materiality"])
+app.include_router(media_router,  prefix="/materiality-service", tags=["survey", "materiality"])
+app.include_router(search_router, prefix="/materiality-service", tags=["search"])
+app.include_router(issuepool_router, prefix="/materiality-service", tags=["issuepool"])
+app.include_router(middleissue_router, prefix="/materiality-service", tags=["middleissue"])
+app.include_router(category_router, prefix="/materiality-service", tags=["category"])
+app.include_router(survey_router, prefix="/materiality-service", tags=["survey"])
+app.include_router(email_router, prefix="/materiality-service", tags=["email"])
 
-# 요청 모델
-class MaterialityRequest(BaseModel):
-    company_data: dict
-    stakeholders: list
-    criteria: dict
-
-class MaterialityResponse(BaseModel):
-    assessment: dict
-    timestamp: datetime
-    score: float
-
-@materiality_router.get("/health")
-async def health_check():
-    """헬스체크 엔드포인트"""
-    return {
-        "status": "healthy",
-        "service": "materiality-service",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0"
-    }
-
-@materiality_router.get("/")
+@app.get("/")
 async def root():
     """루트 엔드포인트"""
     return {
-        "message": "Materiality Service",
-        "version": "1.0.0",
-        "endpoints": {
-            "health": "/v1/materiality/health",
-            "assess": "/v1/materiality/assess",
-            "criteria": "/v1/materiality/criteria",
-            "issuepools": "/v1/materiality/random/{limit}"
-        }
+        "message": "Materiality Service API",
+        "version": "0.1.0",
+        "status": "running",
+        "service": "materiality-service"
     }
 
-@materiality_router.post("/assess")
-async def assess_materiality(request: MaterialityRequest):
-    """중요성 평가"""
-    try:
-        logger.info(f"Materiality assessment request")
-        
-        # 중요성 평가 로직 (실제로는 AI 모델 연동)
-        assessment = {
-            "environmental": 8.5,
-            "social": 7.2,
-            "governance": 9.1,
-            "economic": 6.8,
-            "recommendations": [
-                "환경 영향 평가 강화",
-                "이해관계자 참여 확대",
-                "거버넌스 체계 개선"
-            ]
-        }
-        
-        return MaterialityResponse(
-            assessment=assessment,
-            timestamp=datetime.now(),
-            score=8.2
-        )
-    except Exception as e:
-        logger.error(f"Materiality assessment error: {e}")
-        raise HTTPException(status_code=500, detail="Materiality assessment error")
+@app.get("/health")
+async def health_check():
+    """헬스 체크 엔드포인트"""
+    return {
+        "status": "healthy",
+        "service": "Materiality Service",
+        "port": PORT,
+    }
 
-@materiality_router.get("/criteria")
-async def get_assessment_criteria():
-    """평가 기준 조회"""
+# 디버깅용 임시 설문 엔드포인트
+@app.get("/debug-surveys")
+async def debug_create_survey():
+    """디버깅용 설문 생성 엔드포인트"""
+    return {
+        "message": "디버깅용 설문 엔드포인트가 작동 중입니다.",
+        "timestamp": "2025-09-01T11:19:47Z"
+    }
+
+@app.get("/debug-routes")
+async def debug_routes():
+    """등록된 라우터 정보 확인"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'path'):
+            routes.append({
+                "path": route.path,
+                "methods": [method for method in route.methods] if hasattr(route, 'methods') else [],
+                "name": route.name if hasattr(route, 'name') else "Unknown"
+            })
+    return {
+        "total_routes": len(routes),
+        "routes": routes
+    }
+
+# 디버깅용 데이터베이스 연결 테스트
+@app.get("/debug-db")
+async def debug_database():
+    """데이터베이스 연결 및 테이블 상태 확인"""
     try:
+        from app.common.database.survey_db import test_connection, get_sync_session
+        from sqlalchemy import text
+        
+        # 연결 테스트
+        connection_ok = await test_connection()
+        
+        # 테이블 존재 여부 확인
+        tables_info = []
+        if connection_ok:
+            with get_sync_session() as session:
+                # surveys 테이블 확인
+                try:
+                    result = session.execute(text("SELECT COUNT(*) FROM surveys"))
+                    surveys_count = result.fetchone()[0]
+                    tables_info.append({"table": "surveys", "count": surveys_count, "exists": True})
+                except Exception as e:
+                    tables_info.append({"table": "survey_responses", "error": str(e), "exists": False})
+                
+                # survey_responses 테이블 확인
+                try:
+                    result = session.execute(text("SELECT COUNT(*) FROM survey_responses"))
+                    responses_count = result.fetchone()[0]
+                    tables_info.append({"table": "survey_responses", "count": responses_count, "exists": True})
+                except Exception as e:
+                    tables_info.append({"table": "survey_responses", "error": str(e), "exists": False})
+                
+                # corporation 테이블 확인
+                try:
+                    result = session.execute(text("SELECT COUNT(*) FROM corporation"))
+                    corp_count = result.fetchone()[0]
+                    tables_info.append({"table": "corporation", "count": corp_count, "exists": True})
+                except Exception as e:
+                    tables_info.append({"table": "corporation", "error": str(e), "exists": False})
+        
         return {
-            "criteria": {
-                "environmental": ["탄소 배출", "에너지 효율", "폐기물 관리"],
-                "social": ["인권", "노동 조건", "지역 사회"],
-                "governance": ["윤리 경영", "투명성", "이사회 구성"],
-                "economic": ["재무 성과", "혁신", "시장 경쟁력"]
-            },
+            "database_connection": connection_ok,
+            "tables": tables_info,
             "timestamp": datetime.now().isoformat()
         }
+        
     except Exception as e:
-        logger.error(f"Criteria error: {e}")
-        raise HTTPException(status_code=500, detail="Criteria retrieval error")
+        return {
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
-# 라우터를 앱에 포함
-app.include_router(materiality_router)
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """HTTP 요청 로깅 미들웨어"""
+    client_host = request.headers.get("x-forwarded-for") or (request.client.host if request.client else "unknown")
+    logger.info(f"📥 요청: {request.method} {request.url.path} (클라이언트: {client_host})")
+    try:
+        response = await call_next(request)
+        logger.info(f"📤 응답: {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
-# IssuePool 관련 라우터를 직접 앱에 포함 (prefix 명시)
-try:
-    from app.router.issuepool_router import router as issuepool_router
-    # IssuePool Router를 /v1/materiality 경로에 직접 포함
-    app.include_router(issuepool_router, prefix="/v1/materiality")
-    logger.info("IssuePool router loaded successfully at /v1/materiality")
-except Exception as e:
-    logger.exception("Fatal: failed to load IssuePool router")
-    raise
+@app.on_event("startup")
+async def startup_event():
+    """서비스 시작 시 실행되는 이벤트"""
+    logger.info(f"🚀 Materiality Service 시작됨 (포트: {PORT})")
+    
+    # 데이터베이스 연결 테스트
+    try:
+        from app.common.database.survey_db import test_connection
+        
+        # 비동기 연결 테스트 실행 (FastAPI startup 이벤트는 이미 비동기 컨텍스트)
+        try:
+            result = await test_connection()
+            if result:
+                logger.info("✅ PostgreSQL 데이터베이스 연결 성공")
+            else:
+                logger.warning("⚠️ PostgreSQL 데이터베이스 연결 실패")
+        except Exception as db_error:
+            logger.warning(f"⚠️ 데이터베이스 연결 테스트 중 오류: {db_error}")
+    except Exception as e:
+        logger.warning(f"⚠️ 데이터베이스 연결 테스트 실패: {e}")
+    
+    logger.info("📋 등록된 엔드포인트(주요):")
+    logger.info("   - POST /materiality-service/search-media")
+    logger.info("   - POST /materiality-service/assessment")
+    logger.info("   - GET  /materiality-service/reports")
+    logger.info("   - GET  /materiality-service/middleissue/list")
+    logger.info("   - POST /materiality-service/middleissue/create")
+    logger.info("   - GET  /materiality-service/issuepool/all (신규: issuepool DB 전체 데이터)")
+    logger.info("   - POST /materiality-service/category/categories/all (신규: 전체 카테고리 목록)")
+    logger.info("   - POST /materiality-service/surveys (신규: 설문 생성)")
+    logger.info("   - GET  /materiality-service/surveys/{survey_id} (신규: 설문 조회)")
+    logger.info("   - GET  /materiality-service/surveys/corporation/{corporation_id} (신규: 회사별 설문 목록)")
+    logger.info("   - POST /materiality-service/surveys/{survey_id}/responses (신규: 설문 응답 제출)")
+    logger.info("   - (search_router 내 엔드포인트들도 /materiality-service/* 로 노출)")
 
-# 🔧 MG 관련 라우터를 직접 앱에 포함 (prefix 명시)
-try:
-    from app.router.mg_router import router as mg_router
-    # MG Router를 /v1/materiality/mg 경로에 직접 포함
-    app.include_router(mg_router, prefix="/v1/materiality/mg")
-    logger.info("MG router loaded successfully at /v1/materiality/mg")
-except Exception as e:
-    logger.exception("Fatal: failed to load MG router")
-    raise
+@app.on_event("shutdown")
+async def shutdown_event():
+    """서비스 종료 시 실행되는 이벤트"""
+    logger.info("🛑 Materiality Service 종료됨")
 
 if __name__ == "__main__":
     import uvicorn
-    
-    port = int(os.getenv("PORT", 8002))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=int(PORT), reload=True)

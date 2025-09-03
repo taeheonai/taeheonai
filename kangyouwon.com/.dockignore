@@ -1,0 +1,128 @@
+# Git 관련 파일
+.git
+.gitignore
+.gitattributes
+
+# Docker 관련 파일
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Node.js 관련 파일 (프론트엔드)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.yarn
+
+# Python 관련 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 가상환경
+venv/
+env/
+ENV/
+.venv/
+.env
+
+# IDE 및 에디터 파일
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# 환경 변수 파일
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# 테스트 관련
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+.coverage.*
+
+# 문서 파일
+README.md
+docs/
+*.md
+
+# 설정 파일
+.eslintrc*
+.prettierrc*
+.editorconfig
+tsconfig.json
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# 빌드 결과물
+.next/
+out/
+dist/
+build/
+
+# 캐시 파일
+.cache/
+.parcel-cache/
+
+# 백업 파일
+*.bak
+*.backup
+*.old
+
+# 데이터베이스 파일
+*.db
+*.sqlite
+*.sqlite3
+
+# 압축 파일
+*.zip
+*.tar.gz
+*.rar
+
+# 이미지 파일 (필요한 경우 제외)
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.svg

@@ -1,151 +1,138 @@
-# app/router/issuepool_router.py
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.entity.issuepool_entity import IssuePool
-from app.domain.schema.issuepool_schema import (
-    IssuePoolDTO,
-    IssuePoolCreateRequest,
-    IssuePoolUpdateRequest,
-    IssuePoolFilter,
-    IssuePoolListResponse,
-    IssuePoolBulkCreateRequest
-)
-from app.common.database import get_db
-from app.domain.controller.issuepool_controller import IssuePoolController
+"""
+Issue Pool Router - FastAPI 라우터
+"""
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
 import logging
 
-router = APIRouter(tags=["materiality"])
+# 로거 설정
 logger = logging.getLogger(__name__)
 
+from app.domain.issuepool.schema import IssuePoolListRequest
+from app.domain.issuepool.controller import issuepool_controller
 
-@router.post("/", response_model=IssuePoolDTO, status_code=status.HTTP_201_CREATED)
-async def create_issuepool(
-    request_data: IssuePoolCreateRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    """axios로부터 받은 JSON 데이터로 IssuePool 생성"""
-    controller = IssuePoolController(db)
-    return await controller.create_issuepool(request_data)
+# 라우터 생성
+issuepool_router = APIRouter(prefix="/issuepool", tags=["IssuePool"])
 
-
-@router.get("/{issuepool_id}", response_model=IssuePoolDTO)
-async def get_issuepool(
-    issuepool_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """ID로 IssuePool 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_issuepool_by_id(issuepool_id)
-
-
-@router.get("/corporation/{corporation_id}/year/{publish_year}")
-async def get_issuepools_by_corporation_and_year(
-    corporation_id: int,
-    publish_year: str,
-    db: AsyncSession = Depends(get_db)
-) -> List[IssuePoolDTO]:
-    """기업 ID와 발행 연도로 IssuePool 목록 조회"""
+@issuepool_router.post("/list", summary="지난 중대성 평가 목록 조회")
+async def get_issuepool_list(request: Request):
+    """
+    지난 중대성 평가 목록 조회
+    
+    Args:
+        request: 요청 데이터
+            - company_id: 기업명 (문자열)
+            - report_period: 보고기간 (start_date, end_date)
+            - request_type: 요청 타입
+            - timestamp: 타임스탬프
+            - search_context: 검색 컨텍스트 (선택적)
+    
+    Returns:
+        JSONResponse: 응답 데이터
+    """
+    logger.info("📊 지난 중대성 평가 목록 조회 POST 요청 받음")
     try:
-        controller = IssuePoolController(db)
-        return await controller.get_issuepools_by_corporation_and_year(corporation_id, publish_year)
+        form_data = await request.json()
+        logger.info(f"지난 중대성 평가 목록 조회 시도: {form_data.get('company_id', 'N/A')}")
+
+        required_fields = ['company_id', 'report_period']
+        missing_fields = [f for f in required_fields if not form_data.get(f)]
+        if missing_fields:
+            logger.warning(f"필수 필드 누락: {missing_fields}")
+            return JSONResponse({
+                "success": False, 
+                "message": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"
+            })
+
+        # report_period 내부 필드 검증
+        report_period = form_data.get('report_period', {})
+        period_required_fields = ['start_date', 'end_date']
+        missing_period_fields = [f for f in period_required_fields if not report_period.get(f)]
+        if missing_period_fields:
+            logger.warning(f"보고기간 필수 필드 누락: {missing_period_fields}")
+            return JSONResponse({
+                "success": False, 
+                "message": f"보고기간 필수 필드가 누락되었습니다: {', '.join(missing_period_fields)}"
+            })
+
+        logger.info("=== 지난 중대성 평가 목록 조회 요청 데이터 ===")
+        logger.info(f"기업 ID: {form_data.get('company_id', 'N/A')}")
+        logger.info(f"시작일: {report_period.get('start_date', 'N/A')}")
+        logger.info(f"종료일: {report_period.get('end_date', 'N/A')}")
+        logger.info(f"요청 타입: {form_data.get('request_type', 'N/A')}")
+        logger.info(f"타임스탬프: {form_data.get('timestamp', 'N/A')}")
+        logger.info("==========================================")
+
+        # JSON을 IssuePoolListRequest BaseModel로 변환
+        try:
+            issuepool_request = IssuePoolListRequest(**form_data)
+            logger.info(f"✅ 지난 중대성 평가 목록 조회 데이터 검증 성공: {issuepool_request.company_id}")
+            
+            # issuepool_controller로 BaseModel 전달
+            result = await issuepool_controller.get_issuepool_list(issuepool_request)
+            return JSONResponse(result)
+                
+        except Exception as validation_error:
+            logger.error(f"지난 중대성 평가 목록 조회 데이터 검증 실패: {validation_error}")
+            return JSONResponse({
+                "success": False, 
+                "message": f"입력 데이터가 올바르지 않습니다: {str(validation_error)}"
+            })
+
     except Exception as e:
-        logger.error(f"기업별 연도별 IssuePool 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="기업별 연도별 IssuePool 조회에 실패했습니다.")
+        logger.error(f"지난 중대성 평가 목록 조회 처리 중 오류: {str(e)}")
+        return JSONResponse({
+            "success": False, 
+            "message": f"지난 중대성 평가 목록 조회 처리 중 오류가 발생했습니다: {str(e)}"
+        })
 
-
-@router.put("/{issuepool_id}", response_model=IssuePoolDTO)
-async def update_issuepool(
-    issuepool_id: int,
-    request_data: IssuePoolUpdateRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    """axios로부터 받은 JSON 데이터로 IssuePool 업데이트"""
-    controller = IssuePoolController(db)
-    return await controller.update_issuepool(issuepool_id, request_data)
-
-
-@router.delete("/{issuepool_id}")
-async def delete_issuepool(
-    issuepool_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    """IssuePool 삭제"""
-    controller = IssuePoolController(db)
-    return await controller.delete_issuepool(issuepool_id)
-
-
-@router.post("/filter", response_model=List[IssuePoolDTO])
-async def get_filtered_issuepools(
-    filter_data: IssuePoolFilter,
-    db: AsyncSession = Depends(get_db)
-):
-    """필터 조건에 따른 IssuePool 목록 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_filtered_issuepools(filter_data.dict())
-
-
-@router.post("/bulk", response_model=List[IssuePoolDTO], status_code=status.HTTP_201_CREATED)
-async def bulk_create_issuepools(
-    request_data: IssuePoolBulkCreateRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    """axios로부터 받은 JSON 데이터 리스트로 IssuePool 일괄 생성"""
-    controller = IssuePoolController(db)
-    return await controller.bulk_create_issuepools(request_data)
-
-
-@router.get("/category/{category_id}", response_model=List[IssuePoolDTO])
-async def get_issuepools_by_category(
-    category_id: int,
-    corporation_id: int = None,
-    db: AsyncSession = Depends(get_db)
-):
-    """카테고리 ID로 IssuePool 목록 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_issuepools_by_category(category_id, corporation_id)
-
-
-@router.get("/esg/{esg_classification_id}", response_model=List[IssuePoolDTO])
-async def get_issuepools_by_esg_classification(
-    esg_classification_id: int,
-    corporation_id: int = None,
-    db: AsyncSession = Depends(get_db)
-):
-    """ESG 분류로 IssuePool 목록 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_issuepools_by_esg_classification(esg_classification_id, corporation_id)
-
-
-@router.get("/corporation/{corporation_id}/year/{publish_year}/ranking-stats")
-async def get_ranking_statistics(
-    corporation_id: int,
-    publish_year: str,
-    db: AsyncSession = Depends(get_db)
-) -> Dict[str, Any]:
-    """특정 기업의 특정 연도 랭킹 통계 조회"""
+@issuepool_router.get("/{issuepool_id}", summary="특정 이슈풀 조회")
+async def get_issuepool_by_id(issuepool_id: int):
+    """
+    특정 이슈풀 조회
+    
+    Args:
+        issuepool_id: 이슈풀 ID
+    
+    Returns:
+        JSONResponse: 응답 데이터
+    """
+    logger.info(f"🔍 IssuePool ID 조회: {issuepool_id}")
     try:
-        controller = IssuePoolController(db)
-        return await controller.get_ranking_statistics(corporation_id, publish_year)
+        result = await issuepool_controller.get_issuepool_by_id(issuepool_id)
+        return JSONResponse(result)
     except Exception as e:
-        logger.error(f"랭킹 통계 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="랭킹 통계 조회에 실패했습니다.")
+        logger.error(f"❌ IssuePool ID 조회 중 오류: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "message": f"이슈풀 조회 중 오류가 발생했습니다: {str(e)}"
+        })
 
-
-@router.get("/random", response_model=List[IssuePoolDTO])
-async def get_random_issuepools(
-    limit: int = Query(10, ge=1, le=100, description="가져올 개수"),
-    db: AsyncSession = Depends(get_db)
+@issuepool_router.get("/corporation/{corporation_name}", summary="기업별 이슈풀 목록 조회")
+async def get_issuepools_by_corporation(
+    corporation_name: str,
+    publish_year: int = None
 ):
-    """랜덤으로 IssuePool 목록 조회"""
-    controller = IssuePoolController(db)
-    return await controller.get_random_issuepools(limit)
-
-@router.get("/random/{limit}", response_model=List[IssuePoolDTO])
-async def get_random_issuepools_by_path(
-    limit: int = Path(..., ge=1, le=100, description="가져올 개수"),
-    db: AsyncSession = Depends(get_db)
-):
-    """랜덤으로 IssuePool 목록 조회 (경로 파라미터 방식)"""
-    controller = IssuePoolController(db)
-    return await controller.get_random_issuepools(limit)
+    """
+    기업별 이슈풀 목록 조회
+    
+    Args:
+        corporation_name: 기업명
+        publish_year: 발행년도 (선택적)
+    
+    Returns:
+        JSONResponse: 응답 데이터
+    """
+    logger.info(f"🔍 기업별 IssuePool 조회: corporation_name={corporation_name}, year={publish_year}")
+    try:
+        result = await issuepool_controller.get_issuepools_by_corporation(
+            corporation_name=corporation_name,
+            publish_year=publish_year
+        )
+        return JSONResponse(result)
+    except Exception as e:
+        logger.error(f"❌ 기업별 IssuePool 조회 중 오류: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "message": f"기업별 이슈풀 조회 중 오류가 발생했습니다: {str(e)}"
+        })
