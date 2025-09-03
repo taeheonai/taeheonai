@@ -66,74 +66,13 @@ type MGState = {
 
   /** ESG별로 분류된 인덱스 셀렉터 */
   getESGIndexes: () => {
-    const environmental: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
-    const social: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
-    const governance: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
-
-    // 각 인덱스의 결과와 이슈풀 정보를 매칭
-    for (const [griIndex, result] of Object.entries(state.resultsByIndex)) {
-      if (result.status === 'done' && result.polished_text) {
-        // 해당 인덱스가 속한 이슈풀 찾기
-        const issuePool = state.selected.find(issue => 
-          state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
-        );
-
-        if (issuePool && result.esg_classification_id) {
-          const item = { griIndex, result, issuePool };
-          
-          // ESG 분류에 따라 배열에 추가
-          switch (result.esg_classification_id) {
-            case 1: // Environmental
-              environmental.push(item);
-              break;
-            case 2: // Social
-              social.push(item);
-              break;
-            case 3: // Governance
-              governance.push(item);
-              break;
-          }
-        }
-      }
-    }
-
-    return { environmental, social, governance };
-  },
+    environmental: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }>;
+    social: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }>;
+    governance: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }>;
+  };
 
   /** 특정 ESG 카테고리의 인덱스만 반환 */
-  getIndexesByESG: (esgType) => {
-    const result: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
-
-    for (const [griIndex, polishResult] of Object.entries(state.resultsByIndex)) {
-      if (polishResult.status === 'done' && polishResult.polished_text) {
-        const issuePool = state.selected.find(issue => 
-          state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
-        );
-
-        if (issuePool && polishResult.esg_classification_id) {
-          let shouldInclude = false;
-          
-          switch (esgType) {
-            case 'E':
-              shouldInclude = polishResult.esg_classification_id === 1;
-              break;
-            case 'S':
-              shouldInclude = polishResult.esg_classification_id === 2;
-              break;
-            case 'G':
-              shouldInclude = polishResult.esg_classification_id === 3;
-              break;
-          }
-
-          if (shouldInclude) {
-            result.push({ griIndex, result: polishResult, issuePool });
-          }
-        }
-      }
-    }
-
-    return result;
-  },
+  getIndexesByESG: (esgType: 'E' | 'S' | 'G') => Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }>;
 };
 
 export const useMGStore = create<MGState>()(
@@ -258,7 +197,7 @@ export const useMGStore = create<MGState>()(
           if (result.status === 'done' && result.polished_text) {
             // 해당 인덱스가 속한 이슈풀 찾기
             const issuePool = state.selected.find(issue => 
-              state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+              state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
             if (issuePool && result.esg_classification_id) {
@@ -291,7 +230,7 @@ export const useMGStore = create<MGState>()(
         for (const [griIndex, polishResult] of Object.entries(state.resultsByIndex)) {
           if (polishResult.status === 'done' && polishResult.polished_text) {
             const issuePool = state.selected.find(issue => 
-              state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+              state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
             if (issuePool && polishResult.esg_classification_id) {
@@ -339,6 +278,9 @@ export const useMGStore = create<MGState>()(
             status: 'done',
             polished_text: r.polished_text,
             savedAt: new Date().toISOString(),
+            // ESG 정보 추가 (기본값으로 설정)
+            category_id: r.category_id || 1,
+            esg_classification_id: r.category_id || 1,
           };
         }
         set({ resultsByIndex: next });
