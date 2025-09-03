@@ -22,8 +22,8 @@ export const addNewCategory = (
 
   try {
     // 기존 카테고리 목록 가져오기
-    const resultData = assessmentResult?.data || assessmentResult;
-    const existingCategories = resultData?.matched_categories || [];
+    const resultData = (assessmentResult as any)?.data || assessmentResult;
+    const existingCategories = (resultData as any)?.matched_categories || [];
     
     // 중복 카테고리 확인
     const isDuplicate = existingCategories.some((cat: { category: string }) => cat.category === selectedNewCategory);
@@ -35,12 +35,12 @@ export const addNewCategory = (
     }
 
     // 선택된 카테고리의 정보 찾기
-    const selectedCategoryInfo = allCategories.find(cat => cat.name === selectedNewCategory);
+    const selectedCategoryInfo = allCategories.find((cat: any) => cat.name === selectedNewCategory);
     
     // ESG 분류 결정 (카테고리 정보에서 가져오거나 기존 함수 사용)
     let esgClassification = '미분류';
-    if (selectedCategoryInfo && selectedCategoryInfo.esg_classification) {
-      esgClassification = selectedCategoryInfo.esg_classification;
+    if (selectedCategoryInfo && (selectedCategoryInfo as any).esg_classification) {
+      esgClassification = (selectedCategoryInfo as any).esg_classification;
     } else {
       esgClassification = getESGClassification(selectedNewCategory);
     }
@@ -87,8 +87,8 @@ export const addNewCategory = (
       count: 0,
       esg_classification: esgClassification,
       esg_classification_id: null,
-      base_issuepools: selectedCategoryInfo?.base_issue_pools || [],
-      total_issuepools: selectedCategoryInfo?.base_issue_pools?.length || 0,
+      base_issuepools: (selectedCategoryInfo as any)?.base_issue_pools || [],
+      total_issuepools: (selectedCategoryInfo as any)?.base_issue_pools?.length || 0,
       selected_base_issue_pool: newBaseIssuePool,
       is_user_added: true // 사용자가 추가한 카테고리로 표시
     };
@@ -100,17 +100,17 @@ export const addNewCategory = (
     updatedCategories.sort((a, b) => a.rank - b.rank);
     
     // 상태 업데이트
-    if (assessmentResult?.data) {
+    if ((assessmentResult as any)?.data) {
       setAssessmentResult({
-        ...assessmentResult,
+        ...(assessmentResult as any),
         data: {
-          ...assessmentResult.data,
+          ...(assessmentResult as any).data,
           matched_categories: updatedCategories
         }
       });
     } else {
       setAssessmentResult({
-        ...assessmentResult,
+        ...(assessmentResult as any),
         matched_categories: updatedCategories
       });
     }
