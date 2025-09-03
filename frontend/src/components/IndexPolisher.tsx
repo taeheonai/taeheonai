@@ -181,7 +181,7 @@ export default function IndexPolisher({
       );
       
       // ESG 분류 ID 가져오기 (이슈풀에서 가져오거나 기본값 사용)
-      const esgClassificationId = issuePool?.esg_classification_id || 1; // 기본값을 1로 설정
+      const esgClassificationId = issuePool?.esg_classification_id || 4; // 기본값을 4(환경)로 설정
       
       console.log('🔍 ESG 분류 정보:', {
         griIndex,
