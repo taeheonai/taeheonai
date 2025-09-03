@@ -22,8 +22,8 @@ export const GRIQuestionSchema = z.object({
 // GRI 아이템 스키마
 export const GRIItemSchema = z.object({
   id: z.number(),
-  index_no: z.string().catch(''),
-  title: z.string().catch(''),
+  index_no: z.string(),
+  title: z.string(),
   questions: z.array(GRIQuestionSchema).catch([]),
 });
 
