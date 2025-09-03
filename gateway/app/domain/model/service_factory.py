@@ -16,6 +16,7 @@ class ServiceType(str, Enum):
     auth = "auth"
     corporation = "corporation"
     llm = "llm"  # LLM 서비스 추가
+    search = "search"  # Search 서비스 추가
 
 
 class ServiceProxyFactory:
@@ -75,10 +76,10 @@ class ServiceProxyFactory:
         if self.service_type == ServiceType.auth:
             return f"/v1/auth{path}"  # /v1/auth + /login = /v1/auth/login
         
-        # search 서비스의 경우 materiality-service로 라우팅하되 /search prefix 추가
+        # search 서비스의 경우 materiality-service로 라우팅하되 /materiality-service/search prefix 추가
         if self.service_type == ServiceType.search:
-            # /companies → /v1/search/companies로 변환
-            return f"/v1/search{path}"
+            # /companies → /materiality-service/search/companies로 변환
+            return f"/materiality-service/search{path}"
         
         return f"{prefix}{path}"
 
