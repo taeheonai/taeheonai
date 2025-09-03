@@ -9,7 +9,8 @@ export interface CompanyInfo {
 export const AuthApiService = {
   async getCompanyInfo(corporationId: string): Promise<CompanyInfo> {
     try {
-      const response = await axios.get(`/api/v1/auth/corporations/${corporationId}`);
+      // ✅ 임시 해결책: corporation-service 직접 호출
+      const response = await axios.get(`/api/v1/corporations/${corporationId}`);
       return response.data;
     } catch (error) {
       console.error('회사 정보 조회 실패:', error);
