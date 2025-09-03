@@ -11,7 +11,6 @@ import { useMGStore } from '@/store/mgStore';
 import { useIntakeStore } from '@/store/intakeStore';
 import { 
   integrateReportData, 
-  getBestAnswer, 
   getDisplayText, 
   getSourceBadge,
   type IntegratedAnswers 
@@ -133,60 +132,7 @@ export default function GriReportPage() {
     }
   }
 
-  // 화면 카드: 섹션 → 아이템 → 문항
-  const renderSection = (title: string, items: Array<GRIReportStructure['environmental'][number]>) => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">{title}</h2>
-      {items.map(item => {
-        const idx = item.index_no;
-
-        return (
-          <div key={idx} className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  {idx} · {item.title}
-                </h3>
-              </div>
-
-              <div className="mt-4 space-y-4">
-                {item.questions.map((qa) => {
-                  const questionKey = qa.key_alpha || String(qa.id);
-                  const bestAnswer = getBestAnswer(integratedData, idx, questionKey);
-                  const displayText = getDisplayText(bestAnswer);
-                  const sourceBadge = getSourceBadge(bestAnswer);
-
-                  return (
-                    <div key={`${idx}_${qa.id}`} className="border rounded p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm text-gray-500">Q{qa.id}</div>
-                        {sourceBadge && (
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            sourceBadge === 'MG' ? 'bg-blue-100 text-blue-800' :
-                            sourceBadge === 'Intake' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {sourceBadge}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* 폴리시 결과 위젯: 세션/인덱스가 있으면 표기 (선택) */}
-                      {sessionKey ? (
-                        <PolishResult sessionKey={sessionKey} griIndex={idx} />
-                      ) : (
-                        <p className="whitespace-pre-wrap text-gray-900">{displayText}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  // 로컬 데이터 전용 모드에서는 renderSection 함수가 필요하지 않음
 
   return (
     <ProtectedRoute>
