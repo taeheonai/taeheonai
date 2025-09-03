@@ -16,6 +16,52 @@ import {
   type IntegratedAnswer,
   getIntegrationSummary
 } from '@/lib/reportDataIntegrator';
+import { Download } from 'lucide-react';
+
+// Word 다운로드 유틸리티 함수
+const downloadAsWord = (content: string, filename: string) => {
+  const htmlContent = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+          xmlns:w='urn:schemas-microsoft-com:office:word' 
+          xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <meta name='ProgId' content='Word.Document'>
+        <meta name='Generator' content='Microsoft Word 15'>
+        <meta name='Originator' content='Microsoft Word 15'>
+        <style>
+          body { font-family: 'Malgun Gothic', Arial, sans-serif; line-height: 1.6; margin: 40px; }
+          h1 { color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+          h2 { color: #1e40af; margin-top: 30px; }
+          h3 { color: #1e3a8a; margin-top: 20px; }
+          .esg-section { margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; }
+          .environmental { background-color: #f0fdf4; border-color: #22c55e; }
+          .social { background-color: #eff6ff; border-color: #3b82f6; }
+          .governance { background-color: #faf5ff; border-color: #8b5cf6; }
+          .gri-item { margin: 15px 0; padding: 10px; background-color: #f9fafb; border-radius: 4px; }
+          .issue-pool { font-weight: bold; color: #374151; }
+          .polished-text { margin-top: 10px; white-space: pre-wrap; }
+        </style>
+      </head>
+      <body>
+        ${content}
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(['\ufeff', htmlContent], {
+    type: 'application/msword'
+  });
+  
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${filename}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 // 안전한 데이터 표시 컴포넌트
 function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers }) {
@@ -57,9 +103,51 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
 
     const intakeDataKeys = Object.keys(intakeOnlyData);
 
+    const handleDownloadIntake = () => {
+      const content = `
+        <h1>공통 GRI INDEX (GRI Intake) 보고서</h1>
+        <p>생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+        <p>GRI Intake에서 작성된 윤문 데이터만 포함됩니다.</p>
+        
+        ${intakeDataKeys.map((griIndex) => {
+          const indexData = intakeOnlyData[griIndex];
+          const questionKeys = Object.keys(indexData);
+          
+          return `
+            <div class="gri-item">
+              <h2>GRI ${griIndex}</h2>
+              ${questionKeys.map((questionKey) => {
+                const answer = indexData[questionKey];
+                const displayText = answer.polished_text || answer.answer_text || '텍스트 없음';
+                
+                return `
+                  <div style="margin: 15px 0; padding: 10px; background-color: #f9fafb; border-radius: 4px;">
+                    <h3>Q${questionKey}</h3>
+                    <div class="polished-text">${displayText}</div>
+                    <p><small>소스: ${answer.source || 'Unknown'}</small></p>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }).join('')}
+      `;
+      
+      downloadAsWord(content, `GRI_Intake_보고서_${new Date().toISOString().split('T')[0]}`);
+    };
+
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">공통 GRI INDEX (GRI Intake만)</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">공통 GRI INDEX (GRI Intake만)</h2>
+          <button
+            onClick={handleDownloadIntake}
+            className="flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Word 다운로드
+          </button>
+        </div>
         <div className="text-sm text-gray-600 mb-4">
           GRI Intake에서 작성된 윤문 데이터만 표시합니다.
         </div>
@@ -222,9 +310,63 @@ function ESGClassifiedMGDisplay() {
   const { getESGIndexes } = useMGStore();
   const esgData = getESGIndexes();
 
+  const handleDownloadMG = () => {
+    const content = `
+      <h1>MG (Materiality→GRI) - ESG별 분류 보고서</h1>
+      <p>생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+      
+      <div class="esg-section environmental">
+        <h2>Environmental (환경) - ${esgData.environmental.length}개</h2>
+        ${esgData.environmental.map(({ griIndex, result, issuePool }) => `
+          <div class="gri-item">
+            <h3>GRI ${griIndex}</h3>
+            <div class="issue-pool">이슈풀: ${issuePool?.issue_pool || '이슈풀 없음'}</div>
+            <div class="polished-text">${result.polished_text || '윤문 텍스트 없음'}</div>
+            <p><small>저장일: ${result.savedAt ? new Date(result.savedAt).toLocaleDateString('ko-KR') : '날짜 없음'}</small></p>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="esg-section social">
+        <h2>Social (사회) - ${esgData.social.length}개</h2>
+        ${esgData.social.map(({ griIndex, result, issuePool }) => `
+          <div class="gri-item">
+            <h3>GRI ${griIndex}</h3>
+            <div class="issue-pool">이슈풀: ${issuePool?.issue_pool || '이슈풀 없음'}</div>
+            <div class="polished-text">${result.polished_text || '윤문 텍스트 없음'}</div>
+            <p><small>저장일: ${result.savedAt ? new Date(result.savedAt).toLocaleDateString('ko-KR') : '날짜 없음'}</small></p>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="esg-section governance">
+        <h2>Governance (지배구조) - ${esgData.governance.length}개</h2>
+        ${esgData.governance.map(({ griIndex, result, issuePool }) => `
+          <div class="gri-item">
+            <h3>GRI ${griIndex}</h3>
+            <div class="issue-pool">이슈풀: ${issuePool?.issue_pool || '이슈풀 없음'}</div>
+            <div class="polished-text">${result.polished_text || '윤문 텍스트 없음'}</div>
+            <p><small>저장일: ${result.savedAt ? new Date(result.savedAt).toLocaleDateString('ko-KR') : '날짜 없음'}</small></p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    downloadAsWord(content, `MG_ESG_분류_보고서_${new Date().toISOString().split('T')[0]}`);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">MG (Materiality→GRI) - ESG별 분류</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">MG (Materiality→GRI) - ESG별 분류</h2>
+        <button
+          onClick={handleDownloadMG}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Word 다운로드
+        </button>
+      </div>
       <div className="text-sm text-gray-600 mb-4">
         Materiality에서 윤문한 데이터를 ESG 카테고리별로 분류하여 표시합니다.
       </div>
