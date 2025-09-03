@@ -149,6 +149,24 @@ def _cors_preflight_guard():
 
 gateway_router = APIRouter(prefix="/api/v1", tags=["Gateway API"])
 
+# ─────────────────────────────────────────────────────────────────────────────
+# 5-1) 통합 엔드포인트: 회사 정보 조회
+# ─────────────────────────────────────────────────────────────────────────────
+from app.common.dependencies import get_corporation_client
+
+@gateway_router.get("/auth/corporations/{corporation_id}", summary="회사 정보 조회 (통합)")
+async def get_corporation_info(corporation_id: int):
+    """회사 정보 조회 - Gateway에서 corporation-service 호출"""
+    try:
+        corporation_client = get_corporation_client()
+        corporation = await corporation_client.get_corporation_by_id(corporation_id)
+        return corporation
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"회사 정보 조회 실패: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="회사 정보 조회 중 오류가 발생했습니다")
+
 class ResponseFactory:
     @staticmethod
     def create_response(response):
