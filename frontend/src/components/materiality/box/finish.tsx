@@ -224,15 +224,15 @@ export default function Finish({ companyId }: FinishProps) {
                           )}
                         </div>
                         <div className="text-sm text-gray-500">
-                          생성일: {new Date(survey.timestamp || survey.created_at).toLocaleString('ko-KR')}
+                          생성일: {survey.timestamp ? new Date(survey.timestamp).toLocaleString('ko-KR') : '날짜 정보 없음'}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-medium text-gray-900">
-                          응답률: {survey.sent_emails?.length ? Math.round((survey.responseCount / survey.sent_emails.length) * 100) : 0}%
+                          응답 수: {survey.responseCount || 0}개
                         </div>
                         <div className="text-sm text-gray-500">
-                          ({survey.responseCount} / {survey.sent_emails?.length || 0})
+                          카테고리: {survey.total_categories || 0}개
                         </div>
                       </div>
                     </div>
@@ -252,17 +252,17 @@ export default function Finish({ companyId }: FinishProps) {
                       </div>
                     </div>
 
-                    {/* 진행률 바 */}
+                    {/* 카테고리 정보 */}
                     <div>
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>응답 진행률</span>
-                        <span>{survey.sent_emails?.length ? Math.round((survey.responseCount / survey.sent_emails.length) * 100) : 0}%</span>
+                        <span>설문 상태</span>
+                        <span>{survey.total_categories || 0}개 카테고리</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-green-600 h-2 rounded-full transition-all duration-300"
                           style={{
-                            width: `${survey.sent_emails?.length ? Math.round((survey.responseCount / survey.sent_emails.length) * 100) : 0}%`
+                            width: `${Math.min((survey.total_categories || 0) * 10, 100)}%`
                           }}
                         />
                       </div>
@@ -436,8 +436,31 @@ export default function Finish({ companyId }: FinishProps) {
           )}
         </div>
 
+        {/* GRI로 이동 버튼 */}
+        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+            🎯 다음 단계: GRI 보고서 작성
+          </h3>
+          <p className="text-gray-600 text-center mb-6">
+            중대성 평가가 완료되었습니다. 이제 GRI 보고서를 작성하여 ESG 성과를 공시하세요.
+          </p>
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                window.location.href = '/gri';
+              }}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 inline-flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              GRI 보고서 작성하기
+            </button>
+          </div>
+        </div>
+
         {/* 완료 축하 메시지 */}
-        <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-yellow-800 font-medium">
             🎊 축하합니다! 중대성 평가 자동화 플랫폼을 통해 성공적으로 평가를 완료하셨습니다.
           </p>
