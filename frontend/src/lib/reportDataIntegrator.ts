@@ -38,7 +38,7 @@ export interface IntegratedAnswer {
   answer_text?: string;
   polished_text?: string;
   display_mode?: 'prose' | 'table';
-  last_modified?: string | null;
+  last_modified?: string | null | undefined;
   status?: 'idle' | 'loading' | 'done' | 'error';
 }
 
@@ -71,10 +71,11 @@ export function integrateReportData(
         }
         
         // MG는 전체 인덱스에 대한 윤문 결과를 제공
+        const savedAt = result.savedAt || null;
         integrated[griIndex]['mg_result'] = {
           source: 'mg',
           polished_text: result.polished_text,
-          last_modified: result.savedAt ? result.savedAt : undefined,
+          last_modified: savedAt,
           status: result.status
         };
       }
@@ -123,7 +124,7 @@ export function integrateReportData(
           integrated[griIndex][questionKey] = {
             source: 'server',
             answer_text: answer.answer_text,
-            polished_text: answer.polished_text,
+            polished_text: answer.polished_text ?? undefined,
             display_mode: answer.display_mode
           };
         }
@@ -216,17 +217,33 @@ export function getIntegrationSummary(integratedData: IntegratedAnswers) {
     mgIndexes: 0,
     intakeIndexes: 0,
     serverIndexes: 0,
-    mixedIndexes: 0
+    mixedIndexes: 0,
+    mgIndexList: [] as string[],
+    intakeIndexList: [] as string[],
+    serverIndexList: [] as string[],
+    mixedIndexList: [] as string[]
   };
 
   for (const [griIndex, indexData] of Object.entries(integratedData)) {
     const sources = new Set(Object.values(indexData).map(answer => answer.source));
     
-    if (sources.has('mg')) summary.mgIndexes++;
-    if (sources.has('intake')) summary.intakeIndexes++;
-    if (sources.has('server')) summary.serverIndexes++;
+    if (sources.has('mg')) {
+      summary.mgIndexes++;
+      summary.mgIndexList.push(griIndex);
+    }
+    if (sources.has('intake')) {
+      summary.intakeIndexes++;
+      summary.intakeIndexList.push(griIndex);
+    }
+    if (sources.has('server')) {
+      summary.serverIndexes++;
+      summary.serverIndexList.push(griIndex);
+    }
     
-    if (sources.size > 1) summary.mixedIndexes++;
+    if (sources.size > 1) {
+      summary.mixedIndexes++;
+      summary.mixedIndexList.push(griIndex);
+    }
   }
 
   return summary;
