@@ -326,7 +326,23 @@ export default function GRIIntakePage() {
 
   // 윤문 결과 저장
   const savePolishResult = async () => {
-    if (!selectedItem?.index_no || !savedItems[selectedItem.index_no]?.polished_text) return;
+    // 🚨 윤문 완료 상태 확인
+    if (!selectedItem?.index_no) {
+      setMessage('선택된 GRI 인덱스가 없습니다.');
+      return;
+    }
+    
+    if (!savedItems[selectedItem.index_no]?.polished_text) {
+      setMessage('윤문이 완료되지 않았습니다. "인덱스 윤문하기" 버튼을 클릭하여 윤문을 진행해주세요.');
+      return;
+    }
+    
+    // 윤문 텍스트가 실제로 있는지 확인
+    const polishedText = savedItems[selectedItem.index_no]?.polished_text;
+    if (!polishedText || typeof polishedText !== 'string' || polishedText.trim() === '') {
+      setMessage('윤문 결과가 비어있습니다. 윤문을 다시 진행해주세요.');
+      return;
+    }
     
     try {
               // 1. intakeStore에 윤문 결과 저장
@@ -355,11 +371,23 @@ export default function GRIIntakePage() {
             if (answer) {
               // polished_text를 문자열로 변환
               let polishedText = '';
+              
+              // 1) answer.polished_text에서 직접 추출
               if (typeof answer.polished_text === 'string') {
                 polishedText = answer.polished_text;
               } else if (answer.polished_text && typeof answer.polished_text === 'object') {
                 const polishedObj = answer.polished_text as { text?: string };
                 polishedText = polishedObj.text || '';
+              }
+              
+              // 2) item.polished_text에서 추출 (전체 윤문 결과)
+              if (!polishedText && item.polished_text) {
+                if (typeof item.polished_text === 'string') {
+                  polishedText = item.polished_text;
+                } else if (typeof item.polished_text === 'object') {
+                  const itemPolishedObj = item.polished_text as { text?: string };
+                  polishedText = itemPolishedObj.text || '';
+                }
               }
               
               // answer_text도 문자열로 보장
@@ -373,8 +401,14 @@ export default function GRIIntakePage() {
               // 🚨 빈 polished_text는 제외 (서버 에러 방지)
               if (polishedText.trim() === '') {
                 console.log(`⚠️ GRI ${griIndex} Q${keyAlpha}: 빈 polished_text 제외`);
+                console.log(`  - answer.polished_text:`, answer.polished_text);
+                console.log(`  - item.polished_text:`, item.polished_text);
                 continue;
               }
+              
+              console.log(`✅ GRI ${griIndex} Q${keyAlpha}: 윤문 텍스트 추출 성공`);
+              console.log(`  - answer_text: "${answerText}"`);
+              console.log(`  - polished_text: "${polishedText.substring(0, 50)}..."`);
               
               acc[griIndex][keyAlpha] = {
                 answer_text: answerText,
@@ -402,7 +436,7 @@ export default function GRIIntakePage() {
       
       // 🚨 추가 검증: 저장할 데이터가 있는지 확인
       if (Object.keys(serverData).length === 0) {
-        throw new Error('저장할 윤문 데이터가 없습니다. 윤문을 완료한 후 다시 시도해주세요.');
+        throw new Error('저장할 윤문 데이터가 없습니다. 윤문을 완료한 후 다시 시도해주세요. (빈 polished_text는 자동으로 제외됩니다)');
       }
       
       // 🚨 각 GRI 인덱스에 유효한 답변이 있는지 확인
@@ -744,25 +778,49 @@ export default function GRIIntakePage() {
                       })()}
 
                       {savedItems[selectedItem?.index_no]?.polished_text && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end space-x-3">
-                          <button
-                            onClick={polishAnswers}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            <span className="flex items-center space-x-2">
-                              <span>🔄</span>
-                              <span>다시 윤문하기</span>
-                            </span>
-                          </button>
-                          <button
-                            onClick={savePolishResult}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <span className="flex items-center space-x-2">
-                              <span>✓</span>
-                              <span>이 결과로 저장하기</span>
-                            </span>
-                          </button>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          {/* 윤문 상태 안내 */}
+                          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center space-x-2 text-blue-800">
+                              <span>ℹ️</span>
+                              <span className="text-sm">
+                                <strong>윤문 완료:</strong> 이제 저장할 수 있습니다.
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-end space-x-3">
+                            <button
+                              onClick={polishAnswers}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              <span className="flex items-center space-x-2">
+                                <span>🔄</span>
+                                <span>다시 윤문하기</span>
+                              </span>
+                            </button>
+                            <button
+                              onClick={savePolishResult}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              <span className="flex items-center space-x-2">
+                                <span>✓</span>
+                                <span>이 결과로 저장하기</span>
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 윤문이 완료되지 않은 경우 안내 */}
+                      {!savedItems[selectedItem?.index_no]?.polished_text && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="text-center p-4">
+                            <div className="text-gray-500 text-sm">
+                              <p>윤문을 완료하면 저장할 수 있습니다.</p>
+                              <p className="mt-1">"인덱스 윤문하기" 버튼을 클릭하여 윤문을 진행해주세요.</p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
