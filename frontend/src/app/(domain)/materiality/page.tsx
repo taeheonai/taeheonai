@@ -1069,7 +1069,7 @@ export default function MaterialityHomePage() {
 
           {/* 완료 섹션 */}
           {visibleSection === 'finish' && (
-            <Finish />
+            <Finish companyId={companyId || ''} />
           )}
   
           {/* 중대성 평가 상세 정보 모달 */}

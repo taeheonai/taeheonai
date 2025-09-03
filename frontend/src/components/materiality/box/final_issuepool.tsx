@@ -513,6 +513,8 @@ const FinalIssuepool: React.FC = () => {
           console.error('❌ 최종 점수 저장 실패:', error);
         }
         
+        // 계산 완료 플래그 설정
+        localStorage.setItem('finalIssuepoolCalculated', 'true');
         console.log('✅ 최종 이슈풀 계산 완료');
         console.log('📊 최종 결과:', finalTop);
         console.log('📊 그룹 가중치:', groupWeights);

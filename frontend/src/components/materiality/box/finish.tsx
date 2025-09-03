@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function Finish() {
+type FinishProps = {
+  companyId: string;
+};
+
+export default function Finish({ companyId }: FinishProps) {
   const [finalCategories, setFinalCategories] = useState<any[]>([]);
   const [sentSurveyInfo, setSentSurveyInfo] = useState<any>(null);
   const [surveyResponses, setSurveyResponses] = useState<any[]>([]);
@@ -16,21 +20,23 @@ export default function Finish() {
     
     setLoading(true);
     try {
-      // 기업의 모든 설문 정보 가져오기
-      const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys');
+      // 특정 기업의 설문 정보만 가져오기 (corporation_id 기준)
+      const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys?corporation_id=${companyId}`);
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
 
       const data = await response.json();
       const surveys = data.surveys || [];
+      
+      console.log('🔍 회사별 설문 로드:', { companyId, surveysCount: surveys.length, surveys });
 
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
         try {
-          // survey.id가 undefined인 경우 건너뛰기
-          if (!survey.id) {
-            console.warn('⚠️ 설문 ID가 없습니다:', survey);
+          // survey.id가 undefined, null, 빈 문자열인 경우 건너뛰기
+          if (!survey.id || survey.id === 'undefined' || survey.id === 'null' || survey.id === '') {
+            console.warn('⚠️ 설문 ID가 유효하지 않습니다:', { id: survey.id, survey });
             return {
               ...survey,
               responses: [],
@@ -38,6 +44,7 @@ export default function Finish() {
             };
           }
           
+          console.log('🔍 설문 응답 데이터 요청:', survey.id);
           const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
