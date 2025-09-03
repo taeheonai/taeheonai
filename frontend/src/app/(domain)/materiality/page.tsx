@@ -2,7 +2,7 @@
 
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import NavigationTabs from '@/components/NavigationTabs';
-// import { MediaCard, MediaItem } from '@/components/MediaCard';
+import { MediaCard, MediaItem } from '@/components/MediaCard';
 import IndexBar from '@/components/IndexBar';
 import { useMediaStore } from '@/store/mediaStore';
 import { IssuepoolData } from "../../lib/types";
@@ -102,7 +102,7 @@ export default function MaterialityHomePage() {
       console.log('✅ 사용자 활동 감지: 데이터 표시 활성화');
     }
   }, []);
-  
+
   // 모달 상태
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
@@ -600,7 +600,7 @@ export default function MaterialityHomePage() {
           console.error('응답 상태:', error.response.status);
           console.error('응답 데이터:', error.response.data);
         }
-      } finally {
+    } finally {
         setIsCompanyLoading(false);
       }
     };
@@ -731,7 +731,7 @@ export default function MaterialityHomePage() {
     }
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-white"> {/* ROOT */}
       {isMediaSearching && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -741,8 +741,8 @@ export default function MaterialityHomePage() {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">미디어 검색 중...</h3>
             <p className="text-gray-600">네이버 뉴스 API를 통해 기사를 수집하고 있습니다.</p>
             <p className="text-gray-500 text-sm mt-2">잠시만 기다려주세요.</p>
-          </div>
         </div>
+      </div>
       )}
   
       <NavigationTabs />
@@ -753,19 +753,117 @@ export default function MaterialityHomePage() {
   
           {/* 헤더 */}
           <div className="mb-8">
-                          <div className="flex items-center justify-between mb-4">
+            {/* 에러 표시 섹션 */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-red-600 font-semibold">⚠️ 오류 발생:</span>
+                  <span className="ml-2 text-red-700">{error}</span>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between mb-4">
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900">중대성 평가 자동화 플랫폼</h1>
                   <p className="text-lg text-gray-600 mt-2">기업의 중대성 이슈를 자동으로 추천합니다</p>
                 </div>
                 
-                {/* 상단 고정 버튼 컨테이너 */}
-                <div className="flex gap-3">
+                                {/* 상단 고정 버튼 컨테이너 */}
+                <div className="flex gap-3 flex-wrap">
                   <button
                     onClick={() => setIsResetModalOpen(true)}
-                    className="px-6 py-3 bg-white hover:bg-red-50 text-gray-600 font-semibold rounded-lg transition-all duration-200 border-2 border-gray-300 hover:border-red-200 hover:text-red-500 shadow-lg hover:shadow-xl"
+                    className="px-4 py-2 bg-white hover:bg-red-50 text-gray-600 font-semibold rounded-lg transition-all duration-200 border-2 border-gray-300 hover:border-red-200 hover:text-red-500 shadow-lg hover:shadow-xl text-sm"
                   >
-                    🔄 미디어 검색 다시하기
+                    🔄 리셋
+                  </button>
+                  <button
+                    onClick={() => {
+                      // 미디어 검색 실행
+                      if (companyId && searchPeriod.start_date && searchPeriod.end_date) {
+                        searchMedia({
+                          company_id: companyId,
+                          search_period: searchPeriod
+                        });
+                        if (error) {
+                          alert(`검색 중 오류가 발생했습니다: ${error}`);
+                        } else if (articles && articles.length > 0) {
+                          alert(`✅ ${totalResults}개의 기사를 찾았습니다!`);
+                        } else {
+                          alert('검색 결과가 없습니다. 다른 검색 조건을 시도해보세요.');
+                        }
+                      } else {
+                        alert('기업명과 검색 기간을 모두 입력해주세요.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    🔍 미디어 검색
+                  </button>
+                                    <button
+                    onClick={() => {
+                      // Excel 데이터 관리
+                      if (isExcelValid && excelData.length > 0) {
+                        alert(`✅ Excel 데이터가 로드되었습니다.\n파일명: ${excelFilename || 'N/A'}\n데이터 행 수: ${excelData.length}개`);
+                      } else {
+                        alert('⚠️ 유효한 Excel 데이터가 없습니다.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    📋 Excel 관리
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Excel 데이터 저장
+                      saveToLocalStorage();
+                      alert('✅ Excel 데이터가 로컬 스토리지에 저장되었습니다.');
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    💾 저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      // 업로드된 Excel 데이터 로드
+                      loadUploadedExcelData(excelData);
+                      setIsExcelValid(excelData.length > 0);
+                      alert(`✅ 업로드된 Excel 데이터를 로드했습니다.\n데이터 행 수: ${excelData.length}개`);
+                    }}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    📤 업로드 로드
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Excel 데이터 설정 및 로드
+                      const sampleData = [
+                        { name: '홍길동', position: '대표이사', company: companyId || '샘플회사', stakeholderType: '내부이해관계자', email: 'hong@example.com' },
+                        { name: '김철수', position: '부사장', company: companyId || '샘플회사', stakeholderType: '내부이해관계자', email: 'kim@example.com' }
+                      ];
+                      setExcelData(sampleData);
+                      loadFromStorage();
+                      alert(`✅ 샘플 Excel 데이터가 설정되었습니다.\n데이터 행 수: ${sampleData.length}개`);
+                    }}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    📝 샘플 데이터
+                  </button>
+                  <button
+                    onClick={() => {
+                      // 기업 검색 테스트
+                      console.log('기업 검색 테스트:', { companyId, companySearchTerm });
+                      alert(`현재 선택된 기업: ${companyId || '없음'}\n검색어: ${companySearchTerm}`);
+                    }}
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    🏢 기업 검색
+                  </button>
+                  <button
+                    onClick={loadPreviousAssessments}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                  >
+                    📚 평가 목록 로드
                   </button>
                   <button
                     onClick={() => {
@@ -774,12 +872,12 @@ export default function MaterialityHomePage() {
                       // 다음 단계로 이동
                       moveToNextStep();
                     }}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
                   >
                     다음 →
                   </button>
-                </div>
-              </div>
+        </div>
+      </div>
           </div>
   
           {/* 선택 옵션 */}
@@ -817,6 +915,68 @@ export default function MaterialityHomePage() {
               setCompanyId={setCompanyId}
               setSearchPeriod={setSearchPeriod}
             />
+          )}
+
+          {/* 미디어 스토어에서 가져온 기사들 표시 */}
+          {visibleSection === 'media-search' && articles && articles.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                📰 미디어 스토어 검색 결과 ({totalResults}개)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {articles.slice(0, 6).map((article: any, index: number) => {
+                  const mediaItem: MediaItem = {
+                    id: index,
+                    title: article.title || '제목 없음',
+                    keyword: article.keyword || '키워드 없음',
+                    url: article.originallink || article.url || '#',
+                    publishedAt: article.pubDate || article.publishedAt
+                  };
+                  
+                  return (
+                    <MediaCard
+                      key={index}
+                      item={mediaItem}
+                    />
+                  );
+                })}
+              </div>
+              {articles.length > 6 && (
+                <div className="mt-4 text-center">
+                  <p className="text-gray-500 text-sm">
+                    ... 및 {articles.length - 6}개 더
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 기업 검색 테스트 섹션 */}
+          {visibleSection === 'media-search' && (
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                🔍 기업 검색 테스트
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    기업명 검색
+                  </label>
+                  <input
+                    type="text"
+                    value={companySearchTerm}
+                    onChange={handleCompanySearchChange}
+                    placeholder="기업명을 입력하세요"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="text-sm text-gray-600">
+                  <p>현재 선택된 기업: <strong>{companyId || '없음'}</strong></p>
+                  <p>검색어: <strong>{companySearchTerm}</strong></p>
+                  <p>드롭다운 열림: <strong>{isCompanyDropdownOpen ? '예' : '아니오'}</strong></p>
+                </div>
+              </div>
+            </div>
           )}
           
 
@@ -1047,16 +1207,16 @@ export default function MaterialityHomePage() {
                       </p>
                     </div>
                   </div>
-                </div>
-                
+        </div>
+
                 {/* 모달 푸터 */}
                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10">
-                  <button
+          <button
                     onClick={() => setIsDetailModalOpen(false)}
                     className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
-                  >
+          >
                     닫기
-                  </button>
+          </button>
                 </div>
               </div>
             </div>
@@ -1075,14 +1235,14 @@ export default function MaterialityHomePage() {
                   <h3 className="text-xl font-bold text-gray-900">
                     Base Issue Pool 선택 - {selectedCategory.category}
                   </h3>
-                  <button
+          <button
                     onClick={() => setIsBaseIssuePoolModalOpen(false)}
                     className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                  </button>
+          </button>
                 </div>
                 
                 {/* 모달 바디 */}
@@ -1171,7 +1331,7 @@ export default function MaterialityHomePage() {
                 {/* 모달 푸터 */}
                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10">
                   <div className="flex space-x-3">
-                    <button
+          <button
                       onClick={() => setIsBaseIssuePoolModalOpen(false)}
                       className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
                     >
@@ -1244,13 +1404,13 @@ export default function MaterialityHomePage() {
                       disabled={!(selectedBaseIssuePool || (isCustomBaseIssuePool && customBaseIssuePoolText.trim()))}
                       className={`px-4 py-2 font-medium rounded-lg transition-colors duration-200 ${
                         (selectedBaseIssuePool || (isCustomBaseIssuePool && customBaseIssuePoolText.trim()))
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
+            }`}
+          >
                       선택 완료
-                    </button>
-                  </div>
+          </button>
+        </div>
                 </div>
               </div>
             </div>
@@ -1275,8 +1435,8 @@ export default function MaterialityHomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </div>
-                
+              </div>
+              
                 {/* 모달 바디 */}
                 <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
 
@@ -1323,11 +1483,11 @@ export default function MaterialityHomePage() {
                                     {category.esg_classification}
                                   </span>
                                 )}
-                              </div>
+                </div>
                             </button>
                           ))}
-                        </div>
-                      </div>
+                </div>
+                </div>
                     </div>
 
                     {/* 오른쪽: Base Issue Pool 선택 및 순위 설정 */}
@@ -1352,11 +1512,11 @@ export default function MaterialityHomePage() {
                                     'bg-gray-100 text-gray-700'
                                   }`}>
                                     ESG 분류: {selectedCat.esg_classification}
-                                  </span>
-                                </div>
+                  </span>
+                </div>
                               ) : null;
                             })()}
-                          </div>
+              </div>
 
                           {/* Base Issue Pool 선택 */}
                           <div>
@@ -1383,7 +1543,7 @@ export default function MaterialityHomePage() {
                                     </option>
                                   ))}
                                 </select>
-                              </div>
+        </div>
                             )}
                             
                             {/* 구분선 */}
@@ -1392,7 +1552,7 @@ export default function MaterialityHomePage() {
                                 <div className="flex-1 border-t border-gray-300"></div>
                                 <span className="px-3 text-sm text-gray-500 bg-white">또는</span>
                                 <div className="flex-1 border-t border-gray-300"></div>
-                              </div>
+            </div>
                             )}
                             
                             {/* 직접 입력 옵션 */}
@@ -1420,9 +1580,9 @@ export default function MaterialityHomePage() {
                                       autoFocus
                                     />
                                   )}
-                                </div>
+              </div>
                               </label>
-                            </div>
+            </div>
                             
                             {/* 옵션이 없는 경우 안내 */}
                             {baseIssuePoolOptions.length === 0 && (
@@ -1432,12 +1592,12 @@ export default function MaterialityHomePage() {
                                 </svg>
                                 <p className="text-sm">이 카테고리에 매칭되는 base issue pool이 없습니다.</p>
                                 <p className="text-xs text-gray-400 mt-1">아래에서 직접 입력해주세요.</p>
-                              </div>
+              </div>
                             )}
-                          </div>
+            </div>
 
                           {/* 순위 설정 */}
-                          <div>
+            <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
                               순위
                             </label>
@@ -1448,7 +1608,7 @@ export default function MaterialityHomePage() {
                               onChange={(e) => setNewCategoryRank(e.target.value)}
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
                             />
-                          </div>
+              </div>
 
                           {/* 추가 버튼 */}
                           <button
@@ -1482,16 +1642,16 @@ export default function MaterialityHomePage() {
                           >
                             ✅ 카테고리 추가하기
                           </button>
-                        </div>
+            </div>
                       )}
 
                       {!selectedNewCategory && (
                         <div className="text-center text-gray-500 py-8">
                           왼쪽에서 카테고리를 선택해주세요
-                        </div>
+          </div>
                       )}
-                    </div>
-                  </div>
+        </div>
+      </div>
                 </div>
                 
                 {/* 모달 푸터 */}
@@ -1625,6 +1785,6 @@ export default function MaterialityHomePage() {
   
         </div> {/* /CONTAINER */}
       </div>   {/* /BG */}
-    </div>      
+    </div>
   );
 }
