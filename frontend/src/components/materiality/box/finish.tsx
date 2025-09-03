@@ -28,18 +28,34 @@ export default function Finish({ companyId }: FinishProps) {
 
       const data = await response.json();
       const surveys = data.surveys || [];
+      
+      // 설문 데이터 구조 디버깅
+      console.log('🔍 API 응답 데이터:', data);
+      console.log('🔍 설문 배열:', surveys);
+      if (surveys.length > 0) {
+        console.log('🔍 첫 번째 설문 구조:', surveys[0]);
+        console.log('🔍 설문 ID 필드들:', surveys.map(s => ({ id: s.id, survey_id: s.survey_id, _id: s._id })));
+      }
 
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
         try {
-          // survey.id가 undefined, null, 빈 문자열인 경우 건너뛰기
-          if (!survey.id || survey.id === 'undefined' || survey.id === 'null' || survey.id === '') {
-            console.warn('⚠️ 설문 ID가 유효하지 않습니다:', { id: survey.id, survey });
+          // 설문 ID 찾기 (여러 가능한 필드명 확인)
+          const surveyId = survey.id || survey.survey_id || survey._id;
+          
+          // survey ID가 undefined, null, 빈 문자열인 경우 건너뛰기
+          if (!surveyId || surveyId === 'undefined' || surveyId === 'null' || surveyId === '') {
+            console.warn('⚠️ 설문 ID가 유효하지 않습니다:', { 
+              id: survey.id, 
+              survey_id: survey.survey_id, 
+              _id: survey._id, 
+              survey 
+            });
             return { ...survey, responses: [], responseCount: 0 };
           }
           
-          console.log('🔍 설문 응답 데이터 요청:', survey.id);
-          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`);
+          console.log('🔍 설문 응답 데이터 요청:', surveyId);
+          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
             return {
@@ -170,8 +186,10 @@ export default function Finish({ companyId }: FinishProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              {allSurveys.map((survey, index) => (
-                <div key={survey.id} className="bg-white rounded-lg p-4 border border-blue-200">
+              {allSurveys.map((survey, index) => {
+                const surveyId = survey.id || survey.survey_id || survey._id || `survey-${index}`;
+                return (
+                <div key={surveyId} className="bg-white rounded-lg p-4 border border-blue-200">
                   <div className="space-y-4">
                     {/* 설문 기본 정보 */}
                     <div className="flex items-center justify-between">
@@ -179,7 +197,7 @@ export default function Finish({ companyId }: FinishProps) {
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-sm font-medium text-gray-600">설문 ID:</span>
                           <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono text-blue-600">
-                            {survey.id}
+                            {surveyId}
                           </code>
                           {index === 0 && (
                             <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
@@ -244,7 +262,7 @@ export default function Finish({ companyId }: FinishProps) {
                           
                           // 선택된 설문 정보 저장
                           localStorage.setItem('surveyResult', JSON.stringify({
-                            survey_id: survey.id,
+                            survey_id: surveyId,
                             responses: survey.responses
                           }));
                         }}
@@ -260,7 +278,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`, {
+                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`, {
                                 method: 'DELETE'
                               });
 
@@ -288,7 +306,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문과 모든 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}`, {
+                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}`, {
                                 method: 'DELETE'
                               });
 
@@ -314,7 +332,8 @@ export default function Finish({ companyId }: FinishProps) {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
