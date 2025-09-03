@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useMGStore } from '@/store/mgStore';
 import { useSessionStore } from '@/store/sessionStore';
 import IndexPolisher from '@/components/IndexPolisher';
-import { X } from 'lucide-react'; // 삭제 아이콘
+import { X, FileText } from 'lucide-react'; // 삭제 아이콘, 리포트 아이콘
+import Link from 'next/link';
 
 export default function MGPage() {
   const {
@@ -66,7 +67,16 @@ export default function MGPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">MG Index 윤문</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">MG Index 윤문</h1>
+            <Link 
+              href="/gri/report"
+              className="flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Report 페이지로 이동
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-8">

@@ -267,7 +267,15 @@ export default function IndexPolisher({
         })}
       </div>
 
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end gap-3 mt-4">
+        <button 
+          className="px-4 py-2 font-medium rounded-xl transition-colors bg-gray-600 text-white hover:bg-gray-700"
+        >
+          <span className="flex items-center space-x-2">
+            <span>💾</span>
+            <span>저장</span>
+          </span>
+        </button>
         <button 
           onClick={onPolish}
           disabled={isLoading} 
