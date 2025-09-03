@@ -13,6 +13,7 @@ import {
   getDisplayText, 
   getSourceBadge,
   type IntegratedAnswers,
+  type IntegratedAnswer,
   getIntegrationSummary
 } from '@/lib/reportDataIntegrator';
 
@@ -38,7 +39,7 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
     dataKeys.forEach((griIndex) => {
       const indexData = integratedData[griIndex];
       if (indexData && typeof indexData === 'object') {
-        const intakeQuestions: Record<string, any> = {};
+        const intakeQuestions: Record<string, IntegratedAnswer> = {};
         let hasIntakeData = false;
         
         Object.entries(indexData).forEach(([questionKey, answer]) => {
