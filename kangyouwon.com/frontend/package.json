@@ -1,0 +1,41 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NEXT_PWA_DISABLE=true next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests configured\" && exit 0",
+    "clean": "if exist .next rmdir /s /q .next && if exist out rmdir /s /q out",
+    "analyze": "ANALYZE=true pnpm run build"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "geist": "^1.4.2",
+    "next": "15.4.6",
+    "next-pwa": "5.6.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/next-pwa": "^5.6.9",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/webpack": "^5.28.5",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "cross-env": "^10.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

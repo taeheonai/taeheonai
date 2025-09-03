@@ -1,7 +1,46 @@
-fastapi==0.115.12
-uvicorn[standard]==0.34.1
-pydantic==2.11.3
-sqlalchemy>=2.0
-asyncpg==0.29.0
+# FastAPI 및 웹 서버
+fastapi==0.109.2
+uvicorn==0.27.1
+
+# HTTP 클라이언트
+httpx==0.25.2
+aiohttp==3.9.1
+
+# 데이터 검증 및 설정
+pydantic==2.6.1
+pydantic-settings==2.1.0
+email-validator==2.2.0
+
+# 환경 변수 관리
 python-dotenv==1.0.1
-httpx>=0.25.0  # 🔧 HTTP 클라이언트 의존성 추가 
+
+# 유틸리티
+python-multipart==0.0.9
+python-dateutil>=2.8.2
+
+# 데이터 분석 및 Excel 처리
+pandas==2.1.4
+openpyxl==3.1.2
+
+# JWT 토큰 (기본 인증용)
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# PostgreSQL 데이터베이스 (비동기 전용)
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.25
+alembic==1.13.1
+psycopg2-binary==2.9.9
+psycopg2==2.9.9
+
+# 머신러닝 관련
+joblib>=1.3
+
+# Gmail API 관련
+google-auth==2.23.4
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.108.0
+scikit-learn==1.6.1
+scipy>=1.10
+numpy>=1.23

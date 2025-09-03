@@ -1,0 +1,115 @@
+services:
+  # Gateway Service
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app-network
+    depends_on:
+      - auth-service
+      - chatbot-service
+      - gri-service
+      - materiality-service
+      - report-service
+      - survey-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./service/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      - PORT=8008
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+  # Chatbot Service
+  chatbot-service:
+    build:
+      context: ./service/chatbot-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+  # GRI Service
+  gri-service:
+    build:
+      context: ./service/gri-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+  # Materiality Service
+  materiality-service:
+    build:
+      context: ./service/materiality-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+  # Report Service (GRI Report)
+  report-service:
+    build:
+      context: ./service/report-service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - PORT=8004
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+  # Survey Service
+  survey-service:
+    build:
+      context: ./service/survey-service
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - PORT=8007
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - SERVICE_HOST=0.0.0.0
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

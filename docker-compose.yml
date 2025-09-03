@@ -125,6 +125,9 @@ services:
       - ENVIRONMENT=development
       - PORT=8002
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway
+      - FRONTEND_URL=https://taeheonai.com
+      - SURVEY_BASE_URL=https://taeheonai.com/survey
     restart: always
     networks:
       - taeheonai-network
