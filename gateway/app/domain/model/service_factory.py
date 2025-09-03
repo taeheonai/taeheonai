@@ -72,19 +72,20 @@ class ServiceProxyFactory:
         if path.startswith("/api/v1/"):
             return path[4:]  # /api 제거
         
-        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
-        if self.service_type == ServiceType.auth:
-            return f"/v1/auth{path}"  # /v1/auth + /login = /v1/auth/login
+        # materiality 서비스의 경우 /materiality-service prefix 사용 (우선 처리)
+        if self.service_type == ServiceType.materiality:
+            # /surveys → /materiality-service/surveys로 변환
+            # /search-media → /materiality-service/search-media로 변환
+            return f"/materiality-service{path}"
         
         # search 서비스의 경우 materiality-service로 라우팅하되 /materiality-service/search prefix 추가
         if self.service_type == ServiceType.search:
             # /companies → /materiality-service/search/companies로 변환
             return f"/materiality-service/search{path}"
         
-        # materiality 서비스의 경우 /materiality-service prefix 사용
-        if self.service_type == ServiceType.materiality:
-            # /search-media → /materiality-service/search-media로 변환
-            return f"/materiality-service{path}"
+        # auth 서비스의 경우 /login → /v1/auth/login으로 변환
+        if self.service_type == ServiceType.auth:
+            return f"/v1/auth{path}"  # /v1/auth + /login = /v1/auth/login
         
         return f"{prefix}{path}"
 
