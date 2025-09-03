@@ -167,7 +167,7 @@ export const PolishResult: React.FC<PolishResultProps> = ({
 
   // 메타(모델/시간) 코드블록
   let metaJson = '';
-  if (polishedText && typeof polishedText === 'object' && 'model' in polishedText) {
+  if (polishedText && typeof polishedText === 'object' && polishedText !== null && 'model' in (polishedText as any)) {
     const obj = polishedText as Record<string, unknown>;
     metaJson =
       '```json\n' +
