@@ -350,7 +350,7 @@ export default function GRIIntakePage() {
           acc[griIndex] = {};
           
           // key_alpha를 그대로 사용 (a, b, c, d)
-          Object.keys(item.answers).forEach((keyAlpha) => {
+          for (const keyAlpha of Object.keys(item.answers)) {
             const answer = item.answers[keyAlpha];
             if (answer) {
               // polished_text를 문자열로 변환
@@ -373,7 +373,7 @@ export default function GRIIntakePage() {
               // 🚨 빈 polished_text는 제외 (서버 에러 방지)
               if (polishedText.trim() === '') {
                 console.log(`⚠️ GRI ${griIndex} Q${keyAlpha}: 빈 polished_text 제외`);
-                return acc;
+                continue;
               }
               
               acc[griIndex][keyAlpha] = {
@@ -382,7 +382,7 @@ export default function GRIIntakePage() {
                 display_mode: 'prose' as const
               };
             }
-          });
+          }
           
           // 🚨 빈 섹션은 제거
           if (Object.keys(acc[griIndex]).length === 0) {
