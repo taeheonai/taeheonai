@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePolishStore } from "@/store/polishStore";
+import { useMGStore } from "@/store/mgStore";
 import { safeTrim } from "@/lib/utils";
 
 type DisplayMode = 'table' | 'prose';
@@ -21,6 +22,8 @@ export default function IndexPolisher({
 
   // polishStore에서 저장된 답변과 윤문 결과 가져오기
   const { getPolishedItem, savePolishedItem } = usePolishStore();
+  // MG 스토어에서 updateSingleIndexResult 함수 가져오기
+  const { updateSingleIndexResult } = useMGStore();
   const savedItem = getPolishedItem(griIndex);
 
   // 초기 데이터 로드
@@ -171,6 +174,10 @@ export default function IndexPolisher({
         answers: answers,
         last_modified: new Date().toISOString(),
       });
+
+      // MG 스토어에 윤문 결과 업데이트
+      updateSingleIndexResult(griIndex, combinedText);
+
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
     } finally {

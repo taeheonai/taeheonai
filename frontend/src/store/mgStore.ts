@@ -57,6 +57,9 @@ type MGState = {
 
   /** 윤문 실행용 페이로드 빌더: 숨긴 인덱스를 제거해 MGIndexDTO 배열 생성 */
   getVisiblePayload: () => MGIndexDTO[];
+
+  /** 단일 인덱스 결과 업데이트 */
+  updateSingleIndexResult: (griIndex: string, result: PolishResultState) => void;
 };
 
 export const useMGStore = create<MGState>()(
@@ -153,6 +156,15 @@ export const useMGStore = create<MGState>()(
           payload.push({ ...dto, gri_indexes: visible });
         }
         return payload;
+      },
+
+      updateSingleIndexResult: (griIndex, result) => {
+        set((state) => ({
+          resultsByIndex: {
+            ...state.resultsByIndex,
+            [griIndex]: result,
+          },
+        }));
       },
 
       runPolish: async (sessionKey, threadId, items) => {
