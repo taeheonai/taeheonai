@@ -21,9 +21,11 @@ export default function Finish({ companyId }: FinishProps) {
     setLoading(true);
     try {
       // 특정 기업의 설문 정보만 가져오기 (corporation_id 기준)
-      // 먼저 숫자 ID로 시도 (한온시스템 = '1')
+      console.log('🔍 companyId 값 확인:', { companyId, type: typeof companyId });
+      
+      // 한온시스템은 항상 숫자 ID 1로 변환
       let response;
-      if (companyId === '한온시스템') {
+      if (companyId === '한온시스템' || companyId === '1') {
         console.log('🔍 한온시스템을 숫자 ID 1로 변환하여 요청');
         response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/1`);
       } else {
