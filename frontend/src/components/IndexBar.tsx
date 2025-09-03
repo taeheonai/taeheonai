@@ -90,9 +90,17 @@ export default function IndexBar() {
         return null;
       }).filter((section): section is Section => section !== null);
 
-      const closest = sections && sections.length > 0 ? sections.reduce((prev, curr) => {
-        return prev.distance < curr.distance ? prev : curr;
-      }) : null;
+      let closest = null;
+      if (sections && Array.isArray(sections) && sections.length > 0) {
+        try {
+          closest = sections.reduce((prev, curr) => {
+            return prev.distance < curr.distance ? prev : curr;
+          });
+        } catch (error) {
+          console.warn('⚠️ IndexBar reduce 오류:', error, { sections });
+          closest = null;
+        }
+      }
 
       if (closest) {
         setActiveSection(closest.id);
