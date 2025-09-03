@@ -151,6 +151,24 @@ export default function Finish({ companyId }: FinishProps) {
           
           setFinalCategories(sortedCategories);
           console.log('✅ 최종 추천 카테고리 로드 완료:', sortedCategories);
+          
+          // /mg 페이지에서 사용할 수 있도록 sessionStorage에 저장
+          try {
+            const selectedIssuePools = sortedCategories.map((category, index) => ({
+              id: index + 1, // 임시 ID
+              corporation_id: 1, // 한온시스템 ID
+              issue_pool: category.category || '카테고리명 없음',
+              category_id: category.category_id || 1,
+              esg_classification_id: category.esg_classification_id || 1,
+              ranking: (index + 1).toString(),
+              publish_year: new Date().getFullYear().toString()
+            }));
+            
+            sessionStorage.setItem('selectedIssuePools', JSON.stringify(selectedIssuePools));
+            console.log('💾 /mg 페이지용 selectedIssuePools 저장 완료:', selectedIssuePools);
+          } catch (error) {
+            console.error('❌ selectedIssuePools 저장 실패:', error);
+          }
         } else {
           console.warn('⚠️ localStorage에 materialityAssessmentResult가 없습니다');
         }
@@ -447,26 +465,52 @@ export default function Finish({ companyId }: FinishProps) {
           )}
         </div>
 
-        {/* GRI로 이동 버튼 */}
-        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-            🎯 다음 단계: GRI 보고서 작성
-          </h3>
-          <p className="text-gray-600 text-center mb-6">
-            중대성 평가가 완료되었습니다. 이제 GRI 보고서를 작성하여 ESG 성과를 공시하세요.
-          </p>
-          <div className="flex justify-center">
-            <button
-              onClick={() => {
-                window.location.href = '/gri';
-              }}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 inline-flex items-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              GRI 보고서 작성하기
-            </button>
+        {/* 다음 단계 버튼들 */}
+        <div className="mt-8 space-y-6">
+          {/* MG Index 윤문 버튼 */}
+          <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              🎨 MG Index 윤문
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
+              최종 추천 카테고리를 바탕으로 GRI 인덱스를 윤문하여 보고서를 작성하세요.
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  window.location.href = '/mg';
+                }}
+                className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 inline-flex items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                MG Index 윤문하기
+              </button>
+            </div>
+          </div>
+
+          {/* GRI 보고서 작성 버튼 */}
+          <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              🎯 GRI 보고서 작성
+            </h3>
+            <p className="text-gray-600 text-center mb-6">
+              중대성 평가가 완료되었습니다. 이제 GRI 보고서를 작성하여 ESG 성과를 공시하세요.
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => {
+                  window.location.href = '/gri';
+                }}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 inline-flex items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                GRI 보고서 작성하기
+              </button>
+            </div>
           </div>
         </div>
 
