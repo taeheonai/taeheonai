@@ -1,4 +1,4 @@
-'use client';
+ㄱㄱ'use client';
 
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import NavigationTabs from '@/components/NavigationTabs';
