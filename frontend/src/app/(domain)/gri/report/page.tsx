@@ -35,9 +35,9 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
     
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">로컬 저장 데이터</h2>
+        <h2 className="text-xl font-semibold mb-4">공통 GRI INDEX </h2>
         <div className="text-sm text-gray-600 mb-4">
-          로컬에 저장된 윤문 데이터를 표시합니다.
+        공통 GRI INDEX
         </div>
         
         <div className="space-y-4">
@@ -187,138 +187,38 @@ function SafeStatsDisplay({ integratedData }: { integratedData: IntegratedAnswer
   }
 }
 
-// ESG별 분류된 MG 데이터 표시 컴포넌트
-function ESGClassifiedMGDisplay() {
-  const { getESGIndexes } = useMGStore();
-  const esgData = getESGIndexes();
+// GRI Intake 윤문 데이터 표시 컴포넌트
+function IntakePolishedDataDisplay() {
+  const { savedItems } = useIntakeStore();
+  const intakeData = Object.values(savedItems);
 
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">MG (Materiality→GRI) - ESG별 분류</h2>
+      <h2 className="text-xl font-semibold mb-4">GRI Intake - 윤문 데이터</h2>
       <div className="text-sm text-gray-600 mb-4">
-        Materiality에서 윤문한 데이터를 ESG 카테고리별로 분류하여 표시합니다.
+        GRI Intake에서 윤문한 데이터를 표시합니다.
       </div>
       
-      <div className="space-y-6">
-        {/* Environmental (E) */}
-        <div className="border border-green-200 rounded-lg p-6 bg-green-50">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-              E
-            </div>
-            <h3 className="font-semibold text-green-800 text-lg">Environmental</h3>
-            <span className="ml-auto bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-              {esgData.environmental.length}개
-            </span>
-          </div>
-          
-          <div className="space-y-4">
-            {esgData.environmental.map(({ griIndex, result, issuePool }) => (
-              <div key={griIndex} className="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-green-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                    {issuePool?.issue_pool || '이슈풀 없음'}
+      <div className="space-y-4">
+        {intakeData.length > 0 ? (
+          intakeData.map((item) => (
+            item.polished_text && (
+              <div key={item.gri_index} className="bg-gray-50 rounded p-4 border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-700">GRI {item.gri_index}</span>
+                  <span className="text-xs text-gray-500">
+                    {item.last_modified ? `저장일: ${new Date(item.last_modified).toLocaleDateString()}` : '저장일 정보 없음'}
                   </span>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
-                </div>
-                <div className="text-sm text-gray-500">
-                  저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
+                <div className="bg-white p-3 rounded text-gray-800 text-sm leading-relaxed whitespace-pre-wrap border border-gray-100">
+                  {item.polished_text}
                 </div>
               </div>
-            ))}
-            
-            {esgData.environmental.length === 0 && (
-              <div className="text-center text-gray-500 py-8">
-                Environmental 카테고리의 윤문 데이터가 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Social (S) */}
-        <div className="border border-blue-200 rounded-lg p-6 bg-blue-50">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-              S
-            </div>
-            <h3 className="font-semibold text-blue-800 text-lg">Social</h3>
-            <span className="ml-auto bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-              {esgData.social.length}개
-            </span>
-          </div>
-          
-          <div className="space-y-4">
-            {esgData.social.map(({ griIndex, result, issuePool }) => (
-              <div key={griIndex} className="bg-white rounded-lg p-4 border border-blue-200 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-blue-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                    {issuePool?.issue_pool || '이슈풀 없음'}
-                  </span>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
-                </div>
-                <div className="text-sm text-gray-500">
-                  저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
-                </div>
-              </div>
-            ))}
-            
-            {esgData.social.length === 0 && (
-              <div className="text-center text-gray-500 py-8">
-                Social 카테고리의 윤문 데이터가 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Governance (G) */}
-        <div className="border border-purple-200 rounded-lg p-6 bg-purple-50">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-              G
-            </div>
-            <h3 className="font-semibold text-purple-800 text-lg">Governance</h3>
-            <span className="ml-auto bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">
-              {esgData.governance.length}개
-            </span>
-          </div>
-          
-          <div className="space-y-4">
-            {esgData.governance.map(({ griIndex, result, issuePool }) => (
-              <div key={griIndex} className="bg-white rounded-lg p-4 border border-purple-200 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-purple-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
-                    {issuePool?.issue_pool || '이슈풀 없음'}
-                  </span>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
-                </div>
-                <div className="text-sm text-gray-500">
-                  저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
-                </div>
-              </div>
-            ))}
-            
-            {esgData.governance.length === 0 && (
-              <div className="text-center text-gray-500 py-8">
-                Governance 카테고리의 윤문 데이터가 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
+            )
+          ))
+        ) : (
+          <p className="text-gray-500">GRI Intake에 윤문된 데이터가 없습니다.</p>
+        )}
       </div>
     </div>
   );
@@ -577,6 +477,9 @@ export default function GriReportPage() {
             </p>
           </header>
 
+          {/* GRI Intake 윤문 데이터 표시 */}
+          <IntakePolishedDataDisplay />
+
           {/* 데이터 소스별 섹션 구분 */}
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">데이터 소스별 구분</h2>
@@ -599,9 +502,6 @@ export default function GriReportPage() {
 
           {/* 로컬 데이터 전용 표시 (서버 구조 사용하지 않음) */}
           <SafeDataDisplay integratedData={integratedData} />
-
-          {/* ESG별 분류된 MG 데이터 표시 */}
-          <ESGClassifiedMGDisplay />
         </div>
       </div>
     </ProtectedRoute>
