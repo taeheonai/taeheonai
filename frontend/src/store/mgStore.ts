@@ -20,6 +20,9 @@ type PolishResultState = {
   polished_text?: string;
   status: 'idle' | 'loading' | 'done' | 'error';
   savedAt?: string;
+  // ESG 카테고리 분류를 위한 추가 필드
+  category_id?: number;
+  esg_classification_id?: number;
 };
 
 type MGState = {
