@@ -317,7 +317,7 @@ export default function Finish() {
               <div className="text-4xl mb-4">⚠️</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">최종 이슈풀 계산이 필요합니다</h4>
               <p className="text-gray-600 mb-4">
-                "설문 결과 자세히 보기" 섹션에서 "최종 이슈풀 계산하기" 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
+                &quot;설문 결과 자세히 보기&quot; 섹션에서 &quot;최종 이슈풀 계산하기&quot; 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
               </p>
               <button
                 onClick={() => {

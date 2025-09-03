@@ -2,18 +2,18 @@ import { getESGClassification } from './get_esg_classification';
 
 // 새로운 카테고리 추가 함수
 export const addNewCategory = (
-  selectedNewCategory: any, 
-  newBaseIssuePool: any, 
-  newCategoryRank: any, 
-  assessmentResult: any, 
-  setAssessmentResult: any, 
-  setIsAddCategoryModalOpen: any, 
-  setSelectedNewCategory: any, 
-  setNewCategoryRank: any, 
-  setNewBaseIssuePool: any, 
-  setIsCustomBaseIssuePool: any, 
-  setCustomBaseIssuePoolText: any,
-  allCategories: any[] // 전체 카테고리 목록 추가
+  selectedNewCategory: string, 
+  newBaseIssuePool: string, 
+  newCategoryRank: string, 
+  assessmentResult: unknown, 
+  setAssessmentResult: (value: unknown) => void, 
+  setIsAddCategoryModalOpen: (value: boolean) => void, 
+  setSelectedNewCategory: (value: string) => void, 
+  setNewCategoryRank: (value: string) => void, 
+  setNewBaseIssuePool: (value: string) => void, 
+  setIsCustomBaseIssuePool: (value: boolean) => void, 
+  setCustomBaseIssuePoolText: (value: string) => void,
+  allCategories: unknown[] // 전체 카테고리 목록 추가
 ) => {
   if (!selectedNewCategory || !newBaseIssuePool) {
     alert('카테고리와 base issue pool을 모두 선택/입력해주세요.');
@@ -26,7 +26,7 @@ export const addNewCategory = (
     const existingCategories = resultData?.matched_categories || [];
     
     // 중복 카테고리 확인
-    const isDuplicate = existingCategories.some((cat: any) => cat.category === selectedNewCategory);
+    const isDuplicate = existingCategories.some((cat: { category: string }) => cat.category === selectedNewCategory);
     if (isDuplicate) {
       const confirmAdd = confirm(`⚠️ "${selectedNewCategory}" 카테고리가 이미 존재합니다.\n\n중복으로 추가하시겠습니까?`);
       if (!confirmAdd) {
@@ -52,12 +52,14 @@ export const addNewCategory = (
     // 기존 순위가 있는 경우, 순위 조정 확인
     if (targetRank <= updatedCategories.length) {
       const affectedCategories = updatedCategories.slice(targetRank - 1);
+      const affectedCategoryNames = affectedCategories.map(cat => cat.category).join(', ');
       const confirmRankAdjustment = confirm(
         `📋 순위 조정이 필요합니다.\n\n` +
         `"${selectedNewCategory}" 카테고리를 ${targetRank}위에 추가하면:\n\n` +
         `• ${targetRank}위: ${updatedCategories[targetRank - 1]?.category || 'N/A'} → ${targetRank + 1}위\n` +
         `• ${targetRank + 1}위: ${updatedCategories[targetRank]?.category || 'N/A'} → ${targetRank + 2}위\n` +
         `• ... (아래 순위들이 모두 1씩 밀려납니다)\n\n` +
+        `영향받는 카테고리: ${affectedCategoryNames}\n\n` +
         `계속 진행하시겠습니까?`
       );
       

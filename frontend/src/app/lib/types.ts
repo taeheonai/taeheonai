@@ -22,7 +22,7 @@ export interface SearchResult {
     search_period: SearchPeriod;
     articles: Article[];
     total_results: number;
-    search_context?: any;
+    search_context?: unknown;
   };
   excel_filename?: string;
   excel_base64?: string;

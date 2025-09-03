@@ -194,8 +194,11 @@ export default function IndexBar() {
               const isCompleted = completedSteps.includes(item.id);
               const isPending = !isCompleted && !isActive && index > indexItems.findIndex(i => i.id === maxReachedStep);
               
+              // isPending 상태를 사용하여 스타일 적용
+              const stepStyle = isPending ? 'opacity-50' : '';
+              
               return (
-                <div key={item.id} className="flex items-center flex-1">
+                <div key={item.id} className={`flex items-center flex-1 ${stepStyle}`}>
                   {/* 스텝 원 */}
                   <div className="flex items-center">
                     <button

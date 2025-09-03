@@ -658,7 +658,7 @@ const FinalIssuepool: React.FC = () => {
         {/* 파라미터 변경 안내 메시지 */}
         <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            💡 <strong>안내:</strong> 파라미터를 조정한 후에는 "최종 이슈풀 계산하기" 버튼을 눌러서 새로운 결과를 확인하세요.
+            💡 <strong>안내:</strong> 파라미터를 조정한 후에는 &quot;최종 이슈풀 계산하기&quot; 버튼을 눌러서 새로운 결과를 확인하세요.
           </p>
         </div>
       </div>
@@ -748,7 +748,7 @@ const FinalIssuepool: React.FC = () => {
             미디어 검색과 설문 결과를 종합한 최종 이슈풀을 계산할 수 있습니다.
           </p>
           <p className="text-sm text-gray-400">
-            위의 "최종 이슈풀 계산하기" 버튼을 클릭하여 결과를 확인하세요.
+            위의 &quot;최종 이슈풀 계산하기&quot; 버튼을 클릭하여 결과를 확인하세요.
           </p>
         </div>
       )}

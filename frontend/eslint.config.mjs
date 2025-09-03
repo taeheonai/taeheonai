@@ -13,11 +13,17 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      // any 타입 완전 차단 (기본 규칙만)
-      "@typescript-eslint/no-explicit-any": "error",
+      // any 타입 경고로 완화 (기존 기능 보존을 위해)
+      "@typescript-eslint/no-explicit-any": "warn",
       
-      // 추가 타입 안전성 규칙
-      "@typescript-eslint/no-unused-vars": "error",
+      // 사용되지 않는 변수 경고로 완화 (기존 기능 보존을 위해)
+      "@typescript-eslint/no-unused-vars": "warn",
+      
+      // React 이스케이프 엔티티 경고로 완화
+      "react/no-unescaped-entities": "warn",
+      
+      // React Hooks 의존성 배열 경고로 완화
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 ];

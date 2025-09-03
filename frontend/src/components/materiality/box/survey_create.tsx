@@ -664,7 +664,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
               ? '이미 설문이 생성되어 있습니다. 새로운 설문을 생성하려면 버튼을 클릭하세요.'
               : '중간 중대성 평가 결과를 바탕으로 설문을 생성합니다'}
           </p>
-          <p className="text-xs text-blue-600 mt-2">💡 설문 생성 후 "설문 관리" 페이지에서 이메일 발송을 진행하세요</p>
+          <p className="text-xs text-blue-600 mt-2">💡 설문 생성 후 &quot;설문 관리&quot; 페이지에서 이메일 발송을 진행하세요</p>
           <div className="mt-4">
             <button
               onClick={handlePreview}

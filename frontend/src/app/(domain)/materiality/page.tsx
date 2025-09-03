@@ -53,7 +53,7 @@ export default function MaterialityHomePage() {
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
 
   // 검색 결과 관련 상태
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [searchResult, setSearchResult] = useState<unknown>(null);
   const [isSearchResultCollapsed, setIsSearchResultCollapsed] = useState(false);
   const [isFullResultCollapsed, setIsFullResultCollapsed] = useState(true);
 
@@ -96,14 +96,14 @@ export default function MaterialityHomePage() {
   
   // base issue pool 선택 모달 상태
   const [isBaseIssuePoolModalOpen, setIsBaseIssuePoolModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<unknown>(null);
   const [baseIssuePoolOptions, setBaseIssuePoolOptions] = useState<string[]>([]);
   const [selectedBaseIssuePool, setSelectedBaseIssuePool] = useState<string>('');
   const [editingCategoryIndex, setEditingCategoryIndex] = useState<number>(-1);
   
   // 새로운 카테고리 추가 모달 상태
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<unknown[]>([]);
   const [selectedNewCategory, setSelectedNewCategory] = useState<string>('');
 
   // 사용자 활동 감지하여 데이터 표시
@@ -132,7 +132,7 @@ export default function MaterialityHomePage() {
   }, [allCategories.length]);
   
   // 지난 중대성 평가 목록 상태
-  const [previousAssessments, setPreviousAssessments] = useState<any[]>([]);
+  const [previousAssessments, setPreviousAssessments] = useState<unknown[]>([]);
   const [isPreviousAssessmentsCollapsed, setIsPreviousAssessmentsCollapsed] = useState(false);
   const [newCategoryRank, setNewCategoryRank] = useState<string>('');
   const [newBaseIssuePool, setNewBaseIssuePool] = useState<string>('');
@@ -141,7 +141,7 @@ export default function MaterialityHomePage() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   
   // 세션 스토리지 관련 함수들
-  const saveToSessionStorage = (key: string, data: any) => {
+  const saveToSessionStorage = (key: string, data: unknown) => {
     if (typeof window === 'undefined') return;
 
     try {
@@ -493,7 +493,7 @@ export default function MaterialityHomePage() {
     };
 
     getUserCompany();
-  }, [companyId]);
+  }, [companyId, setCompanyId]);
 
   // 페이지 로드 시 설문 대상 업로드 데이터와 displayCategoryCount 자동 불러오기
   useEffect(() => {
@@ -516,7 +516,7 @@ export default function MaterialityHomePage() {
     
     // 저장된 진행 상태 복원
     restoreSavedState();
-  }, []); // loadSurveyUploadData는 Zustand store에서 가져오므로 의존성 배열에서 제외
+  }, [loadSurveyUploadData, restoreSavedState]); // loadSurveyUploadData와 restoreSavedState 의존성 추가
 
   // 설문 결과 데이터 로드 및 업데이트
   useEffect(() => {
@@ -589,7 +589,7 @@ export default function MaterialityHomePage() {
         console.log('✅ Gateway를 통한 기업 목록 API 응답:', response.data);
 
         if (response.data.success && response.data.companies) {
-          const companyNames = response.data.companies.map((company: any) => company.companyname);
+          const companyNames = response.data.companies.map((company: { companyname: string }) => company.companyname);
           setCompanies(companyNames);
           console.log(`✅ ${companyNames.length}개 기업 목록을 성공적으로 가져왔습니다.`);
           
@@ -607,7 +607,7 @@ export default function MaterialityHomePage() {
         } else {
           console.warn('⚠️ 기업 목록을 가져올 수 없습니다:', response.data);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('❌ Gateway를 통한 기업 목록 API 호출 실패 :', error);
         if (error.response) {
           console.error('응답 상태:', error.response.status);
@@ -802,7 +802,7 @@ export default function MaterialityHomePage() {
       const wb = XLSX.utils.book_new();
       
       // 데이터를 워크시트로 변환
-      const wsData = assessmentResult.matched_categories.map((cat: any, index: number) => ({
+      const wsData = assessmentResult.matched_categories.map((cat: { category_name: string; ranking: string; base_issue_pool: string }, index: number) => ({
         '순위': cat.rank || index + 1,
         '카테고리': cat.category || '',
         'ESG 분류': cat.esg_classification || '미분류',
@@ -1053,7 +1053,7 @@ export default function MaterialityHomePage() {
                 📰 미디어 스토어 검색 결과 ({totalResults}개)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {articles.slice(0, 6).map((article: any, index: number) => {
+                {articles.slice(0, 6).map((article: { title: string; url: string; publishedAt: string }, index: number) => {
                   const mediaItem: MediaItem = {
                     id: index,
                     title: article.title || '제목 없음',
@@ -1256,7 +1256,7 @@ export default function MaterialityHomePage() {
                       {(() => {
                         const categories = assessmentResult?.matched_categories || assessmentResult?.data?.matched_categories || [];
                         if (categories.length > 0) {
-                          return categories.map((cat: any, index: number) => (
+                          return categories.map((cat: { category_name: string; ranking: string; base_issue_pool: string }, index: number) => (
                             <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
                               <div className="flex items-center justify-between mb-3">
                                 <h5 className="text-lg font-semibold text-gray-800">
@@ -1516,7 +1516,7 @@ export default function MaterialityHomePage() {
                                 company_id: companyId,
                                 timestamp: new Date().toISOString(),
                                 total_categories: updatedCategories.length,
-                                categories_with_base_issue_pool: updatedCategories.filter((cat: any) => cat.selected_base_issue_pool).length
+                                categories_with_base_issue_pool: updatedCategories.filter((cat: { selected_base_issue_pool: boolean }) => cat.selected_base_issue_pool).length
                               };
                               
                               if (typeof window !== 'undefined') {
@@ -1575,7 +1575,7 @@ export default function MaterialityHomePage() {
                       <h3 className="text-lg font-semibold text-gray-900">1️⃣ 카테고리 선택</h3>
                       <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
                         <div className="grid grid-cols-1 gap-2">
-                          {allCategories.map((category: any, index: number) => (
+                          {allCategories.map((category: { id: number; name: string }, index: number) => (
                             <button
                               key={index}
                               onClick={() => {
