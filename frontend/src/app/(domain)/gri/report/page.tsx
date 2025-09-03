@@ -7,14 +7,28 @@ import { GRIApiService, type GRIReportStructure, type SavedAnswers } from '@/lib
 import { PolishResult } from '@/components/PolishResult';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useMGStore } from '@/store/mgStore';
+import { useIntakeStore } from '@/store/intakeStore';
+import { 
+  integrateReportData, 
+  getBestAnswer, 
+  getDisplayText, 
+  getSourceBadge,
+  type IntegratedAnswers 
+} from '@/lib/reportDataIntegrator';
 
 export default function GriReportPage() {
   const { user } = useAuthStore();
   const corpId = Number(user?.corporation_id);
   const { sessionKey, ensureSession } = useSessionStore();
 
+  // 로컬 스토리지 데이터
+  const mgData = useMGStore((state) => ({ resultsByIndex: state.resultsByIndex }));
+  const intakeData = useIntakeStore((state) => ({ savedItems: state.savedItems }));
+
   const [structure, setStructure] = useState<GRIReportStructure | null>(null);
   const [savedAnswers, setSavedAnswers] = useState<SavedAnswers>({});
+  const [integratedData, setIntegratedData] = useState<IntegratedAnswers>({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
@@ -52,6 +66,21 @@ export default function GriReportPage() {
       }
     })();
   }, [corpId]);
+
+  // 로컬 스토리지와 서버 데이터 통합
+  useEffect(() => {
+    if (mgData && intakeData) {
+      const integrated = integrateReportData(mgData, intakeData, savedAnswers);
+      setIntegratedData(integrated);
+      
+      // 디버깅: 통합된 데이터 구조 로깅
+      console.log('=== Report 페이지 데이터 통합 결과 ===');
+      console.log('MG 데이터:', mgData);
+      console.log('Intake 데이터:', intakeData);
+      console.log('서버 데이터:', savedAnswers);
+      console.log('통합된 데이터:', integrated);
+    }
+  }, [mgData, intakeData, savedAnswers]);
 
 
 
@@ -95,7 +124,6 @@ export default function GriReportPage() {
       <h2 className="text-2xl font-semibold">{title}</h2>
       {items.map(item => {
         const idx = item.index_no;
-        const saved = savedAnswers[idx] || {}; // { [question_id]: { ... } }
 
         return (
           <div key={idx} className="bg-white rounded-lg shadow">
@@ -108,19 +136,31 @@ export default function GriReportPage() {
 
               <div className="mt-4 space-y-4">
                 {item.questions.map((qa) => {
-                  // 우선순위: saved → item.polished_text → item.answer_text
-                  const savedOne = (saved[qa.key_alpha || ''] || {}) as { polished_text?: string | null; answer_text?: string };
-                  const polished = savedOne.polished_text;
-                  const answer = polished || savedOne.answer_text || qa.question_text;
+                  const questionKey = qa.key_alpha || String(qa.id);
+                  const bestAnswer = getBestAnswer(integratedData, idx, questionKey);
+                  const displayText = getDisplayText(bestAnswer);
+                  const sourceBadge = getSourceBadge(bestAnswer);
 
-                                     return (
-                     <div key={`${idx}_${qa.id}`} className="border rounded p-4">
-                       <div className="text-sm text-gray-500 mb-1">Q{qa.id}</div>
+                  return (
+                    <div key={`${idx}_${qa.id}`} className="border rounded p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm text-gray-500">Q{qa.id}</div>
+                        {sourceBadge && (
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            sourceBadge === 'MG' ? 'bg-blue-100 text-blue-800' :
+                            sourceBadge === 'Intake' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {sourceBadge}
+                          </span>
+                        )}
+                      </div>
+                      
                       {/* 폴리시 결과 위젯: 세션/인덱스가 있으면 표기 (선택) */}
                       {sessionKey ? (
                         <PolishResult sessionKey={sessionKey} griIndex={idx} />
                       ) : (
-                        <p className="whitespace-pre-wrap text-gray-900">{answer || '—'}</p>
+                        <p className="whitespace-pre-wrap text-gray-900">{displayText}</p>
                       )}
                     </div>
                   );
@@ -144,6 +184,37 @@ export default function GriReportPage() {
               {structure.companyname} (ID: {structure.corporation_id})
             </p>
           </header>
+
+          {/* 데이터 소스별 섹션 구분 */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">데이터 소스별 구분</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">
+                  MG (Materiality→GRI): {Object.keys(integratedData).filter(idx => 
+                    Object.values(integratedData[idx]).some(answer => answer.source === 'mg')
+                  ).length}개 인덱스
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">
+                  GRI Intake: {Object.keys(integratedData).filter(idx => 
+                    Object.values(integratedData[idx]).some(answer => answer.source === 'intake')
+                  ).length}개 인덱스
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-3 h-3 bg-gray-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">
+                  Server (기존): {Object.keys(integratedData).filter(idx => 
+                    Object.values(integratedData[idx]).some(answer => answer.source === 'server')
+                  ).length}개 인덱스
+                </span>
+              </div>
+            </div>
+          </div>
 
           {renderSection('Environmental', structure.environmental)}
           {renderSection('Social',        structure.social)}
