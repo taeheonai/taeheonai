@@ -215,20 +215,20 @@ function SafeStatsDisplay({ integratedData }: { integratedData: IntegratedAnswer
 }
 
 // 깊은 비교를 위한 헬퍼 함수
-const deepEqual = (a: any, b: any): boolean => {
+const deepEqual = (a: unknown, b: unknown): boolean => {
   if (a === b) return true;
   if (!a || !b) return false;
   if (typeof a !== typeof b) return false;
   if (typeof a !== 'object') return false;
   
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
+  const keysA = Object.keys(a as Record<string, unknown>);
+  const keysB = Object.keys(b as Record<string, unknown>);
   
   if (keysA.length !== keysB.length) return false;
   
   for (const key of keysA) {
     if (!keysB.includes(key)) return false;
-    if (!deepEqual(a[key], b[key])) return false;
+    if (!deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) return false;
   }
   
   return true;
@@ -251,7 +251,7 @@ export default function GriReportPage() {
   const [err, setErr] = useState<string | null>(null);
 
   // 🚨 무한 루프 방지: 이전 데이터 참조를 위한 ref
-  const prevDataRef = useRef<{ mg: any; intake: any }>({ mg: null, intake: null });
+  const prevDataRef = useRef<{ mg: unknown; intake: unknown }>({ mg: null, intake: null });
   const isInitializedRef = useRef(false);
 
   // 세션 보장(폴리시 컴포넌트가 세션키 필요하면)
