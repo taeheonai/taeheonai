@@ -154,18 +154,37 @@ export default function Finish({ companyId }: FinishProps) {
           
           // /mg 페이지에서 사용할 수 있도록 sessionStorage에 저장
           try {
-            const selectedIssuePools = sortedCategories.map((category, index) => ({
-              id: index + 1, // 임시 ID
-              corporation_id: 1, // 한온시스템 ID
-              issue_pool: category.category || '카테고리명 없음',
-              category_id: category.category_id || 1,
-              esg_classification_id: category.esg_classification_id || 1,
-              ranking: (index + 1).toString(),
-              publish_year: new Date().getFullYear().toString()
-            }));
+            const selectedIssuePools = sortedCategories.map((category, index) => {
+              // ESG 분류 매핑
+              let esgClassificationId = 1; // 기본값: 사회
+              if (category.esg_classification === '환경') {
+                esgClassificationId = 4;
+              } else if (category.esg_classification === '사회') {
+                esgClassificationId = 1;
+              } else if (category.esg_classification === '지배구조') {
+                esgClassificationId = 2;
+              } else if (category.esg_classification === '경제') {
+                esgClassificationId = 3;
+              }
+              
+              return {
+                id: index + 1, // 임시 ID
+                corporation_id: 1, // 한온시스템 ID
+                issue_pool: category.category || '카테고리명 없음',
+                category_id: category.category_id || (index + 1),
+                esg_classification_id: esgClassificationId,
+                ranking: (index + 1).toString(),
+                publish_year: new Date().getFullYear().toString()
+              };
+            });
             
             sessionStorage.setItem('selectedIssuePools', JSON.stringify(selectedIssuePools));
             console.log('💾 /mg 페이지용 selectedIssuePools 저장 완료:', selectedIssuePools);
+            console.log('🔍 저장된 데이터 구조:', {
+              count: selectedIssuePools.length,
+              firstItem: selectedIssuePools[0],
+              allItems: selectedIssuePools
+            });
           } catch (error) {
             console.error('❌ selectedIssuePools 저장 실패:', error);
           }
