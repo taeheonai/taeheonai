@@ -176,7 +176,11 @@ export default function IndexPolisher({
       });
 
       // MG 스토어에 윤문 결과 업데이트
-      updateSingleIndexResult(griIndex, combinedText);
+      updateSingleIndexResult(griIndex, {
+        status: 'done',
+        polished_text: combinedText,
+        savedAt: new Date().toISOString(),
+      });
 
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
