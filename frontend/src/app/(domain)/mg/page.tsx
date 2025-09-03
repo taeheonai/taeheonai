@@ -16,23 +16,29 @@ export default function MGPage() {
     excludedByIssue,
     visibleIndexesSelector,
   } = useMGStore();
-  const { sessionKey, threadId } = useSessionStore();
+  const { sessionKey, threadId, ensureSession } = useSessionStore();
 
   // ✅ 펼쳐진 카드 상태
   const [openKey, setOpenKey] = useState<string | null>(null);
   const toggleOpen = (k: string) => setOpenKey((prev) => (prev === k ? null : k));
 
-
+  // 세션 초기화
+  useEffect(() => {
+    ensureSession();
+  }, [ensureSession]);
 
   useEffect(() => {
     if (selected.length === 0) {
       try {
         const stored = sessionStorage.getItem('selectedIssuePools');
+        console.log('🔍 sessionStorage에서 selectedIssuePools 확인:', stored);
         if (stored) {
           const parsed = JSON.parse(stored);
+          console.log('🔍 파싱된 selectedIssuePools:', parsed);
           if (Array.isArray(parsed) && parsed.length > 0) {
             const { setSelected } = useMGStore.getState();
             setSelected(parsed);
+            console.log('✅ selectedIssuePools 로드 완료:', parsed.length, '개');
             return;
           }
         }
@@ -43,13 +49,14 @@ export default function MGPage() {
     
     // selected가 변경되었을 때만 loadIndexes 실행
     if (selected.length > 0) {
+      console.log('🔍 selected 데이터로 loadIndexes 실행:', selected.length, '개');
       // store에서 직접 함수 호출하여 참조 문제 방지
       const { loadIndexes: storeLoadIndexes } = useMGStore.getState();
       storeLoadIndexes();
     }
   }, [selected.length]); // selected.length만 의존성으로 사용
 
-  // 세션 준비 체크
+  // 세션이 없어도 데이터가 있으면 표시
   if (!sessionKey || !threadId) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -57,6 +64,9 @@ export default function MGPage() {
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">세션을 준비하는 중...</p>
+            <p className="mt-2 text-sm text-gray-500">
+              최종 이슈풀 데이터를 불러오는 중입니다...
+            </p>
           </div>
         </div>
       </div>
@@ -80,7 +90,34 @@ export default function MGPage() {
         </div>
 
         <div className="space-y-8">
-          {selected.map((issue) => {
+          {selected.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <div className="text-4xl mb-4">📋</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                최종 이슈풀 데이터가 없습니다
+              </h3>
+              <p className="text-gray-600 mb-6">
+                중대성 평가를 완료하고 최종 이슈풀을 계산한 후 이 페이지를 방문해주세요.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    window.location.href = '/materiality';
+                  }}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 inline-flex items-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  중대성 평가로 이동
+                </button>
+                <div className="text-sm text-gray-500">
+                  또는 브라우저 개발자 도구의 Console 탭에서 데이터 로딩 상태를 확인해보세요.
+                </div>
+              </div>
+            </div>
+          ) : (
+            selected.map((issue) => {
             const mgData = indexesByIssue[issue.id];
             const visible = visibleIndexesSelector(issue.id);
             const excluded = excludedByIssue[issue.id] ?? [];
@@ -208,7 +245,8 @@ export default function MGPage() {
                 )}
               </section>
             );
-          })}
+          })
+          )}
         </div>
       </div>
     </div>
