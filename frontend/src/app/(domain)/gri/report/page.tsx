@@ -20,8 +20,58 @@ import { Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// 마크다운 테이블을 HTML 테이블로 변환하는 함수
+const convertMarkdownTablesToHTML = (text: string): string => {
+  // 마크다운 테이블 패턴 매칭
+  const tableRegex = /(\|.*\|[\r\n]+)+/g;
+  
+  return text.replace(tableRegex, (match) => {
+    const lines = match.trim().split('\n');
+    if (lines.length < 2) return match; // 최소 헤더 + 1행 필요
+    
+    // 헤더와 구분선 분리
+    const headerLine = lines[0];
+    const separatorLine = lines[1];
+    const dataLines = lines.slice(2);
+    
+    // 헤더 파싱
+    const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
+    
+    // 데이터 행들 파싱
+    const rows = dataLines.map(line => 
+      line.split('|').map(cell => cell.trim()).filter(cell => cell)
+    );
+    
+    // HTML 테이블 생성
+    let htmlTable = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
+    
+    // 헤더
+    htmlTable += '<thead><tr style="background-color: #f8f9fa;">';
+    headers.forEach(header => {
+      htmlTable += `<th style="border: 1px solid #dee2e6; padding: 8px; text-align: left; font-weight: bold;">${header}</th>`;
+    });
+    htmlTable += '</tr></thead>';
+    
+    // 데이터 행들
+    htmlTable += '<tbody>';
+    rows.forEach(row => {
+      htmlTable += '<tr>';
+      row.forEach(cell => {
+        htmlTable += `<td style="border: 1px solid #dee2e6; padding: 8px;">${cell}</td>`;
+      });
+      htmlTable += '</tr>';
+    });
+    htmlTable += '</tbody></table>';
+    
+    return htmlTable;
+  });
+};
+
 // Word 다운로드 유틸리티 함수
 const downloadAsWord = (content: string, filename: string) => {
+  // 마크다운 테이블을 HTML 테이블로 변환
+  const convertedContent = convertMarkdownTablesToHTML(content);
+  
   const htmlContent = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' 
           xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -43,10 +93,13 @@ const downloadAsWord = (content: string, filename: string) => {
           .gri-item { margin: 15px 0; padding: 10px; background-color: #f9fafb; border-radius: 4px; }
           .issue-pool { font-weight: bold; color: #374151; }
           .polished-text { margin-top: 10px; white-space: pre-wrap; }
+          table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+          th, td { border: 1px solid #dee2e6; padding: 8px; text-align: left; }
+          th { background-color: #f8f9fa; font-weight: bold; }
         </style>
       </head>
       <body>
-        ${content}
+        ${convertedContent}
       </body>
     </html>
   `;
