@@ -31,7 +31,7 @@ asyncpg==0.29.0
 sqlalchemy[asyncio]==2.0.25
 alembic==1.13.1
 psycopg2-binary==2.9.9
-psycopg2==2.9.9
+
 
 # 머신러닝 관련
 joblib>=1.3
