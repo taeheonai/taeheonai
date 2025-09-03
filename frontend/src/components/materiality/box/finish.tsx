@@ -57,6 +57,7 @@ export default function Finish({ companyId }: FinishProps) {
           
           console.log('🔍 설문 응답 데이터 요청:', surveyId);
           const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`);
+          console.log('🔍 설문 응답 API 상태:', surveyId, responseData.status, responseData.ok);
           if (responseData.ok) {
             const responses = await responseData.json();
             console.log('🔍 설문 응답 데이터:', surveyId, responses);
@@ -83,6 +84,7 @@ export default function Finish({ companyId }: FinishProps) {
       setAllSurveys(sortedSurveys);
       console.log('📊 모든 설문 정보 로드 완료:', sortedSurveys);
       console.log('🔍 회사별 설문 로드:', { companyId, surveysCount: surveys.length, surveys });
+      console.log('🔍 allSurveys 상태 설정:', sortedSurveys.length, '개 설문');
 
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
@@ -188,7 +190,10 @@ export default function Finish({ companyId }: FinishProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">설문 정보를 불러오는 중...</p>
             </div>
-          ) : allSurveys.length === 0 ? (
+          ) : (() => {
+            console.log('🔍 렌더링 시 allSurveys 상태:', allSurveys.length, allSurveys);
+            return allSurveys.length === 0;
+          })() ? (
             <div className="text-center py-8 bg-white rounded-lg border border-blue-200">
               <div className="text-4xl mb-4">📭</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">발송된 설문이 없습니다</h4>
@@ -200,6 +205,7 @@ export default function Finish({ companyId }: FinishProps) {
             <div className="space-y-4">
               {allSurveys.map((survey, index) => {
                 const surveyId = survey.id || survey.survey_id || survey._id || `survey-${index}`;
+                console.log('🔍 설문 카드 렌더링:', index, surveyId, survey);
                 return (
                 <div key={surveyId} className="bg-white rounded-lg p-4 border border-blue-200">
                   <div className="space-y-4">
