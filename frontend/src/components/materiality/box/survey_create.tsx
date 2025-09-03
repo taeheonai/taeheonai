@@ -481,7 +481,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
         };
 
         // Gateway를 통해 materiality-service로 전송
-        const response = await fetch('/api/v1/materiality/surveys', {
+        const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys', {
           method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(surveyRequest),
