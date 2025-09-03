@@ -21,7 +21,17 @@ export default function Finish({ companyId }: FinishProps) {
     setLoading(true);
     try {
       // 특정 기업의 설문 정보만 가져오기 (corporation_id 기준)
-      const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/${companyId}`);
+      // 먼저 숫자 ID로 시도 (한온시스템 = '1')
+      let response;
+      if (companyId === '한온시스템') {
+        console.log('🔍 한온시스템을 숫자 ID 1로 변환하여 요청');
+        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/1`);
+      } else {
+        const encodedCompanyId = encodeURIComponent(companyId);
+        console.log('🔍 회사 ID 인코딩:', { companyId, encodedCompanyId });
+        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/${encodedCompanyId}`);
+      }
+      
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
@@ -125,8 +135,7 @@ export default function Finish({ companyId }: FinishProps) {
           const parsedResult = JSON.parse(savedResult);
           console.log('🔍 파싱된 결과:', parsedResult);
           
-          const categories = parsedResult.assessment_result?.data?.matched_categories || 
-                            parsedResult.assessment_result?.matched_categories || 
+          const categories = parsedResult.assessment_result?.matched_categories || 
                             parsedResult.matched_categories || 
                             parsedResult.categories || [];
           
