@@ -56,7 +56,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
 
       // Gateway API 호출
       const response = await axios.post(
-        '/api/v1/materiality-service/search-media',
+        '/api/v1/materiality/search-media',
         searchData,
         {
           headers: {

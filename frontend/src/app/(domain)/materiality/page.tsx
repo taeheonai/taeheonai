@@ -362,7 +362,7 @@ export default function MaterialityHomePage() {
       try {
         if (companyId) {
           // 1. 설문 목록 조회
-          const surveysResponse = await fetch(`/api/v1/materiality-service/surveys/company/${companyId}`);
+          const surveysResponse = await fetch(`/api/v1/materiality/surveys/company/${companyId}`);
           if (surveysResponse.ok) {
             const surveysData = await surveysResponse.json();
             if (surveysData.surveys && surveysData.surveys.length > 0) {
@@ -376,7 +376,7 @@ export default function MaterialityHomePage() {
               });
 
               // 2. 최근 설문의 응답 데이터 조회
-              const responsesResponse = await fetch(`/api/v1/materiality-service/surveys/${latestSurvey.id}/responses`);
+              const responsesResponse = await fetch(`/api/v1/materiality/surveys/${latestSurvey.id}/responses`);
               if (responsesResponse.ok) {
                 const responsesData = await responsesResponse.json();
                 // backendSurveyResponses 키에 저장 (final_issuepool.tsx에서 사용)
