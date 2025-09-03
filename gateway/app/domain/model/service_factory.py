@@ -50,29 +50,12 @@ class ServiceProxyFactory:
     def upstream_path(self, path: str) -> str:
         """서비스별 업스트림 접두사(/v1/{service}) 자동 부착"""
         path = "/" + path.lstrip("/")
-        prefixes = {
-            ServiceType.auth: "/v1/auth",
-            ServiceType.chatbot: "/v1/chatbot",
-            ServiceType.gri: "/v1/gri",
-            ServiceType.materiality: "/v1/materiality",
-            ServiceType.report: "/v1/report",
-            ServiceType.corporation: "/v1/corporation",
-            ServiceType.llm: "/v1/llm",  # LLM 서비스 prefix 추가
-            ServiceType.search: "/v1/search",  # search 서비스 prefix 추가
-        }
-        prefix = prefixes.get(self.service_type, "")
-        if not prefix:
-            return path
-        
-        # 이미 접두사가 포함된 경우(예: /v1/auth/...)는 중복 방지
-        if path == prefix or path.startswith(prefix + "/"):
-            return path
         
         # /api/v1/auth/login → /v1/auth/login으로 변환
         if path.startswith("/api/v1/"):
-            return path[4:]  # /api 제거
+            path = path[4:]  # /api 제거
         
-        # materiality 서비스의 경우 /materiality-service prefix 사용 (우선 처리)
+        # materiality 서비스의 경우 /materiality-service prefix 사용 (최우선 처리)
         if self.service_type == ServiceType.materiality:
             # /surveys → /materiality-service/surveys로 변환
             # /search-media → /materiality-service/search-media로 변환
@@ -82,6 +65,23 @@ class ServiceProxyFactory:
         if self.service_type == ServiceType.search:
             # /companies → /materiality-service/search/companies로 변환
             return f"/materiality-service/search{path}"
+        
+        # 다른 서비스들의 prefix 처리
+        prefixes = {
+            ServiceType.auth: "/v1/auth",
+            ServiceType.chatbot: "/v1/chatbot",
+            ServiceType.gri: "/v1/gri",
+            ServiceType.report: "/v1/report",
+            ServiceType.corporation: "/v1/corporation",
+            ServiceType.llm: "/v1/llm",  # LLM 서비스 prefix 추가
+        }
+        prefix = prefixes.get(self.service_type, "")
+        if not prefix:
+            return path
+        
+        # 이미 접두사가 포함된 경우(예: /v1/auth/...)는 중복 방지
+        if path == prefix or path.startswith(prefix + "/"):
+            return path
         
         # auth 서비스의 경우 /login → /v1/auth/login으로 변환
         if self.service_type == ServiceType.auth:
