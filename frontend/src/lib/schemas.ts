@@ -13,7 +13,7 @@ export const GRIQuestionSchema = z.object({
   id: z.number(),
   key_alpha: z.string(),
   question_text: z.string(),
-  reference_text: z.string().nullable(),
+  reference_text: z.string(),
   question_type: z.string(),
   display_order: z.number(),
   required: z.boolean(),
