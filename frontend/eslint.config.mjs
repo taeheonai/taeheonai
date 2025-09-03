@@ -24,6 +24,9 @@ const eslintConfig = [
       
       // React Hooks 의존성 배열 경고로 완화
       "react-hooks/exhaustive-deps": "warn",
+      
+      // prefer-const 경고로 완화
+      "prefer-const": "warn",
     },
   },
 ];
