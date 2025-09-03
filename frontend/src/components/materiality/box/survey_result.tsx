@@ -424,7 +424,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       });
 
       // 먼저 설문 정보를 가져와서 content_hash 확인
-      const surveyResponse = await fetch(`/api/v1/materiality/surveys/${targetSurveyId}`);
+      const surveyResponse = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${targetSurveyId}`);
       if (!surveyResponse.ok) {
         throw new Error(`설문 정보 조회 실패: ${surveyResponse.status}`);
       }
@@ -436,7 +436,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       let newResponses = [];
       if (contentHash) {
         // 동일한 내용 해시를 가진 설문들의 모든 응답을 가져오기
-        const responsesResponse = await fetch(`/api/v1/materiality/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
+        const responsesResponse = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
         if (responsesResponse.ok) {
           const data = await responsesResponse.json();
           newResponses = data.responses || [];
