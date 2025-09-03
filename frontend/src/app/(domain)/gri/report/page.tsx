@@ -45,27 +45,48 @@ export default function GriReportPage() {
       setLoading(true);
       setErr(null);
       try {
-        const s = await GRIApiService.fetchReportStructure(corpId);
-        setStructure(s);
+        // 1단계: 서버에서 GRI 리포트 구조 조회 시도
+        try {
+          const s = await GRIApiService.fetchReportStructure(corpId);
+          setStructure(s);
+        } catch (structureError) {
+          console.warn('GRI 리포트 구조 조회 실패, 로컬 데이터로 대체:', structureError);
+          // 구조 조회 실패 시 기본 구조 생성 (로컬 데이터 기반)
+          setStructure({
+            corporation_id: corpId,
+            companyname: user?.companyname || 'Unknown Company',
+            environmental: [],
+            social: [],
+            governance: []
+          });
+        }
 
-        // answers는 선택적. 실패해도 구조는 보여주자.
+        // 2단계: 서버에서 저장된 답변 조회 시도 (선택적)
         try {
           const a = await GRIApiService.fetchReportAnswers(corpId);
           setSavedAnswers(a || {});
-        } catch {
+        } catch (answersError) {
+          console.warn('저장된 답변 조회 실패, 로컬 데이터만 사용:', answersError);
           setSavedAnswers({});
         }
       } catch (e: unknown) {
-        console.error('GRI 리포트 구조 조회 오류:', e);
+        console.error('GRI 리포트 데이터 조회 오류:', e);
         // 사용자 메시지
         const error = e as { response?: { data?: { detail?: string } }; message?: string };
         const detail = error?.response?.data?.detail || error?.message || '서버 오류';
-        setErr(`구조 조회 실패: ${detail}`);
+        
+        // 로컬 데이터가 있으면 에러를 표시하지 않고 계속 진행
+        if (mgData && Object.keys(mgData.resultsByIndex).length > 0) {
+          console.log('서버 오류 발생했지만 로컬 데이터가 있어 계속 진행');
+          setErr(null);
+        } else {
+          setErr(`데이터 조회 실패: ${detail}`);
+        }
       } finally {
         setLoading(false);
       }
     })();
-  }, [corpId]);
+  }, [corpId, user?.companyname, mgData]);
 
   // 로컬 스토리지와 서버 데이터 통합
   useEffect(() => {
@@ -115,7 +136,22 @@ export default function GriReportPage() {
   }
 
   if (!structure) {
-    return null;
+    // 구조가 없어도 로컬 데이터가 있으면 계속 진행
+    if (mgData && Object.keys(mgData.resultsByIndex).length > 0) {
+      console.log('서버 구조 없지만 로컬 데이터가 있어 계속 진행');
+      // 기본 구조 생성하여 계속 진행
+      const fallbackStructure = {
+        corporation_id: corpId,
+        companyname: user?.companyname || 'Unknown Company',
+        environmental: [],
+        social: [],
+        governance: []
+      };
+      setStructure(fallbackStructure);
+      return null; // 다음 렌더링에서 구조가 설정됨
+    } else {
+      return null;
+    }
   }
 
   // 화면 카드: 섹션 → 아이템 → 문항
@@ -188,6 +224,20 @@ export default function GriReportPage() {
           {/* 데이터 소스별 섹션 구분 */}
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">데이터 소스별 구분</h2>
+            
+            {/* 데이터 동기화 상태 표시 */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-600">ℹ️</span>
+                <span className="text-sm text-blue-800">
+                  <strong>데이터 우선순위:</strong> 로컬 데이터 (MG/Intake) → 서버 데이터
+                </span>
+              </div>
+              <div className="mt-2 text-xs text-blue-700">
+                서버 데이터가 없어도 로컬에 저장된 윤문 결과를 표시합니다.
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center space-x-2">
                 <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
@@ -216,9 +266,44 @@ export default function GriReportPage() {
             </div>
           </div>
 
-          {renderSection('Environmental', structure.environmental)}
-          {renderSection('Social',        structure.social)}
-          {renderSection('Governance',    structure.governance)}
+          {/* 서버 구조가 있을 때: 기존 섹션 렌더링 */}
+          {structure.environmental.length > 0 && renderSection('Environmental', structure.environmental)}
+          {structure.social.length > 0 && renderSection('Social', structure.social)}
+          {structure.governance.length > 0 && renderSection('Governance', structure.governance)}
+          
+          {/* 서버 구조가 없을 때: 로컬 데이터만 표시 */}
+          {structure.environmental.length === 0 && structure.social.length === 0 && structure.governance.length === 0 && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">로컬 저장 데이터</h2>
+              <div className="text-sm text-gray-600 mb-4">
+                서버 구조 정보가 없어 로컬에 저장된 데이터만 표시합니다.
+              </div>
+              
+              {/* 로컬 데이터 요약 표시 */}
+              <div className="space-y-4">
+                {Object.entries(integratedData).map(([griIndex, indexData]) => (
+                  <div key={griIndex} className="border rounded p-4">
+                    <h3 className="font-medium text-gray-900 mb-2">GRI {griIndex}</h3>
+                    <div className="space-y-2">
+                      {Object.entries(indexData).map(([questionKey, answer]) => (
+                        <div key={questionKey} className="text-sm">
+                          <span className="font-medium text-gray-700">Q{questionKey}:</span>
+                          <span className="ml-2 text-gray-600">{getDisplayText(answer)}</span>
+                          <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                            answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
+                            answer.source === 'intake' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {getSourceBadge(answer)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>
