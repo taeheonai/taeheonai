@@ -616,7 +616,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
   // 설문 버전 선택 UI(회사별 리스트 ≤ 3개, 없으면 단건 키 fallback)
   const renderSurveyVersionPicker = () => {
     if (typeof window === 'undefined') {
-      return <div className="text-sm text-blue-600 text-center py-4">먼저 "설문 생성하기"에서 설문을 생성해주세요.</div>;
+      return <div className="text-sm text-blue-600 text-center py-4">먼저 &quot;설문 생성하기&quot;에서 설문을 생성해주세요.</div>;
     }
 
     let list = getSurveyList(companyId)
@@ -651,7 +651,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
     }
 
     if (list.length === 0) {
-      return <div className="text-sm text-blue-600 text-center py-4">먼저 "설문 생성하기"에서 설문을 생성해주세요.</div>;
+      return <div className="text-sm text-blue-600 text-center py-4">먼저 &quot;설문 생성하기&quot;에서 설문을 생성해주세요.</div>;
     }
 
     return (
@@ -794,14 +794,14 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
                   <div className="text-sm font-medium text-amber-800 mb-2">
                     메일 본문을 수정할 수 있습니다. {`{이름}`}은 각 수신자 이름으로 자동 치환됩니다.
                     <br />
-                    <span className="text-amber-700 font-semibold">※ "[자동 삽입]" 부분은 실제 URL과 마감일로 자동 교체됩니다.</span>
+                    <span className="text-amber-700 font-semibold">※ &quot;[자동 삽입]&quot; 부분은 실제 URL과 마감일로 자동 교체됩니다.</span>
                   </div>
                   
                   {/* 자동 업데이트되는 항목들 표시 */}
                   <div className="mb-3 space-y-2">
                     {/* 설문 링크 정보 */}
                     <div className="p-2 bg-blue-50 border border-blue-200 rounded">
-                      <div className="text-xs text-blue-800 font-medium mb-1">🔗 "[자동 삽입]" → 실제 설문 링크:</div>
+                      <div className="text-xs text-blue-800 font-medium mb-1">🔗 &quot;[자동 삽입]&quot; → 실제 설문 링크:</div>
                       <div className="text-xs font-mono text-blue-700 break-all bg-white p-2 rounded border">
                         {surveyUrl || '(설문을 선택해주세요)'}
                       </div>
@@ -809,7 +809,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
                     
                     {/* 응답 마감일 정보 */}
                     <div className="p-2 bg-green-50 border border-green-200 rounded">
-                      <div className="text-xs text-green-800 font-medium mb-1">📅 "[자동 삽입]" → 실제 응답 마감일:</div>
+                      <div className="text-xs text-green-800 font-medium mb-1">📅 &quot;[자동 삽입]&quot; → 실제 응답 마감일:</div>
                       <div className="text-xs font-mono text-green-700 bg-white p-2 rounded border">
                         {deadline 
                           ? new Date(deadline).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })

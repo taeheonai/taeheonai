@@ -202,7 +202,7 @@ export default function HomePage() {
                 {userInfo && (
                   <div>사용자 정보: {JSON.stringify(userInfo, null, 2)}</div>
                 )}
-                <div>API URL: {typeof window !== 'undefined' ? (window as any).location.origin : '설정되지 않음'}</div>
+                <div>API URL: {typeof window !== 'undefined' ? window.location.origin : '설정되지 않음'}</div>
                 <div>환경: 개발</div>
               </div>
             </div>

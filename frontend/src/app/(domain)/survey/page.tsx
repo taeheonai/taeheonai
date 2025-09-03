@@ -27,7 +27,7 @@ interface SurveyData {
     esg_classification: string;
     final_score: number;
   }>;
-  excel_data?: any;
+  excel_data?: unknown;
 }
 
 export default function SurveyPage() {
@@ -288,7 +288,7 @@ export default function SurveyPage() {
       const finalPosition = isInternal ? internalPosition : respondentType;
 
       // 설문 결과 데이터 생성
-      const surveyResult: any = {
+      const surveyResult: SurveyData = {
         corporation_id: surveyData?.corporation_id,
         respondent_type: respondentType,
         internal_position: internalPosition, // 임직원 세부 직급
@@ -423,7 +423,7 @@ export default function SurveyPage() {
         outside: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<number, number>,
         inside: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<number, number>
       },
-      topCategories: [] as any[]
+      topCategories: [] as SurveyItem[]
     };
 
     // 점수 분포 및 평균 계산
@@ -464,7 +464,8 @@ export default function SurveyPage() {
     return stats;
   };
 
-
+  // 설문 통계 계산 및 표시
+  const surveyStats = calculateSurveyStats();
 
   // JSON 데이터 클립보드 복사
   const copySurveyResult = async () => {
@@ -986,6 +987,23 @@ export default function SurveyPage() {
                   <p className="text-gray-600 mb-6">
                     설문이 성공적으로 제출되었습니다.
                   </p>
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">📊 설문 통계</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">외부 중요도 평균:</span> {surveyStats.averageOutsideScore.toFixed(2)}
+                      </div>
+                      <div>
+                        <span className="font-medium">내부 중요도 평균:</span> {surveyStats.averageInsideScore.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={copySurveyResult}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    📋 설문 결과 복사
+                  </button>
                 </div>
               )}
 
