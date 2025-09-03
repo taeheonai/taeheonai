@@ -288,21 +288,21 @@ export default function GriReportPage() {
                Object.entries(indexData).forEach(([questionKey, answer]) => {
                  console.log(`  Q${questionKey}:`, answer);
                  
-                 // 답변 데이터 정규화 - 로컬 데이터 구조에 맞춤
-                 if (answer && typeof answer === 'object') {
-                   // 로컬 데이터에서 실제 존재하는 필드들 추출
-                   const normalizedAnswer = {
-                     source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
-                     answer_text: answer.answer_text || answer.answers?.[questionKey] || '',
-                     polished_text: answer.polished_text || '',
-                     display_mode: answer.display_mode || 'prose',
-                     last_modified: answer.last_modified || new Date().toISOString(),
-                     // 추가 필드들도 보존
-                     gri_index: answer.gri_index || griIndex,
-                     category_id: answer.category_id,
-                     answers: answer.answers || {},
-                     version: answer.version
-                   };
+                                    // 답변 데이터 정규화 - 로컬 데이터 구조에 맞춤
+                   if (answer && typeof answer === 'object') {
+                     // 로컬 데이터에서 실제 존재하는 필드들 추출
+                     const normalizedAnswer = {
+                       source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
+                       answer_text: String(answer.answer_text || answer.answers?.[questionKey] || ''),
+                       polished_text: String(answer.polished_text || ''),
+                       display_mode: answer.display_mode || 'prose',
+                       last_modified: answer.last_modified || new Date().toISOString(),
+                       // 추가 필드들도 보존
+                       gri_index: answer.gri_index || griIndex,
+                       category_id: answer.category_id,
+                       answers: answer.answers || {},
+                       version: answer.version
+                     };
                    
                    console.log(`  🔍 정규화된 답변:`, normalizedAnswer);
                    normalizedData[griIndex][questionKey] = normalizedAnswer;
