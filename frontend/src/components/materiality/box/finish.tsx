@@ -28,6 +28,16 @@ export default function Finish() {
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
         try {
+          // survey.id가 undefined인 경우 건너뛰기
+          if (!survey.id) {
+            console.warn('⚠️ 설문 ID가 없습니다:', survey);
+            return {
+              ...survey,
+              responses: [],
+              responseCount: 0
+            };
+          }
+          
           const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
