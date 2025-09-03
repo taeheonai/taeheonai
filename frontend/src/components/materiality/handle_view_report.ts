@@ -44,7 +44,7 @@ export const handleViewReport = async (searchResult: any, setIsIssuepoolLoading:
       // Gateway를 통해 materiality-service 호출
       const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
               const response = await axios.post(
-        `${gatewayUrl}/api/v1/materiality-service/issuepool/list`,
+        `${gatewayUrl}/api/v1/materiality/issuepool/list`,
         requestData,
         {
           headers: {

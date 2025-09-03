@@ -17,7 +17,7 @@ export default function Finish() {
     setLoading(true);
     try {
       // 기업의 모든 설문 정보 가져오기
-      const response = await fetch('/api/v1/materiality-service/surveys');
+      const response = await fetch('/api/v1/materiality/surveys');
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
@@ -28,7 +28,7 @@ export default function Finish() {
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
         try {
-          const responseData = await fetch(`/api/v1/materiality-service/surveys/${survey.id}/responses`);
+          const responseData = await fetch(`/api/v1/materiality/surveys/${survey.id}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
             return {
@@ -247,7 +247,7 @@ export default function Finish() {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`/api/v1/materiality-service/surveys/${survey.id}/responses`, {
+                              const response = await fetch(`/api/v1/materiality/surveys/${survey.id}/responses`, {
                                 method: 'DELETE'
                               });
 
@@ -275,7 +275,7 @@ export default function Finish() {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문과 모든 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`/api/v1/materiality-service/surveys/${survey.id}`, {
+                              const response = await fetch(`/api/v1/materiality/surveys/${survey.id}`, {
                                 method: 'DELETE'
                               });
 

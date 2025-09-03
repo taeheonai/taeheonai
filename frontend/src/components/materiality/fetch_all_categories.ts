@@ -8,7 +8,7 @@ export const fetchAllCategories = async (setAllCategories: any) => {
     // Gateway를 통해 materiality-service 호출 (POST 방식)
     const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
     const response = await axios.post(
-      `${gatewayUrl}/api/v1/materiality-service/category/categories/all`,
+      `${gatewayUrl}/api/v1/materiality/category/categories/all`,
       {
         include_base_issue_pools: true,
         include_esg_classification: true

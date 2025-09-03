@@ -14,7 +14,7 @@ const connectWithExistingCategories = async (rawCategories: any[]) => {
     
     // 1. 기존 카테고리 API에서 모든 카테고리 정보 가져오기
     const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
-    const response = await fetch(`${gatewayUrl}/api/v1/materiality-service/category/categories/all`, {
+    const response = await fetch(`${gatewayUrl}/api/v1/materiality/category/categories/all`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
 
       // 백엔드 API 호출하여 새로운 가중치로 결과 업데이트
       const response = await axios.post(
-        `/api/v1/materiality-service/middleissue/assessment/weights`,
+        `/api/v1/materiality/middleissue/assessment/weights`,
         {
           weights: {
             frequency_weight: newWeights.frequency.value,
@@ -549,7 +549,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
               // Gateway를 통해 materiality-service 호출
               const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
               const response = await axios.post(
-                `${gatewayUrl}/api/v1/materiality-service/middleissue/assessment`,
+                `${gatewayUrl}/api/v1/materiality/middleissue/assessment`,
                 requestData,
                 {
                   headers: {
