@@ -12,7 +12,8 @@ import {
   integrateReportData, 
   getDisplayText, 
   getSourceBadge,
-  type IntegratedAnswers 
+  type IntegratedAnswers,
+  getIntegrationSummary
 } from '@/lib/reportDataIntegrator';
 
 // 안전한 데이터 표시 컴포넌트
@@ -150,56 +151,28 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
 function SafeStatsDisplay({ integratedData }: { integratedData: IntegratedAnswers }) {
   try {
     const safeData = integratedData || {};
-    const dataKeys = Object.keys(safeData);
     
-    const mgCount = dataKeys.filter(idx => {
-      try {
-        const indexData = safeData[idx];
-        return indexData && typeof indexData === 'object' && 
-               Object.values(indexData).some(answer => answer?.source === 'mg');
-      } catch {
-        return false;
-      }
-    }).length;
-    
-    const intakeCount = dataKeys.filter(idx => {
-      try {
-        const indexData = safeData[idx];
-        return indexData && typeof indexData === 'object' && 
-               Object.values(indexData).some(answer => answer?.source === 'intake');
-      } catch {
-        return false;
-      }
-    }).length;
-    
-    const serverCount = dataKeys.filter(idx => {
-      try {
-        const indexData = safeData[idx];
-        return indexData && typeof indexData === 'object' && 
-               Object.values(indexData).some(answer => answer?.source === 'server');
-      } catch {
-        return false;
-      }
-    }).length;
+    // getIntegrationSummary 함수를 사용하여 정확한 통계 계산
+    const summary = getIntegrationSummary(safeData);
     
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center space-x-2">
           <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
           <span className="text-sm text-gray-700">
-            MG (Materiality→GRI): {mgCount}개 인덱스
+            MG (Materiality→GRI): {summary.mgIndexes}개 인덱스
           </span>
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-3 h-3 bg-green-500 rounded-full"></span>
           <span className="text-sm text-gray-700">
-            GRI Intake: {intakeCount}개 인덱스
+            GRI Intake: {summary.intakeIndexes}개 인덱스
           </span>
         </div>
         <div className="flex items-center space-x-2">
           <span className="w-3 h-3 bg-gray-500 rounded-full"></span>
           <span className="text-sm text-gray-700">
-            Server (기존): {serverCount}개 인덱스
+            Server (기존): {summary.serverIndexes}개 인덱스
           </span>
         </div>
       </div>
@@ -342,7 +315,7 @@ export default function GriReportPage() {
                 
                 // 로컬 데이터에서 실제 존재하는 필드들 추출
                 const normalizedAnswer = {
-                  source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
+                  source: answer.source, // integrateReportData에서 설정한 source 값을 보존
                   answer_text: String(answer.answer_text || safeGetAnswerText(answer.answers, questionKey) || ''),
                   polished_text: String(answer.polished_text || ''),
                   display_mode: answer.display_mode || 'prose',
