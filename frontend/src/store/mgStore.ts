@@ -63,6 +63,77 @@ type MGState = {
 
   /** 단일 인덱스 결과 업데이트 */
   updateSingleIndexResult: (griIndex: string, result: PolishResultState, categoryId?: number, esgClassificationId?: number) => void;
+
+  /** ESG별로 분류된 인덱스 셀렉터 */
+  getESGIndexes: () => {
+    const environmental: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+    const social: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+    const governance: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+
+    // 각 인덱스의 결과와 이슈풀 정보를 매칭
+    for (const [griIndex, result] of Object.entries(state.resultsByIndex)) {
+      if (result.status === 'done' && result.polished_text) {
+        // 해당 인덱스가 속한 이슈풀 찾기
+        const issuePool = state.selected.find(issue => 
+          state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+        );
+
+        if (issuePool && result.esg_classification_id) {
+          const item = { griIndex, result, issuePool };
+          
+          // ESG 분류에 따라 배열에 추가
+          switch (result.esg_classification_id) {
+            case 1: // Environmental
+              environmental.push(item);
+              break;
+            case 2: // Social
+              social.push(item);
+              break;
+            case 3: // Governance
+              governance.push(item);
+              break;
+          }
+        }
+      }
+    }
+
+    return { environmental, social, governance };
+  },
+
+  /** 특정 ESG 카테고리의 인덱스만 반환 */
+  getIndexesByESG: (esgType) => {
+    const result: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+
+    for (const [griIndex, polishResult] of Object.entries(state.resultsByIndex)) {
+      if (polishResult.status === 'done' && polishResult.polished_text) {
+        const issuePool = state.selected.find(issue => 
+          state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+        );
+
+        if (issuePool && polishResult.esg_classification_id) {
+          let shouldInclude = false;
+          
+          switch (esgType) {
+            case 'E':
+              shouldInclude = polishResult.esg_classification_id === 1;
+              break;
+            case 'S':
+              shouldInclude = polishResult.esg_classification_id === 2;
+              break;
+            case 'G':
+              shouldInclude = polishResult.esg_classification_id === 3;
+              break;
+          }
+
+          if (shouldInclude) {
+            result.push({ griIndex, result: polishResult, issuePool });
+          }
+        }
+      }
+    }
+
+    return result;
+  },
 };
 
 export const useMGStore = create<MGState>()(
@@ -173,6 +244,79 @@ export const useMGStore = create<MGState>()(
             },
           },
         }));
+      },
+
+      /** ESG별로 분류된 인덱스 셀렉터 */
+      getESGIndexes: () => {
+        const state = get();
+        const environmental: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+        const social: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+        const governance: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+
+        // 각 인덱스의 결과와 이슈풀 정보를 매칭
+        for (const [griIndex, result] of Object.entries(state.resultsByIndex)) {
+          if (result.status === 'done' && result.polished_text) {
+            // 해당 인덱스가 속한 이슈풀 찾기
+            const issuePool = state.selected.find(issue => 
+              state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+            );
+
+            if (issuePool && result.esg_classification_id) {
+              const item = { griIndex, result, issuePool };
+              
+              // ESG 분류에 따라 배열에 추가
+              switch (result.esg_classification_id) {
+                case 1: // Environmental
+                  environmental.push(item);
+                  break;
+                case 2: // Social
+                  social.push(item);
+                  break;
+                case 3: // Governance
+                  governance.push(item);
+                  break;
+              }
+            }
+          }
+        }
+
+        return { environmental, social, governance };
+      },
+
+      /** 특정 ESG 카테고리의 인덱스만 반환 */
+      getIndexesByESG: (esgType) => {
+        const state = get();
+        const result: Array<{ griIndex: string; result: PolishResultState; issuePool: IssuePool }> = [];
+
+        for (const [griIndex, polishResult] of Object.entries(state.resultsByIndex)) {
+          if (polishResult.status === 'done' && polishResult.polished_text) {
+            const issuePool = state.selected.find(issue => 
+              state.indexesByIssue[issue.id]?.indexes.some(idx => idx.gri_index === griIndex)
+            );
+
+            if (issuePool && polishResult.esg_classification_id) {
+              let shouldInclude = false;
+              
+              switch (esgType) {
+                case 'E':
+                  shouldInclude = polishResult.esg_classification_id === 1;
+                  break;
+                case 'S':
+                  shouldInclude = polishResult.esg_classification_id === 2;
+                  break;
+                case 'G':
+                  shouldInclude = polishResult.esg_classification_id === 3;
+                  break;
+              }
+
+              if (shouldInclude) {
+                result.push({ griIndex, result: polishResult, issuePool });
+              }
+            }
+          }
+        }
+
+        return result;
       },
 
       runPolish: async (sessionKey, threadId, items) => {
