@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Article, SearchPeriod } from "../app/lib/types";
+import { Article, SearchPeriod } from "../../app/lib/types";
 import axios from 'axios';
 
 interface MediaState {
