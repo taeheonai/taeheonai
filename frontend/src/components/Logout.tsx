@@ -19,7 +19,7 @@ export default function Logout({ className = '', variant = 'button' }: LogoutPro
     
     try {
       // 로그아웃 API 호출
-      const response = await fetch('/api/auth/logout', {
+      const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/auth/logout', {
         method: 'POST',
         credentials: 'include',
       });

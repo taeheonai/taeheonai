@@ -17,7 +17,7 @@ export default function Finish() {
     setLoading(true);
     try {
       // 기업의 모든 설문 정보 가져오기
-      const response = await fetch('/api/v1/materiality/surveys');
+      const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys');
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
