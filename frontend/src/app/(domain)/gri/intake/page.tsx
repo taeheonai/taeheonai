@@ -818,7 +818,7 @@ export default function GRIIntakePage() {
                           <div className="text-center p-4">
                             <div className="text-gray-500 text-sm">
                               <p>윤문을 완료하면 저장할 수 있습니다.</p>
-                              <p className="mt-1">"인덱스 윤문하기" 버튼을 클릭하여 윤문을 진행해주세요.</p>
+                              <p className="mt-1">&ldquo;인덱스 윤문하기&rdquo; 버튼을 클릭하여 윤문을 진행해주세요.</p>
                             </div>
                           </div>
                         </div>
