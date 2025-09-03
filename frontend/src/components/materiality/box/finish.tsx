@@ -28,8 +28,6 @@ export default function Finish({ companyId }: FinishProps) {
 
       const data = await response.json();
       const surveys = data.surveys || [];
-      
-      console.log('🔍 회사별 설문 로드:', { companyId, surveysCount: surveys.length, surveys });
 
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
@@ -37,11 +35,7 @@ export default function Finish({ companyId }: FinishProps) {
           // survey.id가 undefined, null, 빈 문자열인 경우 건너뛰기
           if (!survey.id || survey.id === 'undefined' || survey.id === 'null' || survey.id === '') {
             console.warn('⚠️ 설문 ID가 유효하지 않습니다:', { id: survey.id, survey });
-            return {
-              ...survey,
-              responses: [],
-              responseCount: 0
-            };
+            return { ...survey, responses: [], responseCount: 0 };
           }
           
           console.log('🔍 설문 응답 데이터 요청:', survey.id);
@@ -68,7 +62,7 @@ export default function Finish({ companyId }: FinishProps) {
 
       setAllSurveys(sortedSurveys);
       console.log('📊 모든 설문 정보 로드 완료:', sortedSurveys);
-      console.log('📊 allSurveys 상태 설정:', sortedSurveys.length, '개 설문');
+      console.log('🔍 회사별 설문 로드:', { companyId, surveysCount: surveys.length, surveys });
 
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
@@ -91,7 +85,7 @@ export default function Finish({ companyId }: FinishProps) {
   // 컴포넌트 마운트 시 모든 설문 정보 로드
   useEffect(() => {
     loadAllSurveys();
-  }, []);
+  }, [companyId]);
 
   // 최종 추천 카테고리 데이터 로드 및 계산 완료 여부 확인
   useEffect(() => {
@@ -127,6 +121,7 @@ export default function Finish({ companyId }: FinishProps) {
       console.error('❌ 최종 추천 카테고리 로드 실패:', error);
     }
   }, []);
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
       <div className="text-center">
@@ -165,10 +160,7 @@ export default function Finish({ companyId }: FinishProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">설문 정보를 불러오는 중...</p>
             </div>
-          ) : (() => {
-            console.log('🔍 렌더링 시 allSurveys 상태:', allSurveys.length, allSurveys);
-            return allSurveys.length === 0;
-          })() ? (
+          ) : allSurveys.length === 0 ? (
             <div className="text-center py-8 bg-white rounded-lg border border-blue-200">
               <div className="text-4xl mb-4">📭</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">발송된 설문이 없습니다</h4>
@@ -268,7 +260,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`/api/v1/materiality/surveys/${survey.id}/responses`, {
+                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`, {
                                 method: 'DELETE'
                               });
 
@@ -296,7 +288,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문과 모든 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`/api/v1/materiality/surveys/${survey.id}`, {
+                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}`, {
                                 method: 'DELETE'
                               });
 
@@ -338,7 +330,7 @@ export default function Finish({ companyId }: FinishProps) {
               <div className="text-4xl mb-4">⚠️</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">최종 이슈풀 계산이 필요합니다</h4>
               <p className="text-gray-600 mb-4">
-                &quot;설문 결과 자세히 보기&quot; 섹션에서 &quot;최종 이슈풀 계산하기&quot; 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
+                "설문 결과 자세히 보기" 섹션에서 "최종 이슈풀 계산하기" 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
               </p>
               <button
                 onClick={() => {
