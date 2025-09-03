@@ -31,7 +31,7 @@ export const GRIItemSchema = z.object({
 export const GRICompleteDataSchema = z.object({
   category: GRICategorySchema,
   items: z.array(GRIItemSchema),
-  item_count: z.number().catch(0),
+  item_count: z.number(),
 });
 
 // 카테고리 목록 응답 스키마
