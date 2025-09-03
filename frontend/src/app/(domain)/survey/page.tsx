@@ -608,9 +608,9 @@ export default function SurveyPage() {
                                 <input
                                   type="radio"
                                   name="internalPosition"
-                                  value="임원"
-                                  checked={internalPosition === '임원'}
-                                  onChange={() => setInternalPosition('임원')}
+                                  value={position}
+                                  checked={internalPosition === position}
+                                  onChange={() => setInternalPosition(position)}
                                   className="text-blue-600 focus:ring-blue-500"
                                 />
                                 <span className="text-sm text-gray-700">{position}</span>
@@ -628,9 +628,9 @@ export default function SurveyPage() {
                                 <input
                                   type="radio"
                                   name="internalPosition"
-                                  value="중간관리자"
-                                  checked={internalPosition === '중간관리자'}
-                                  onChange={() => setInternalPosition('중간관리자')}
+                                  value={position}
+                                  checked={internalPosition === position}
+                                  onChange={() => setInternalPosition(position)}
                                   className="text-blue-600 focus:ring-blue-500"
                                 />
                                 <span className="text-sm text-gray-700">{position}</span>
@@ -648,9 +648,9 @@ export default function SurveyPage() {
                                 <input
                                   type="radio"
                                   name="internalPosition"
-                                  value="실무리더"
-                                  checked={internalPosition === '실무리더'}
-                                  onChange={() => setInternalPosition('실무리더')}
+                                  value={position}
+                                  checked={internalPosition === position}
+                                  onChange={() => setInternalPosition(position)}
                                   className="text-blue-600 focus:ring-blue-500"
                                 />
                                 <span className="text-sm text-gray-700">{position}</span>
@@ -668,9 +668,9 @@ export default function SurveyPage() {
                                 <input
                                   type="radio"
                                   name="internalPosition"
-                                  value="주니어"
-                                  checked={internalPosition === '주니어'}
-                                  onChange={() => setInternalPosition('주니어')}
+                                  value={position}
+                                  checked={internalPosition === position}
+                                  onChange={() => setInternalPosition(position)}
                                   className="text-blue-600 focus:ring-blue-500"
                                 />
                                 <span className="text-sm text-gray-700">{position}</span>
