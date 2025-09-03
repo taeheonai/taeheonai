@@ -4,7 +4,7 @@ import {
   RankedCategory, SurveyResponse, BaseWeights, defaultBaseWeights,
   computeGroupWeights, computeSurveyCategoryScores, minMaxNormalize,
   blendMediaAndSurvey, rankTopN
-} from "@/lib/kangyouwon/materiality/surveyWeighting";
+} from "@/lib/materiality/surveyWeighting";
 
 interface AssessmentState {
   mediaRanked: RankedCategory[];                    // 기존 media 결과 (프론트에 이미 존재한다면 set 통해 주입)

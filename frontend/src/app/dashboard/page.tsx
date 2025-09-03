@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import NavigationTabs from '@/component/NavigationTabs';
+import NavigationTabs from '@/components/NavigationTabs';
 
 export default function DashboardPage() {
   const handleButtonClick = (action: string) => {
