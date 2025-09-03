@@ -33,105 +33,134 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
     const dataKeys = Object.keys(integratedData);
     console.log('🔍 SafeDataDisplay 렌더링 시작:', dataKeys);
     
+    // GRI Intake 데이터만 필터링
+    const intakeOnlyData: IntegratedAnswers = {};
+    dataKeys.forEach((griIndex) => {
+      const indexData = integratedData[griIndex];
+      if (indexData && typeof indexData === 'object') {
+        const intakeQuestions: Record<string, any> = {};
+        let hasIntakeData = false;
+        
+        Object.entries(indexData).forEach(([questionKey, answer]) => {
+          if (answer && typeof answer === 'object' && answer.source === 'intake') {
+            intakeQuestions[questionKey] = answer;
+            hasIntakeData = true;
+          }
+        });
+        
+        if (hasIntakeData) {
+          intakeOnlyData[griIndex] = intakeQuestions;
+        }
+      }
+    });
+
+    const intakeDataKeys = Object.keys(intakeOnlyData);
+
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">공통 GRI INDEX </h2>
+        <h2 className="text-xl font-semibold mb-4">공통 GRI INDEX (GRI Intake만)</h2>
         <div className="text-sm text-gray-600 mb-4">
-        공통 GRI INDEX
+          GRI Intake에서 작성된 윤문 데이터만 표시합니다.
         </div>
         
         <div className="space-y-4">
-          {dataKeys.map((griIndex) => {
-            try {
-              console.log(`🔍 GRI ${griIndex} 렌더링 시작`);
-              const indexData = integratedData[griIndex];
-              if (!indexData || typeof indexData !== 'object') {
-                console.warn(`⚠️ GRI ${griIndex} 데이터가 유효하지 않음:`, indexData);
-                return null;
-              }
-              
-              const questionKeys = Object.keys(indexData);
-              console.log(`🔍 GRI ${griIndex} 질문 키들:`, questionKeys);
-              
-              return (
-                <div key={griIndex} className="border rounded p-4">
-                  <h3 className="font-medium text-gray-900 mb-2">GRI {griIndex}</h3>
-                  <div className="space-y-2">
-                    {questionKeys.map((questionKey) => {
-                      try {
-                        console.log(`🔍 Q${questionKey} 렌더링 시작`);
-                        const answer = indexData[questionKey];
-                        if (!answer || typeof answer !== 'object') {
-                          console.warn(`⚠️ Q${questionKey} 답변이 유효하지 않음:`, answer);
-                          return null;
-                        }
-                        
-                        console.log(`🔍 Q${questionKey} 답변 데이터:`, answer);
-                        
-                        // getDisplayText 함수 안전하게 호출
-                        let displayText = '데이터 로드 중...';
+          {intakeDataKeys.length > 0 ? (
+            intakeDataKeys.map((griIndex) => {
+              try {
+                console.log(`🔍 GRI ${griIndex} 렌더링 시작 (Intake만)`);
+                const indexData = intakeOnlyData[griIndex];
+                if (!indexData || typeof indexData !== 'object') {
+                  console.warn(`⚠️ GRI ${griIndex} 데이터가 유효하지 않음:`, indexData);
+                  return null;
+                }
+                
+                const questionKeys = Object.keys(indexData);
+                console.log(`🔍 GRI ${griIndex} 질문 키들 (Intake만):`, questionKeys);
+                
+                return (
+                  <div key={griIndex} className="border rounded p-4">
+                    <h3 className="font-medium text-gray-900 mb-2">GRI {griIndex}</h3>
+                    <div className="space-y-2">
+                      {questionKeys.map((questionKey) => {
                         try {
-                          if (getDisplayText && typeof getDisplayText === 'function') {
-                            displayText = getDisplayText(answer);
-                          } else {
-                            // 함수가 없으면 직접 데이터에서 추출
-                            displayText = answer.polished_text || answer.answer_text || '텍스트 없음';
+                          console.log(`🔍 Q${questionKey} 렌더링 시작 (Intake만)`);
+                          const answer = indexData[questionKey];
+                          if (!answer || typeof answer !== 'object') {
+                            console.warn(`⚠️ Q${questionKey} 답변이 유효하지 않음:`, answer);
+                            return null;
                           }
-                        } catch (error) {
-                          console.warn(`⚠️ getDisplayText 호출 오류:`, error);
-                          // 오류 발생 시 직접 데이터에서 추출
-                          displayText = answer.polished_text || answer.answer_text || '텍스트 로드 실패';
-                        }
-                        
-                        // getSourceBadge 함수 안전하게 호출
-                        let sourceBadge = 'Unknown';
-                        try {
-                          if (getSourceBadge && typeof getSourceBadge === 'function') {
-                            sourceBadge = getSourceBadge(answer);
-                          } else {
-                            // 함수가 없으면 직접 데이터에서 추출
+                          
+                          console.log(`🔍 Q${questionKey} 답변 데이터 (Intake만):`, answer);
+                          
+                          // getDisplayText 함수 안전하게 호출
+                          let displayText = '데이터 로드 중...';
+                          try {
+                            if (getDisplayText && typeof getDisplayText === 'function') {
+                              displayText = getDisplayText(answer);
+                            } else {
+                              // 함수가 없으면 직접 데이터에서 추출
+                              displayText = answer.polished_text || answer.answer_text || '텍스트 없음';
+                            }
+                          } catch (error) {
+                            console.warn(`⚠️ getDisplayText 호출 오류:`, error);
+                            // 오류 발생 시 직접 데이터에서 추출
+                            displayText = answer.polished_text || answer.answer_text || '텍스트 로드 실패';
+                          }
+                          
+                          // getSourceBadge 함수 안전하게 호출
+                          let sourceBadge = 'Unknown';
+                          try {
+                            if (getSourceBadge && typeof getSourceBadge === 'function') {
+                              sourceBadge = getSourceBadge(answer);
+                            } else {
+                              // 함수가 없으면 직접 데이터에서 추출
+                              sourceBadge = answer.source || 'Unknown';
+                            }
+                          } catch (error) {
+                            console.warn(`⚠️ getSourceBadge 호출 오류:`, error);
+                            // 오류 발생 시 직접 데이터에서 추출
                             sourceBadge = answer.source || 'Unknown';
                           }
+                         
+                          return (
+                            <div key={questionKey} className="text-sm">
+                              <span className="font-medium text-gray-700">Q{questionKey}:</span>
+                              <span className="ml-2 text-gray-600">{displayText}</span>
+                              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
+                                answer.source === 'intake' ? 'bg-green-100 text-green-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {sourceBadge}
+                              </span>
+                            </div>
+                          );
                         } catch (error) {
-                          console.warn(`⚠️ getSourceBadge 호출 오류:`, error);
-                          // 오류 발생 시 직접 데이터에서 추출
-                          sourceBadge = answer.source || 'Unknown';
+                          console.error(`❌ Q${questionKey} 렌더링 오류:`, error);
+                          return (
+                            <div key={questionKey} className="text-sm text-red-500">
+                              Q{questionKey}: 렌더링 오류
+                            </div>
+                          );
                         }
-                       
-                        return (
-                          <div key={questionKey} className="text-sm">
-                            <span className="font-medium text-gray-700">Q{questionKey}:</span>
-                            <span className="ml-2 text-gray-600">{displayText}</span>
-                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                              answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
-                              answer.source === 'intake' ? 'bg-green-100 text-green-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {sourceBadge}
-                            </span>
-                          </div>
-                        );
-                      } catch (error) {
-                        console.error(`❌ Q${questionKey} 렌더링 오류:`, error);
-                        return (
-                          <div key={questionKey} className="text-sm text-red-500">
-                            Q{questionKey}: 렌더링 오류
-                          </div>
-                        );
-                      }
-                    })}
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            } catch (error) {
-              console.error(`❌ GRI ${griIndex} 렌더링 오류:`, error);
-              return (
-                <div key={griIndex} className="border rounded p-4 text-red-500">
-                  GRI {griIndex}: 렌더링 오류
-                </div>
-              );
-            }
-          })}
+                );
+              } catch (error) {
+                console.error(`❌ GRI ${griIndex} 렌더링 오류:`, error);
+                return (
+                  <div key={griIndex} className="border rounded p-4 text-red-500">
+                    GRI {griIndex}: 렌더링 오류
+                  </div>
+                );
+              }
+            })
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              GRI Intake에서 작성된 윤문 데이터가 없습니다.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -577,9 +606,6 @@ export default function GriReportPage() {
             </p>
           </header>
 
-          {/* ESG별 분류된 MG 데이터 표시 */}
-          <ESGClassifiedMGDisplay />
-
           {/* 데이터 소스별 섹션 구분 */}
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">데이터 소스별 구분</h2>
@@ -599,6 +625,9 @@ export default function GriReportPage() {
             
             <SafeStatsDisplay integratedData={integratedData} />
           </div>
+
+          {/* ESG별 분류된 MG 데이터 표시 */}
+          <ESGClassifiedMGDisplay />
 
           {/* 로컬 데이터 전용 표시 (서버 구조 사용하지 않음) */}
           <SafeDataDisplay integratedData={integratedData} />
