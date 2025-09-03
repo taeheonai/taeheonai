@@ -22,8 +22,8 @@ export default function IndexPolisher({
 
   // polishStore에서 저장된 답변과 윤문 결과 가져오기
   const { getPolishedItem, savePolishedItem } = usePolishStore();
-  // MG 스토어에서 updateSingleIndexResult 함수 가져오기
-  const { updateSingleIndexResult } = useMGStore();
+  // MG 스토어에서 updateSingleIndexResult 함수와 이슈풀 정보 가져오기
+  const { updateSingleIndexResult, selected, indexesByIssue } = useMGStore();
   const savedItem = getPolishedItem(griIndex);
 
   // 초기 데이터 로드
@@ -175,14 +175,30 @@ export default function IndexPolisher({
         last_modified: new Date().toISOString(),
       });
 
+      // 해당 인덱스가 속한 이슈풀 찾기
+      const issuePool = selected.find(issue => 
+        indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
+      );
+      
+      // ESG 분류 ID 가져오기 (이슈풀에서 가져오거나 기본값 사용)
+      const esgClassificationId = issuePool?.esg_classification_id || 1; // 기본값을 1로 설정
+      
+      console.log('🔍 ESG 분류 정보:', {
+        griIndex,
+        categoryId,
+        issuePool: issuePool?.issue_pool,
+        esgClassificationId,
+        issuePoolEsgId: issuePool?.esg_classification_id
+      });
+
       // MG 스토어에 윤문 결과와 ESG 정보 함께 저장
       updateSingleIndexResult(griIndex, {
         status: 'done',
         polished_text: combinedText,
         savedAt: new Date().toISOString(),
         category_id: categoryId,
-        esg_classification_id: categoryId, // category_id를 esg_classification_id로도 사용
-      }, categoryId, categoryId);
+        esg_classification_id: esgClassificationId,
+      }, categoryId, esgClassificationId);
 
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
