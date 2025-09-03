@@ -43,7 +43,7 @@ export interface IntegratedAnswer {
   // 로컬 데이터에서 추가로 필요한 필드들
   gri_index?: string;
   category_id?: number;
-  answers?: Record<string, string | number | boolean | null | undefined>;
+  answers?: Record<string, unknown>;
   version?: number;
 }
 
