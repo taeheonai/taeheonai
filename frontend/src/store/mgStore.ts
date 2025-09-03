@@ -200,11 +200,22 @@ export const useMGStore = create<MGState>()(
               state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
-            if (issuePool && result.esg_classification_id) {
+            console.log('🔍 ESG 분류 체크:', {
+              griIndex,
+              resultEsgId: result.esg_classification_id,
+              issuePoolEsgId: issuePool?.esg_classification_id,
+              finalEsgId: result.esg_classification_id || issuePool?.esg_classification_id,
+              issuePool: issuePool?.issue_pool,
+              hasIssuePool: !!issuePool
+            });
+
+            if (issuePool) {
               const item = { griIndex, result, issuePool };
               
-              // ESG 분류에 따라 배열에 추가
-              switch (result.esg_classification_id) {
+              // ESG 분류에 따라 배열에 추가 (esg_classification_id가 없으면 이슈풀의 값 사용)
+              const esgId = result.esg_classification_id || issuePool.esg_classification_id;
+              
+              switch (esgId) {
                 case 1: // Environmental
                   environmental.push(item);
                   break;
@@ -213,6 +224,10 @@ export const useMGStore = create<MGState>()(
                   break;
                 case 3: // Governance
                   governance.push(item);
+                  break;
+                default:
+                  // ESG 분류가 없으면 Environmental로 기본 분류
+                  environmental.push(item);
                   break;
               }
             }
@@ -233,18 +248,21 @@ export const useMGStore = create<MGState>()(
               state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
-            if (issuePool && polishResult.esg_classification_id) {
+            if (issuePool) {
+              // ESG 분류 ID 가져오기 (결과에서 가져오거나 이슈풀에서 가져오기)
+              const esgId = polishResult.esg_classification_id || issuePool.esg_classification_id;
+              
               let shouldInclude = false;
               
               switch (esgType) {
                 case 'E':
-                  shouldInclude = polishResult.esg_classification_id === 1;
+                  shouldInclude = esgId === 1;
                   break;
                 case 'S':
-                  shouldInclude = polishResult.esg_classification_id === 2;
+                  shouldInclude = esgId === 2;
                   break;
                 case 'G':
-                  shouldInclude = polishResult.esg_classification_id === 3;
+                  shouldInclude = esgId === 3;
                   break;
               }
 
