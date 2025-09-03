@@ -139,7 +139,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
   //       console.log('🔍 백엔드 응답 데이터 로드 시작:', surveyResult.survey_id);
 
   //       // 먼저 설문 정보를 가져와서 content_hash 확인
-  //       const surveyResponse = await fetch(`/api/v1/materiality-service/surveys/${surveyResult.survey_id}`);
+  //       const surveyResponse = await fetch(`/api/v1/materiality/surveys/${surveyResult.survey_id}`);
   //       if (!isSubscribed) return; // 컴포넌트가 언마운트되었다면 중단
 
   //       console.log('🔍 설문 정보 응답:', surveyResponse.status);
@@ -152,7 +152,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
   //         let newResponses = [];
   //         if (contentHash) {
   //           // 동일한 내용 해시를 가진 설문들의 모든 응답을 가져오기
-  //           const responsesResponse = await fetch(`/api/v1/materiality-service/surveys/${surveyResult.survey_id}/responses?content_hash=${contentHash}`);
+  //           const responsesResponse = await fetch(`/api/v1/materiality/surveys/${surveyResult.survey_id}/responses?content_hash=${contentHash}`);
   //           if (!isSubscribed) return;
 
   //           console.log('🔍 응답 데이터 응답 (content_hash):', responsesResponse.status);
@@ -163,7 +163,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
   //           }
   //         } else {
   //           // content_hash가 없으면 기존 방식으로 단일 설문 응답만 가져오기
-  //           const response = await fetch(`/api/v1/materiality-service/surveys/${surveyResult.survey_id}/responses`);
+  //           const response = await fetch(`/api/v1/materiality/surveys/${surveyResult.survey_id}/responses`);
   //           if (!isSubscribed) return;
 
   //           console.log('🔍 응답 데이터 응답 (단일):', response.status);
@@ -424,7 +424,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       });
 
       // 먼저 설문 정보를 가져와서 content_hash 확인
-      const surveyResponse = await fetch(`/api/v1/materiality-service/surveys/${targetSurveyId}`);
+      const surveyResponse = await fetch(`/api/v1/materiality/surveys/${targetSurveyId}`);
       if (!surveyResponse.ok) {
         throw new Error(`설문 정보 조회 실패: ${surveyResponse.status}`);
       }
@@ -436,7 +436,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       let newResponses = [];
       if (contentHash) {
         // 동일한 내용 해시를 가진 설문들의 모든 응답을 가져오기
-        const responsesResponse = await fetch(`/api/v1/materiality-service/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
+        const responsesResponse = await fetch(`/api/v1/materiality/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
         if (responsesResponse.ok) {
           const data = await responsesResponse.json();
           newResponses = data.responses || [];
@@ -444,7 +444,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
         }
       } else {
         // content_hash가 없으면 기존 방식으로 단일 설문 응답만 가져오기
-        const response = await fetch(`/api/v1/materiality-service/surveys/${targetSurveyId}/responses`);
+        const response = await fetch(`/api/v1/materiality/surveys/${targetSurveyId}/responses`);
         if (response.ok) {
           const data = await response.json();
           newResponses = data.responses || [];

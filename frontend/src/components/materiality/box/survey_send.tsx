@@ -443,7 +443,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
         company_id: companyId,      // (선택) 서버 로깅/템플릿 분기용
       };
 
-      const resp = await fetch('/api/v1/materiality-service/email/send-survey', {
+      const resp = await fetch('/api/v1/materiality/email/send-survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

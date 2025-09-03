@@ -9,7 +9,7 @@ export const fetchAllIssuepoolData = async (setIsIssuepoolAllLoading: any, setIs
       // Gateway를 통해 materiality-service 호출
       const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
       const response = await axios.get(
-        `${gatewayUrl}/api/v1/materiality-service/issuepool/all`,
+        `${gatewayUrl}/api/v1/materiality/issuepool/all`,
         {
           headers: {
             'Content-Type': 'application/json',

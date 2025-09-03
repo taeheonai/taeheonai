@@ -252,7 +252,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
 
             // 백엔드에서 설문 정보 가져오기
             try {
-              const response = await fetch(`/api/v1/materiality-service/surveys/${surveyData.surveyId}`);
+              const response = await fetch(`/api/v1/materiality/surveys/${surveyData.surveyId}`);
               if (response.ok) {
                 const surveyInfo = await response.json();
                 setSurveyResult({
@@ -481,7 +481,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
         };
 
         // Gateway를 통해 materiality-service로 전송
-        const response = await fetch('/api/v1/materiality-service/surveys', {
+        const response = await fetch('/api/v1/materiality/surveys', {
           method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(surveyRequest),
@@ -858,7 +858,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
                                   } else {
                                     console.log('🌐 실제 설문 백엔드 삭제 처리');
                                     // 실제 설문은 백엔드에서 삭제
-                                    const resp = await fetch(`/api/v1/materiality-service/surveys/${survey.id}`, {
+                                    const resp = await fetch(`/api/v1/materiality/surveys/${survey.id}`, {
                                       method: 'DELETE',
                                     });
                                     
