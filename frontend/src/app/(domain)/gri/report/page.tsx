@@ -30,6 +30,7 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
 
     // 데이터가 있으면 안전하게 렌더링
     const dataKeys = Object.keys(integratedData);
+    console.log('🔍 SafeDataDisplay 렌더링 시작:', dataKeys);
     
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -41,12 +42,15 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
         <div className="space-y-4">
           {dataKeys.map((griIndex) => {
             try {
+              console.log(`🔍 GRI ${griIndex} 렌더링 시작`);
               const indexData = integratedData[griIndex];
               if (!indexData || typeof indexData !== 'object') {
+                console.warn(`⚠️ GRI ${griIndex} 데이터가 유효하지 않음:`, indexData);
                 return null;
               }
               
               const questionKeys = Object.keys(indexData);
+              console.log(`🔍 GRI ${griIndex} 질문 키들:`, questionKeys);
               
               return (
                 <div key={griIndex} className="border rounded p-4">
@@ -54,13 +58,44 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
                   <div className="space-y-2">
                     {questionKeys.map((questionKey) => {
                       try {
+                        console.log(`🔍 Q${questionKey} 렌더링 시작`);
                         const answer = indexData[questionKey];
                         if (!answer || typeof answer !== 'object') {
+                          console.warn(`⚠️ Q${questionKey} 답변이 유효하지 않음:`, answer);
                           return null;
                         }
                         
-                        const displayText = getDisplayText ? getDisplayText(answer) : '데이터 로드 중...';
-                        const sourceBadge = getSourceBadge ? getSourceBadge(answer) : 'Unknown';
+                        console.log(`🔍 Q${questionKey} 답변 데이터:`, answer);
+                        
+                                                 // getDisplayText 함수 안전하게 호출
+                         let displayText = '데이터 로드 중...';
+                         try {
+                           if (getDisplayText && typeof getDisplayText === 'function') {
+                             displayText = getDisplayText(answer);
+                           } else {
+                             // 함수가 없으면 직접 데이터에서 추출
+                             displayText = answer.polished_text || answer.answer_text || '텍스트 없음';
+                           }
+                         } catch (error) {
+                           console.warn(`⚠️ getDisplayText 호출 오류:`, error);
+                           // 오류 발생 시 직접 데이터에서 추출
+                           displayText = answer.polished_text || answer.answer_text || '텍스트 로드 실패';
+                         }
+                         
+                         // getSourceBadge 함수 안전하게 호출
+                         let sourceBadge = 'Unknown';
+                         try {
+                           if (getSourceBadge && typeof getSourceBadge === 'function') {
+                             sourceBadge = getSourceBadge(answer);
+                           } else {
+                             // 함수가 없으면 직접 데이터에서 추출
+                             sourceBadge = answer.source || 'Unknown';
+                           }
+                         } catch (error) {
+                           console.warn(`⚠️ getSourceBadge 호출 오류:`, error);
+                           // 오류 발생 시 직접 데이터에서 추출
+                           sourceBadge = answer.source || 'Unknown';
+                         }
                         
                         return (
                           <div key={questionKey} className="text-sm">
@@ -75,25 +110,36 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
                             </span>
                           </div>
                         );
-                      } catch {
-                        return null;
+                      } catch (error) {
+                        console.error(`❌ Q${questionKey} 렌더링 오류:`, error);
+                        return (
+                          <div key={questionKey} className="text-sm text-red-500">
+                            Q{questionKey}: 렌더링 오류
+                          </div>
+                        );
                       }
                     })}
                   </div>
                 </div>
               );
-            } catch {
-              return null;
+            } catch (error) {
+              console.error(`❌ GRI ${griIndex} 렌더링 오류:`, error);
+              return (
+                <div key={griIndex} className="border rounded p-4 text-red-500">
+                  GRI {griIndex}: 렌더링 오류
+                </div>
+              );
             }
           })}
         </div>
       </div>
     );
   } catch (error) {
-    console.error('SafeDataDisplay 렌더링 오류:', error);
+    console.error('❌ SafeDataDisplay 전체 렌더링 오류:', error);
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
         <p className="text-red-500">데이터 표시 중 오류가 발생했습니다.</p>
+        <p className="text-sm text-gray-400 mt-2">오류: {error instanceof Error ? error.message : '알 수 없는 오류'}</p>
         <p className="text-sm text-gray-400 mt-2">페이지를 새로고침해주세요.</p>
       </div>
     );
@@ -226,8 +272,48 @@ export default function GriReportPage() {
         
         // 데이터 검증: integrated가 유효한 객체인지 확인
         if (integrated && typeof integrated === 'object' && !Array.isArray(integrated)) {
-          setIntegratedData(integrated);
-          console.log('✅ 데이터 통합 성공:', Object.keys(integrated).length, '개 인덱스');
+          // 데이터 구조 상세 로깅
+          console.log('🔍 통합된 데이터 구조 분석:');
+          console.log('전체 데이터:', integrated);
+          
+                     // 데이터 구조 검증 및 정규화
+           const normalizedData: IntegratedAnswers = {};
+           
+           Object.entries(integrated).forEach(([griIndex, indexData]) => {
+             console.log(`GRI ${griIndex}:`, indexData);
+             
+             if (indexData && typeof indexData === 'object') {
+               normalizedData[griIndex] = {};
+               
+               Object.entries(indexData).forEach(([questionKey, answer]) => {
+                 console.log(`  Q${questionKey}:`, answer);
+                 
+                 // 답변 데이터 정규화 - 로컬 데이터 구조에 맞춤
+                 if (answer && typeof answer === 'object') {
+                   // 로컬 데이터에서 실제 존재하는 필드들 추출
+                   const normalizedAnswer = {
+                     source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
+                     answer_text: answer.answer_text || answer.answers?.[questionKey] || '',
+                     polished_text: answer.polished_text || '',
+                     display_mode: answer.display_mode || 'prose',
+                     last_modified: answer.last_modified || new Date().toISOString(),
+                     // 추가 필드들도 보존
+                     gri_index: answer.gri_index || griIndex,
+                     category_id: answer.category_id,
+                     answers: answer.answers || {},
+                     version: answer.version
+                   };
+                   
+                   console.log(`  🔍 정규화된 답변:`, normalizedAnswer);
+                   normalizedData[griIndex][questionKey] = normalizedAnswer;
+                 }
+               });
+             }
+           });
+          
+          console.log('🔍 정규화된 데이터:', normalizedData);
+          setIntegratedData(normalizedData);
+          console.log('✅ 데이터 통합 및 정규화 성공:', Object.keys(normalizedData).length, '개 인덱스');
         } else {
           console.warn('⚠️ 통합된 데이터가 유효하지 않음:', integrated);
           setIntegratedData({});

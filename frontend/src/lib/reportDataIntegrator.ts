@@ -40,6 +40,11 @@ export interface IntegratedAnswer {
   display_mode?: 'prose' | 'table';
   last_modified?: string | null | undefined;
   status?: 'idle' | 'loading' | 'done' | 'error';
+  // 로컬 데이터에서 추가로 필요한 필드들
+  gri_index?: string;
+  category_id?: number;
+  answers?: Record<string, any>;
+  version?: number;
 }
 
 export interface IntegratedAnswers {
