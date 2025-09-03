@@ -216,17 +216,20 @@ export const useMGStore = create<MGState>()(
               const esgId = result.esg_classification_id || issuePool.esg_classification_id;
               
               switch (esgId) {
-                case 1: // Environmental
-                  environmental.push(item);
-                  break;
-                case 2: // Social
+                case 1: // 사회 (Social)
                   social.push(item);
                   break;
-                case 3: // Governance
+                case 2: // 지배구조 (Governance)
                   governance.push(item);
                   break;
+                case 3: // 지배구조/경제 → 지배구조 (Governance)
+                  governance.push(item);
+                  break;
+                case 4: // 환경 (Environmental)
+                  environmental.push(item);
+                  break;
                 default:
-                  // ESG 분류가 없으면 Environmental로 기본 분류
+                  // ESG 분류가 없으면 환경으로 기본 분류
                   environmental.push(item);
                   break;
               }
@@ -256,13 +259,13 @@ export const useMGStore = create<MGState>()(
               
               switch (esgType) {
                 case 'E':
-                  shouldInclude = esgId === 1;
+                  shouldInclude = esgId === 4; // 환경
                   break;
                 case 'S':
-                  shouldInclude = esgId === 2;
+                  shouldInclude = esgId === 1; // 사회
                   break;
                 case 'G':
-                  shouldInclude = esgId === 3;
+                  shouldInclude = esgId === 2 || esgId === 3; // 지배구조 또는 지배구조/경제
                   break;
               }
 
@@ -297,8 +300,8 @@ export const useMGStore = create<MGState>()(
             polished_text: r.polished_text,
             savedAt: new Date().toISOString(),
             // ESG 정보 추가 (기본값으로 설정)
-            category_id: r.category_id || 1,
-            esg_classification_id: r.category_id || 1,
+            category_id: r.category_id || 4,
+            esg_classification_id: r.category_id || 4,
           };
         }
         set({ resultsByIndex: next });
@@ -307,3 +310,4 @@ export const useMGStore = create<MGState>()(
     { name: 'taeheon-mg' }
   )
 );
+
