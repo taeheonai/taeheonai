@@ -37,7 +37,7 @@ export const GRICompleteDataSchema = z.object({
 // 카테고리 목록 응답 스키마
 export const CategoriesResponseSchema = z.object({
   categories: z.array(GRICategorySchema),
-  count: z.number().catch(0),
+  count: z.number(),
 });
 
 // Materiality 랜덤 질문 스키마
