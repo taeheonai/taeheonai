@@ -822,7 +822,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
                                   if (isSimulatedSurvey) {
                                     console.log('📝 시뮬레이션 설문 삭제 처리');
                                     // 시뮬레이션된 설문은 로컬에서만 삭제
-                                    let listNow = getSurveyList(companyId).filter((s) => s.id !== survey.id);
+                                    const listNow = getSurveyList(companyId).filter((s) => s.id !== survey.id);
                                     
                                     // 삭제한 항목이 활성 설문이었으면, 남아있는 첫 항목을 활성으로
                                     if (survey.isActive && listNow.length > 0) {
@@ -866,7 +866,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
                                     
                                     if (resp.ok) {
                                       // 리스트에서 제거
-                                      let listNow = getSurveyList(companyId).filter((s) => s.id !== survey.id);
+                                      const listNow = getSurveyList(companyId).filter((s) => s.id !== survey.id);
                                       
                                       // 삭제한 항목이 활성 설문이었으면, 남아있는 첫 항목을 활성으로
                                       if (survey.isActive && listNow.length > 0) {
