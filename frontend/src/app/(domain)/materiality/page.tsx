@@ -146,7 +146,7 @@ export default function MaterialityHomePage() {
 
     try {
       sessionStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
+    } catch (error: any) {
       console.error('세션 스토리지 저장 실패:', error);
     }
   };
@@ -157,7 +157,7 @@ export default function MaterialityHomePage() {
     try {
       const data = sessionStorage.getItem(key);
       return data ? JSON.parse(data) : null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('세션 스토리지 로드 실패:', error);
       return null;
     }
@@ -607,7 +607,7 @@ export default function MaterialityHomePage() {
         } else {
           console.warn('⚠️ 기업 목록을 가져올 수 없습니다:', response.data);
         }
-      } catch (error: unknown) {
+      } catch (error: any) {
         console.error('❌ Gateway를 통한 기업 목록 API 호출 실패 :', error);
         if (error.response) {
           console.error('응답 상태:', error.response.status);

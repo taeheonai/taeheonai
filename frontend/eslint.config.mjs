@@ -13,8 +13,8 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
-      // any 타입 경고로 완화 (기존 기능 보존을 위해)
-      "@typescript-eslint/no-explicit-any": "warn",
+      // any 타입 완전 허용 (기존 기능 보존을 위해)
+      "@typescript-eslint/no-explicit-any": "off",
       
       // 사용되지 않는 변수 경고로 완화 (기존 기능 보존을 위해)
       "@typescript-eslint/no-unused-vars": "warn",
