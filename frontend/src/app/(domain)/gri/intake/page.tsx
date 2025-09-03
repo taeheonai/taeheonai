@@ -313,6 +313,11 @@ export default function GRIIntakePage() {
         if (answer.display_mode !== 'prose') {
           errors.push(`Invalid display_mode in ${griIndex}.${keyAlpha}: expected 'prose', got '${answer.display_mode}'`);
         }
+        
+        // 빈 문자열 검증
+        if (answer.polished_text.trim() === '') {
+          errors.push(`Empty polished_text in ${griIndex}.${keyAlpha}: polished_text cannot be empty`);
+        }
       }
     }
     
@@ -357,13 +362,33 @@ export default function GRIIntakePage() {
                 polishedText = polishedObj.text || '';
               }
               
+              // answer_text도 문자열로 보장
+              let answerText = '';
+              if (typeof answer.answer_text === 'string') {
+                answerText = answer.answer_text;
+              } else if (answer.answer_text !== undefined && answer.answer_text !== null) {
+                answerText = String(answer.answer_text);
+              }
+              
+              // 🚨 빈 polished_text는 제외 (서버 에러 방지)
+              if (polishedText.trim() === '') {
+                console.log(`⚠️ GRI ${griIndex} Q${keyAlpha}: 빈 polished_text 제외`);
+                return acc;
+              }
+              
               acc[griIndex][keyAlpha] = {
-                answer_text: answer.answer_text || '',
+                answer_text: answerText,
                 polished_text: polishedText,
                 display_mode: 'prose' as const
               };
             }
           });
+          
+          // 🚨 빈 섹션은 제거
+          if (Object.keys(acc[griIndex]).length === 0) {
+            delete acc[griIndex];
+            console.log(`⚠️ GRI ${griIndex}: 모든 답변이 빈 polished_text로 제외됨`);
+          }
         }
         return acc;
       }, {} as Record<string, Record<string, { answer_text: string; polished_text: string; display_mode: 'prose' }>>);
@@ -374,6 +399,22 @@ export default function GRIIntakePage() {
         console.error('Data validation failed:', validationResult.errors);
         throw new Error(`데이터 구조 검증 실패: ${validationResult.errors.join(', ')}`);
       }
+      
+      // 🚨 추가 검증: 저장할 데이터가 있는지 확인
+      if (Object.keys(serverData).length === 0) {
+        throw new Error('저장할 윤문 데이터가 없습니다. 윤문을 완료한 후 다시 시도해주세요.');
+      }
+      
+      // 🚨 각 GRI 인덱스에 유효한 답변이 있는지 확인
+      for (const [griIndex, section] of Object.entries(serverData)) {
+        if (Object.keys(section).length === 0) {
+          throw new Error(`GRI ${griIndex}: 유효한 답변이 없습니다.`);
+        }
+      }
+      
+      // 🚨 사용자에게 저장 전 안내
+      const totalAnswers = Object.values(serverData).reduce((sum, section) => sum + Object.keys(section).length, 0);
+      console.log(`📊 저장 예정: ${Object.keys(serverData).length}개 GRI 인덱스, ${totalAnswers}개 답변`);
 
       // 디버깅: 변환된 서버 데이터 구조 확인
       console.log('=== 서버 전송 데이터 구조 ===');
@@ -392,16 +433,41 @@ export default function GRIIntakePage() {
         }
       }
       
+      // API 호출 전 최종 검증
+      console.log('=== API 호출 전 최종 검증 ===');
+      console.log('Corporation ID:', user?.corporation_id);
+      console.log('Data keys:', Object.keys(serverData));
+      console.log('Data structure type:', typeof serverData);
+      console.log('Is data empty?', Object.keys(serverData).length === 0);
+      
       // 6. 백엔드 DB에 저장 (GRI Intake용 엔드포인트 사용)
       if (user?.corporation_id) {
+        console.log('✅ 저장할 데이터:', Object.keys(serverData).length, '개 GRI 인덱스');
         await GRIApiService.saveIntakeAnswers(Number(user.corporation_id), serverData);
-        setMessage('윤문 결과가 저장되었습니다. 공통 섹션에서 확인할 수 있습니다.');
+        setMessage(`윤문 결과가 저장되었습니다. (${Object.keys(serverData).length}개 인덱스) 공통 섹션에서 확인할 수 있습니다.`);
       } else {
         setMessage('기업 정보를 찾을 수 없습니다.');
       }
     } catch (error) {
       console.error('저장 중 오류 발생:', error);
-      setMessage('저장 중 오류가 발생했습니다.');
+      
+      // 더 자세한 에러 메시지 제공
+      let errorMessage = '저장 중 오류가 발생했습니다.';
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const apiError = error as { message?: string; status?: number };
+        if (apiError.status === 422) {
+          errorMessage = `데이터 형식 오류: ${apiError.message || '잘못된 데이터 구조입니다.'}`;
+        } else if (apiError.status === 400) {
+          errorMessage = `잘못된 요청: ${apiError.message || '요청 데이터를 확인해주세요.'}`;
+        } else if (apiError.status === 500) {
+          errorMessage = `서버 오류: ${apiError.message || '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'}`;
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        }
+      }
+      
+      setMessage(errorMessage);
     }
   };
 
