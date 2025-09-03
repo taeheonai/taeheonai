@@ -11,12 +11,12 @@ export const GRICategorySchema = z.object({
 // GRI 질문 스키마
 export const GRIQuestionSchema = z.object({
   id: z.number(),
-  key_alpha: z.string().catch(''),
-  question_text: z.string().catch(''),
-  reference_text: z.string().nullable().catch(null),
-  question_type: z.string().catch(''),
-  display_order: z.number().catch(0),
-  required: z.boolean().catch(false),
+  key_alpha: z.string(),
+  question_text: z.string(),
+  reference_text: z.string().nullable(),
+  question_type: z.string(),
+  display_order: z.number(),
+  required: z.boolean(),
 });
 
 // GRI 아이템 스키마
