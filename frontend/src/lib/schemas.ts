@@ -71,6 +71,25 @@ export function safeParseCategories(data: unknown) {
     return CategoriesResponseSchema.parse(data);
   } catch (error) {
     console.error('카테고리 데이터 파싱 실패:', error);
+    
+    // 파싱 실패 시 원본 데이터를 그대로 반환하되, 타입 변환만 적용
+    if (data && typeof data === 'object') {
+      const rawData = data as any;
+      
+      // 카테고리 데이터 변환
+      const categories = Array.isArray(rawData.categories) ? rawData.categories.map((category: any) => ({
+        ...category,
+        display_order: typeof category.display_order === 'string' 
+          ? parseInt(category.display_order, 10) || 0 
+          : category.display_order || 0
+      })) : [];
+      
+      return {
+        categories,
+        count: rawData.count || categories.length
+      };
+    }
+    
     return { categories: [], count: 0 };
   }
 }
