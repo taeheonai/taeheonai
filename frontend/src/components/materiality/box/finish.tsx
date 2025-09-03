@@ -51,6 +51,7 @@ export default function Finish() {
 
       setAllSurveys(sortedSurveys);
       console.log('📊 모든 설문 정보 로드 완료:', sortedSurveys);
+      console.log('📊 allSurveys 상태 설정:', sortedSurveys.length, '개 설문');
 
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
@@ -147,7 +148,10 @@ export default function Finish() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">설문 정보를 불러오는 중...</p>
             </div>
-          ) : allSurveys.length === 0 ? (
+          ) : (() => {
+            console.log('🔍 렌더링 시 allSurveys 상태:', allSurveys.length, allSurveys);
+            return allSurveys.length === 0;
+          })() ? (
             <div className="text-center py-8 bg-white rounded-lg border border-blue-200">
               <div className="text-4xl mb-4">📭</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">발송된 설문이 없습니다</h4>
