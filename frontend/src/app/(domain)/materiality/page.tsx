@@ -563,7 +563,7 @@ export default function MaterialityHomePage() {
         console.log('🔍 기업 목록을 Gateway를 통해 가져오는 중...');
         
         // Gateway를 통해 materiality-service 호출 (GET 방식)
-        const gatewayUrl = 'https://gateway-production-4c8b.up.railway.app';
+        const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
         const response = await axios.get(
           `${gatewayUrl}/api/v1/search/companies`,
           {

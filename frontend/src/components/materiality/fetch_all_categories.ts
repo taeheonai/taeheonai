@@ -6,7 +6,7 @@ export const fetchAllCategories = async (setAllCategories: any) => {
     console.log('🔍 데이터베이스에서 카테고리 목록을 가져오는 중...');
     
     // Gateway를 통해 materiality-service 호출 (POST 방식)
-    const gatewayUrl = 'https://gateway-production-4c8b.up.railway.app';
+    const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
     const response = await axios.post(
       `${gatewayUrl}/api/v1/materiality-service/category/categories/all`,
       {

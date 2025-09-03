@@ -42,7 +42,7 @@ export const handleViewReport = async (searchResult: any, setIsIssuepoolLoading:
       console.log('지난 중대성 평가 목록 요청 데이터:', requestData);
 
       // Gateway를 통해 materiality-service 호출
-      const gatewayUrl = 'https://gateway-production-4c8b.up.railway.app';
+      const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
               const response = await axios.post(
         `${gatewayUrl}/api/v1/materiality-service/issuepool/list`,
         requestData,

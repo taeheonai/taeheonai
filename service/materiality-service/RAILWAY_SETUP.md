@@ -82,12 +82,12 @@ curl https://materiality-service-production.up.railway.app/health
 
 #### **Gateway를 통한 접근**
 ```bash
-curl https://your-gateway-domain.up.railway.app/api/v1/materiality/health
+curl https://taeheonai-production-2130.up.railway.app/api/v1/materiality/health
 ```
 
 #### **설문 생성 테스트**
 ```bash
-curl -X POST https://your-gateway-domain.up.railway.app/api/v1/materiality/surveys \
+curl -X POST https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys \
   -H "Content-Type: application/json" \
   -d '{
     "corporation_id": "123",
