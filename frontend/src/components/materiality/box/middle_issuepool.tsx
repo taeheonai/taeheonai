@@ -13,7 +13,7 @@ const connectWithExistingCategories = async (rawCategories: any[]) => {
     console.log('🔗 뉴스 카테고리를 기존 API와 연결 시작');
     
     // 1. 기존 카테고리 API에서 모든 카테고리 정보 가져오기
-    const gatewayUrl = 'https://gateway-production-4c8b.up.railway.app';
+    const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
     const response = await fetch(`${gatewayUrl}/api/v1/materiality-service/category/categories/all`, {
       method: 'POST',
       headers: {
@@ -547,7 +547,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
               console.log('🚀 중대성 평가 요청 데이터:', requestData);
 
               // Gateway를 통해 materiality-service 호출
-              const gatewayUrl = 'https://gateway-production-4c8b.up.railway.app';
+              const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
               const response = await axios.post(
                 `${gatewayUrl}/api/v1/materiality-service/middleissue/assessment`,
                 requestData,
