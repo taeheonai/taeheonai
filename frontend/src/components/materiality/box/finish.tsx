@@ -21,13 +21,14 @@ export default function Finish({ companyId }: FinishProps) {
     setLoading(true);
     try {
       // 특정 기업의 설문 정보만 가져오기 (corporation_id 기준)
-      const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys?corporation_id=${companyId}`);
+      const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/${companyId}`);
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
 
       const data = await response.json();
-      const surveys = data.surveys || [];
+      // 백엔드에서 List[SurveyDataResponse]를 직접 반환하므로 배열로 처리
+      const surveys = Array.isArray(data) ? data : (data.surveys || []);
       
       // 설문 데이터 구조 디버깅
       console.log('🔍 API 응답 데이터:', data);
@@ -61,8 +62,8 @@ export default function Finish({ companyId }: FinishProps) {
             console.log('🔍 설문 응답 데이터:', surveyId, responses);
             return {
               ...survey,
-              responses: responses.responses || responses || [],
-              responseCount: (responses.responses || responses || []).length
+              responses: responses.responses || [],
+              responseCount: responses.total_responses || (responses.responses || []).length
             };
           } else {
             console.warn('⚠️ 설문 응답 데이터 요청 실패:', surveyId, responseData.status);
