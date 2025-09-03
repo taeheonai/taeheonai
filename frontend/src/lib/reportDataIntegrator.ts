@@ -10,6 +10,9 @@ export interface MGPolishResult {
   polished_text?: string;
   status: 'idle' | 'loading' | 'done' | 'error';
   savedAt?: string;
+  // ESG 카테고리 분류를 위한 추가 필드
+  category_id?: number;
+  esg_classification_id?: number;
 }
 
 export interface MGStoreData {
@@ -43,6 +46,7 @@ export interface IntegratedAnswer {
   // 로컬 데이터에서 추가로 필요한 필드들
   gri_index?: string;
   category_id?: number;
+  esg_classification_id?: number; // ESG 분류 ID 추가
   answers?: Record<string, unknown>;
   version?: number;
 }
@@ -81,7 +85,10 @@ export function integrateReportData(
           source: 'mg',
           polished_text: result.polished_text,
           last_modified: savedAt,
-          status: result.status
+          status: result.status,
+          // ESG 정보 추가
+          category_id: result.category_id,
+          esg_classification_id: result.esg_classification_id
         };
       }
     }
