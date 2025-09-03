@@ -44,7 +44,11 @@ export class GRIApiService {
     try {
       const response = await api.get('/v1/gri/categories');
       // 스키마 검증 적용
-      return safeParseCategories(response.data);
+      const result = safeParseCategories(response.data);
+      return {
+        categories: result.categories as GRICategory[],
+        count: result.count
+      };
     } catch (error: unknown) {
       console.error('카테고리 조회 오류:', error);
       const err = error as ErrorResponse;
@@ -65,7 +69,7 @@ export class GRIApiService {
       if (!parsedData) {
         throw new Error('GRI 데이터 파싱 실패');
       }
-      return parsedData;
+      return parsedData as GRICompleteData;
     } catch (error: unknown) {
       console.error('GRI 데이터 조회 오류:', error);
       const err = error as ErrorResponse;
