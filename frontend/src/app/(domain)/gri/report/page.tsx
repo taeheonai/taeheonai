@@ -31,7 +31,6 @@ const convertMarkdownTablesToHTML = (text: string): string => {
     
     // 헤더와 구분선 분리
     const headerLine = lines[0];
-    const separatorLine = lines[1];
     const dataLines = lines.slice(2);
     
     // 헤더 파싱
