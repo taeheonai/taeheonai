@@ -81,6 +81,11 @@ class ServiceProxyFactory:
             # /companies → /materiality-service/search/companies로 변환
             return f"/materiality-service/search{path}"
         
+        # materiality 서비스의 경우 /materiality-service prefix 사용
+        if self.service_type == ServiceType.materiality:
+            # /search-media → /materiality-service/search-media로 변환
+            return f"/materiality-service{path}"
+        
         return f"{prefix}{path}"
 
     async def request(
