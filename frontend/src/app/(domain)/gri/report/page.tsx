@@ -264,75 +264,102 @@ export default function GriReportPage() {
     }
   }, [corpId, user?.companyname]);
 
-  // 로컬 스토리지와 서버 데이터 통합
-  useEffect(() => {
-    try {
-      if (mgData && intakeData) {
-        const integrated = integrateReportData(mgData, intakeData, savedAnswers);
-        
-        // 데이터 검증: integrated가 유효한 객체인지 확인
-        if (integrated && typeof integrated === 'object' && !Array.isArray(integrated)) {
-          // 데이터 구조 상세 로깅
-          console.log('🔍 통합된 데이터 구조 분석:');
-          console.log('전체 데이터:', integrated);
-          
-                     // 데이터 구조 검증 및 정규화
-           const normalizedData: IntegratedAnswers = {};
+     // 로컬 스토리지와 서버 데이터 통합
+   useEffect(() => {
+     try {
+       if (mgData && intakeData) {
+         const integrated = integrateReportData(mgData, intakeData, savedAnswers);
+         
+         // 데이터 검증: integrated가 유효한 객체인지 확인
+         if (integrated && typeof integrated === 'object' && !Array.isArray(integrated)) {
+           // 데이터 구조 상세 로깅
+           console.log('🔍 통합된 데이터 구조 분석:');
+           console.log('전체 데이터:', integrated);
            
-           Object.entries(integrated).forEach(([griIndex, indexData]) => {
-             console.log(`GRI ${griIndex}:`, indexData);
+                      // 데이터 구조 검증 및 정규화
+            const normalizedData: IntegratedAnswers = {};
+            
+            Object.entries(integrated).forEach(([griIndex, indexData]) => {
+              console.log(`GRI ${griIndex}:`, indexData);
+              
+              if (indexData && typeof indexData === 'object') {
+                normalizedData[griIndex] = {};
+                
+                Object.entries(indexData).forEach(([questionKey, answer]) => {
+                  console.log(`  Q${questionKey}:`, answer);
+                  
+                                                                                   // 답변 데이터 정규화 - 로컬 데이터 구조에 맞춤
+                          if (answer && typeof answer === 'object') {
+                            // 안전한 데이터 추출을 위한 헬퍼 함수
+                            const safeGetAnswerText = (obj: unknown, key: string): string => {
+                              if (obj && typeof obj === 'object' && obj !== null) {
+                                const value = (obj as Record<string, unknown>)[key];
+                                return value !== undefined && value !== null ? String(value) : '';
+                              }
+                              return '';
+                            };
+                            
+                            // 로컬 데이터에서 실제 존재하는 필드들 추출
+                            const normalizedAnswer = {
+                              source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
+                              answer_text: String(answer.answer_text || safeGetAnswerText(answer.answers, questionKey) || ''),
+                              polished_text: String(answer.polished_text || ''),
+                              display_mode: answer.display_mode || 'prose',
+                              last_modified: answer.last_modified || new Date().toISOString(),
+                              // 추가 필드들도 보존
+                              gri_index: answer.gri_index || griIndex,
+                              category_id: answer.category_id,
+                              answers: answer.answers || {},
+                              version: answer.version
+                            };
+                    
+                    console.log(`  🔍 정규화된 답변:`, normalizedAnswer);
+                    normalizedData[griIndex][questionKey] = normalizedAnswer;
+                  }
+                });
+              }
+            });
+           
+           console.log('🔍 정규화된 데이터:', normalizedData);
+           
+           // 🚨 무한 루프 방지: 실제로 변경된 경우에만 상태 업데이트
+           setIntegratedData(prevData => {
+             const prevKeys = Object.keys(prevData);
+             const nextKeys = Object.keys(normalizedData);
              
-             if (indexData && typeof indexData === 'object') {
-               normalizedData[griIndex] = {};
-               
-               Object.entries(indexData).forEach(([questionKey, answer]) => {
-                 console.log(`  Q${questionKey}:`, answer);
-                 
-                                                                                  // 답변 데이터 정규화 - 로컬 데이터 구조에 맞춤
-                         if (answer && typeof answer === 'object') {
-                           // 안전한 데이터 추출을 위한 헬퍼 함수
-                           const safeGetAnswerText = (obj: unknown, key: string): string => {
-                             if (obj && typeof obj === 'object' && obj !== null) {
-                               const value = (obj as Record<string, unknown>)[key];
-                               return value !== undefined && value !== null ? String(value) : '';
-                             }
-                             return '';
-                           };
-                           
-                           // 로컬 데이터에서 실제 존재하는 필드들 추출
-                           const normalizedAnswer = {
-                             source: answer.source || 'mg', // 기본값을 'mg'으로 설정 (MG 페이지에서 온 데이터)
-                             answer_text: String(answer.answer_text || safeGetAnswerText(answer.answers, questionKey) || ''),
-                             polished_text: String(answer.polished_text || ''),
-                             display_mode: answer.display_mode || 'prose',
-                             last_modified: answer.last_modified || new Date().toISOString(),
-                             // 추가 필드들도 보존
-                             gri_index: answer.gri_index || griIndex,
-                             category_id: answer.category_id,
-                             answers: answer.answers || {},
-                             version: answer.version
-                           };
-                   
-                   console.log(`  🔍 정규화된 답변:`, normalizedAnswer);
-                   normalizedData[griIndex][questionKey] = normalizedAnswer;
-                 }
-               });
+             // 키 개수가 다르면 업데이트
+             if (prevKeys.length !== nextKeys.length) {
+               console.log('✅ 키 개수 변경으로 데이터 업데이트');
+               return normalizedData;
+             }
+             
+             // 키가 모두 같고 내용이 같으면 이전 데이터 유지
+             const hasChanges = nextKeys.some(key => {
+               const prev = prevData[key];
+               const next = normalizedData[key];
+               return !prev || !next || JSON.stringify(prev) !== JSON.stringify(next);
+             });
+             
+             if (hasChanges) {
+               console.log('✅ 데이터 내용 변경으로 업데이트');
+               return normalizedData;
+             } else {
+               console.log('🔄 데이터 변경 없음, 이전 데이터 유지');
+               return prevData;
              }
            });
-          
-          console.log('🔍 정규화된 데이터:', normalizedData);
-          setIntegratedData(normalizedData);
-          console.log('✅ 데이터 통합 및 정규화 성공:', Object.keys(normalizedData).length, '개 인덱스');
-        } else {
-          console.warn('⚠️ 통합된 데이터가 유효하지 않음:', integrated);
-          setIntegratedData({});
-        }
-      }
-    } catch (error) {
-      console.error('❌ 데이터 통합 중 오류:', error);
-      setIntegratedData({});
-    }
-  }, [mgData, intakeData, savedAnswers]);
+           
+           console.log('✅ 데이터 통합 및 정규화 성공:', Object.keys(normalizedData).length, '개 인덱스');
+         } else {
+           console.warn('⚠️ 통합된 데이터가 유효하지 않음:', integrated);
+           setIntegratedData({});
+         }
+       }
+     } catch (error) {
+       console.error('❌ 데이터 통합 중 오류:', error);
+       setIntegratedData({});
+     }
+   }, [mgData, intakeData]); // 🚨 savedAnswers 제거 (빈 객체로 항상 같음)
 
   if (loading) {
     return (
@@ -364,24 +391,29 @@ export default function GriReportPage() {
     );
   }
 
-  if (!structure) {
-    // 구조가 없어도 로컬 데이터가 있으면 계속 진행
-    if (mgData && Object.keys(mgData.resultsByIndex).length > 0) {
-      console.log('서버 구조 없지만 로컬 데이터가 있어 계속 진행');
-      // 기본 구조 생성하여 계속 진행
-      const fallbackStructure = {
-        corporation_id: corpId,
-        companyname: user?.companyname || 'Unknown Company',
-        environmental: [],
-        social: [],
-        governance: []
-      };
-      setStructure(fallbackStructure);
-      return null; // 다음 렌더링에서 구조가 설정됨
-    } else {
-      return null;
-    }
-  }
+     if (!structure) {
+     // 구조가 없어도 로컬 데이터가 있으면 계속 진행
+     if (mgData && Object.keys(mgData.resultsByIndex).length > 0) {
+       console.log('서버 구조 없지만 로컬 데이터가 있어 계속 진행');
+       // 🚨 무한 루프 방지: useEffect에서 한 번만 설정하도록 수정
+       // 여기서 setStructure 호출하지 않음
+       return (
+         <ProtectedRoute>
+           <div className="min-h-screen bg-gray-50">
+             <Navigation />
+             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+               <div className="text-center">
+                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                 <p className="mt-4 text-gray-600">로컬 데이터를 불러오는 중...</p>
+               </div>
+             </div>
+           </div>
+         </ProtectedRoute>
+       );
+     } else {
+       return null;
+     }
+   }
 
   return (
     <ProtectedRoute>
