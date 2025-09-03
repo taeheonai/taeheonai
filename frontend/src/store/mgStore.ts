@@ -59,7 +59,7 @@ type MGState = {
   getVisiblePayload: () => MGIndexDTO[];
 
   /** 단일 인덱스 결과 업데이트 */
-  updateSingleIndexResult: (griIndex: string, result: PolishResultState) => void;
+  updateSingleIndexResult: (griIndex: string, result: PolishResultState, categoryId?: number, esgClassificationId?: number) => void;
 };
 
 export const useMGStore = create<MGState>()(
@@ -158,11 +158,16 @@ export const useMGStore = create<MGState>()(
         return payload;
       },
 
-      updateSingleIndexResult: (griIndex, result) => {
+      updateSingleIndexResult: (griIndex, result, categoryId, esgClassificationId) => {
         set((state) => ({
           resultsByIndex: {
             ...state.resultsByIndex,
-            [griIndex]: result,
+            [griIndex]: {
+              ...result,
+              // ESG 정보가 제공되면 추가, 없으면 기존 값 유지
+              category_id: categoryId ?? result.category_id,
+              esg_classification_id: esgClassificationId ?? result.esg_classification_id,
+            },
           },
         }));
       },

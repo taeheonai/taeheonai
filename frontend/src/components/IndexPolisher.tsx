@@ -175,12 +175,12 @@ export default function IndexPolisher({
         last_modified: new Date().toISOString(),
       });
 
-      // MG 스토어에 윤문 결과 업데이트
+      // MG 스토어에 윤문 결과와 ESG 정보 함께 저장
       updateSingleIndexResult(griIndex, {
         status: 'done',
         polished_text: combinedText,
         savedAt: new Date().toISOString(),
-      });
+      }, categoryId, undefined); // categoryId는 전달, esgClassificationId는 나중에 추가
 
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
