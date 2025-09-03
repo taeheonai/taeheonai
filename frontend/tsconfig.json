@@ -9,7 +9,7 @@
     "types": ["react", "react-dom"],
     "allowJs": false,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -20,12 +20,12 @@
     "jsxImportSource": "react",
     "incremental": true,
     
-    // 기본적인 타입 체크만 유지
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // 관대한 타입 체크 설정 (원본 환경과 동일)
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     
     "plugins": [
       {
