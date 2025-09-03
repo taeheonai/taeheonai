@@ -7,7 +7,7 @@ export interface User {
   id: string;
   name: string;
   corporation_id: string;
-  companyname?: string;
+  잘들어봐 ring;
   email?: string;
 }
 
