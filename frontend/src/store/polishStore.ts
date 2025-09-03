@@ -186,6 +186,15 @@ export const usePolishStore = create<PolishState>()(
         savedItems: state.savedItems,
         companyname: state.companyname 
       }),
+      migrate: (persistedState: any, version: number) => {
+        // Handle migration from older versions
+        if (version === 0) {
+          // If no version or version 0, return the persisted state as is
+          return persistedState;
+        }
+        return persistedState;
+      },
+      version: 1,
     }
   )
 );
