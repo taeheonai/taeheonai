@@ -96,10 +96,17 @@ export function integrateReportData(
 
       // 개별 질문 답변
       for (const [questionKey, answer] of Object.entries(item.answers)) {
+        // 🚨 polished_text가 객체인 경우 text 필드 추출
+        let polishedText = answer.polished_text;
+        if (typeof answer.polished_text === 'object' && answer.polished_text !== null) {
+          const polishedObj = answer.polished_text as { text?: string };
+          polishedText = polishedObj.text || '';
+        }
+        
         integrated[griIndex][questionKey] = {
           source: 'intake',
           answer_text: answer.answer_text,
-          polished_text: answer.polished_text,
+          polished_text: polishedText,
           display_mode: answer.display_mode,
           last_modified: item.last_modified
         };
@@ -107,11 +114,20 @@ export function integrateReportData(
 
       // 전체 인덱스 윤문 결과
       if (item.polished_text) {
-        integrated[griIndex]['intake_result'] = {
-          source: 'intake',
-          polished_text: item.polished_text,
-          last_modified: item.last_modified
-        };
+        // 🚨 polished_text가 객체인 경우 text 필드 추출
+        let polishedText = item.polished_text;
+        if (typeof item.polished_text === 'object' && item.polished_text !== null) {
+          const polishedObj = item.polished_text as { text?: string };
+          polishedText = polishedObj.text || '';
+        }
+        
+        if (polishedText) {
+          integrated[griIndex]['intake_result'] = {
+            source: 'intake',
+            polished_text: polishedText,
+            last_modified: item.last_modified
+          };
+        }
       }
     }
   }
@@ -180,7 +196,14 @@ export function getDisplayText(answer: IntegratedAnswer | null): string {
 
   // polished_text가 있으면 우선 사용
   if (answer.polished_text) {
-    return answer.polished_text;
+    // 🚨 polished_text가 객체인 경우 text 필드 추출
+    if (typeof answer.polished_text === 'string') {
+      return answer.polished_text;
+    } else if (typeof answer.polished_text === 'object' && answer.polished_text !== null) {
+      const polishedObj = answer.polished_text as { text?: string };
+      return polishedObj.text || '윤문 텍스트 없음';
+    }
+    return '윤문 텍스트 없음';
   }
 
   // answer_text가 있으면 사용
