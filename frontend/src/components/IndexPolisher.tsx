@@ -180,7 +180,9 @@ export default function IndexPolisher({
         status: 'done',
         polished_text: combinedText,
         savedAt: new Date().toISOString(),
-      }, categoryId, undefined); // categoryId는 전달, esgClassificationId는 나중에 추가
+        category_id: categoryId,
+        esg_classification_id: categoryId, // category_id를 esg_classification_id로도 사용
+      }, categoryId, categoryId);
 
     } catch (error) {
       console.error('윤문 처리 중 오류:', error);
