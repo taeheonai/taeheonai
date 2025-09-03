@@ -28,7 +28,7 @@ export default function Finish() {
       // 각 설문의 응답 데이터 가져오기
       const surveysWithResponses = await Promise.all(surveys.map(async (survey: any) => {
         try {
-          const responseData = await fetch(`/api/v1/materiality/surveys/${survey.id}/responses`);
+          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${survey.id}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
             return {

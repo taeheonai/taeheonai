@@ -90,9 +90,9 @@ export default function IndexBar() {
         return null;
       }).filter((section): section is Section => section !== null);
 
-      const closest = sections.reduce((prev, curr) => {
+      const closest = sections.length > 0 ? sections.reduce((prev, curr) => {
         return prev.distance < curr.distance ? prev : curr;
-      });
+      }) : null;
 
       if (closest) {
         setActiveSection(closest.id);
