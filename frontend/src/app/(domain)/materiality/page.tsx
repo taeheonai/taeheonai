@@ -2,12 +2,12 @@
 
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import NavigationTabs from '@/components/NavigationTabs';
-import { MediaCard, MediaItem } from '@/components/MediaCard';
+// import { MediaCard, MediaItem } from '@/components/MediaCard';
 import IndexBar from '@/components/IndexBar';
 import { useMediaStore } from '@/store/mediaStore';
 import { IssuepoolData } from "../../lib/types";
 import axios from 'axios';
-import * as XLSX from 'xlsx';
+// import * as XLSX from 'xlsx';
 import { useExcelDataStore } from '@/store/excelDataStore';
 import FinalIssuepool from '@/components/materiality/box/final_issuepool';
 import MediaSearch from '@/components/materiality/box/media_search';
@@ -18,12 +18,12 @@ import SurveyCreate from '@/components/materiality/box/survey_create';
 import SurveyManagement from '@/components/materiality/box/survey_send';
 import SurveyResult from '@/components/materiality/box/survey_result';
 import Finish from '@/components/materiality/box/finish';
-import { handleViewReport } from '@/components/materiality/handle_view_report';
-import { loadAssessmentResult } from '@/components/materiality/load_assessment_result';
-import { fetchAllCategories } from '@/components/materiality/fetch_all_categories';
+// import { handleViewReport } from '@/components/materiality/handle_view_report';
+// import { loadAssessmentResult } from '@/components/materiality/load_assessment_result';
+// import { fetchAllCategories } from '@/components/materiality/fetch_all_categories';
 
 import { addNewCategory } from '@/components/materiality/add_new_category';
-import { getESGClassification } from '@/components/materiality/get_esg_classification';
+// import { getESGClassification } from '@/components/materiality/get_esg_classification';
 
 
 
@@ -31,6 +31,7 @@ export default function MaterialityHomePage() {
   // React를 명시적으로 사용하여 linter 경고 해결
   const reactVersion = React.version;
   console.log('React version:', reactVersion);
+  
   // Zustand store 사용
   const {
     loading: isMediaSearching,
@@ -53,7 +54,7 @@ export default function MaterialityHomePage() {
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
 
   // 검색 결과 관련 상태
-  const [searchResult, setSearchResult] = useState<unknown>(null);
+  const [searchResult, setSearchResult] = useState<any>(null);
   const [isSearchResultCollapsed, setIsSearchResultCollapsed] = useState(false);
   const [isFullResultCollapsed, setIsFullResultCollapsed] = useState(true);
 
@@ -91,21 +92,6 @@ export default function MaterialityHomePage() {
   // 화면 표시 제어를 위한 별도 상태
   const [isDataHidden, setIsDataHidden] = useState(true); // 처음 접속 시 데이터 숨김
   
-  // 모달 상태
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  
-  // base issue pool 선택 모달 상태
-  const [isBaseIssuePoolModalOpen, setIsBaseIssuePoolModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<unknown>(null);
-  const [baseIssuePoolOptions, setBaseIssuePoolOptions] = useState<string[]>([]);
-  const [selectedBaseIssuePool, setSelectedBaseIssuePool] = useState<string>('');
-  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number>(-1);
-  
-  // 새로운 카테고리 추가 모달 상태
-  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  const [allCategories, setAllCategories] = useState<unknown[]>([]);
-  const [selectedNewCategory, setSelectedNewCategory] = useState<string>('');
-
   // 사용자 활동 감지하여 데이터 표시
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -116,23 +102,24 @@ export default function MaterialityHomePage() {
       console.log('✅ 사용자 활동 감지: 데이터 표시 활성화');
     }
   }, []);
-
-  // 새로운 카테고리 추가 모달이 열릴 때 카테고리 목록 가져오기
-  useEffect(() => {
-    if (isAddCategoryModalOpen && allCategories.length === 0) {
-      fetchAllCategories(setAllCategories);
-    }
-  }, [isAddCategoryModalOpen, allCategories.length]);
-
-  // 페이지 로드 시 카테고리 목록 미리 로드
-  useEffect(() => {
-    if (allCategories.length === 0) {
-      fetchAllCategories(setAllCategories);
-    }
-  }, [allCategories.length]);
+  
+  // 모달 상태
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  
+  // base issue pool 선택 모달 상태
+  const [isBaseIssuePoolModalOpen, setIsBaseIssuePoolModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [baseIssuePoolOptions, setBaseIssuePoolOptions] = useState<string[]>([]);
+  const [selectedBaseIssuePool, setSelectedBaseIssuePool] = useState<string>('');
+  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number>(-1);
+  
+  // 새로운 카테고리 추가 모달 상태
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [selectedNewCategory, setSelectedNewCategory] = useState<string>('');
   
   // 지난 중대성 평가 목록 상태
-  const [previousAssessments, setPreviousAssessments] = useState<unknown[]>([]);
+  const [previousAssessments, setPreviousAssessments] = useState<any[]>([]);
   const [isPreviousAssessmentsCollapsed, setIsPreviousAssessmentsCollapsed] = useState(false);
   const [newCategoryRank, setNewCategoryRank] = useState<string>('');
   const [newBaseIssuePool, setNewBaseIssuePool] = useState<string>('');
@@ -141,12 +128,12 @@ export default function MaterialityHomePage() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   
   // 세션 스토리지 관련 함수들
-  const saveToSessionStorage = (key: string, data: unknown) => {
+  const saveToSessionStorage = (key: string, data: any) => {
     if (typeof window === 'undefined') return;
 
     try {
       sessionStorage.setItem(key, JSON.stringify(data));
-    } catch (error: any) {
+    } catch (error) {
       console.error('세션 스토리지 저장 실패:', error);
     }
   };
@@ -157,7 +144,7 @@ export default function MaterialityHomePage() {
     try {
       const data = sessionStorage.getItem(key);
       return data ? JSON.parse(data) : null;
-    } catch (error: any) {
+    } catch (error) {
       console.error('세션 스토리지 로드 실패:', error);
       return null;
     }
@@ -493,7 +480,7 @@ export default function MaterialityHomePage() {
     };
 
     getUserCompany();
-  }, [companyId, setCompanyId]);
+  }, [companyId]);
 
   // 페이지 로드 시 설문 대상 업로드 데이터와 displayCategoryCount 자동 불러오기
   useEffect(() => {
@@ -516,7 +503,7 @@ export default function MaterialityHomePage() {
     
     // 저장된 진행 상태 복원
     restoreSavedState();
-  }, [loadSurveyUploadData, restoreSavedState]); // loadSurveyUploadData와 restoreSavedState 의존성 추가
+  }, []); // loadSurveyUploadData는 Zustand store에서 가져오므로 의존성 배열에서 제외
 
   // 설문 결과 데이터 로드 및 업데이트
   useEffect(() => {
@@ -589,7 +576,7 @@ export default function MaterialityHomePage() {
         console.log('✅ Gateway를 통한 기업 목록 API 응답:', response.data);
 
         if (response.data.success && response.data.companies) {
-          const companyNames = response.data.companies.map((company: { companyname: string }) => company.companyname);
+          const companyNames = response.data.companies.map((company: any) => company.companyname);
           setCompanies(companyNames);
           console.log(`✅ ${companyNames.length}개 기업 목록을 성공적으로 가져왔습니다.`);
           
@@ -613,7 +600,7 @@ export default function MaterialityHomePage() {
           console.error('응답 상태:', error.response.status);
           console.error('응답 데이터:', error.response.data);
         }
-    } finally {
+      } finally {
         setIsCompanyLoading(false);
       }
     };
@@ -702,32 +689,6 @@ export default function MaterialityHomePage() {
     setCompanySearchTerm(e.target.value);
     setIsCompanyDropdownOpen(true);
   };
-
-  // 미디어 검색 실행 함수
-  const handleMediaSearch = async () => {
-    if (!companyId || !searchPeriod.start_date || !searchPeriod.end_date) {
-      alert('기업명과 검색 기간을 모두 입력해주세요.');
-      return;
-    }
-    
-    try {
-      await searchMedia({
-        company_id: companyId,
-        search_period: searchPeriod
-      });
-      
-  if (error) {
-        alert(`검색 중 오류가 발생했습니다: ${error}`);
-      } else if (articles && articles.length > 0) {
-        alert(`✅ ${totalResults}개의 기사를 찾았습니다!`);
-      } else {
-        alert('검색 결과가 없습니다. 다른 검색 조건을 시도해보세요.');
-      }
-    } catch (err) {
-      console.error('미디어 검색 실패:', err);
-      alert('미디어 검색에 실패했습니다.');
-    }
-  };
   
   // 지난 중대성 평가 목록 가져오기
   const loadPreviousAssessments = async () => {
@@ -770,141 +731,7 @@ export default function MaterialityHomePage() {
     }
   };
 
-  // 저장된 중대성 평가 결과 불러오기 함수
-  const handleLoadAssessmentResult = () => {
-    loadAssessmentResult(
-      setAssessmentResult,
-      setCompanyId,
-      setCompanySearchTerm,
-      setSearchPeriod,
-      setDisplayCategoryCount
-    );
-  };
-
-  // 지난 중대성 평가 목록 조회 함수
-  const handleViewReportClick = () => {
-    if (searchResult) {
-      handleViewReport(searchResult, setIsIssuepoolLoading, setIssuepoolData);
-    } else {
-      alert('먼저 미디어 검색을 완료해주세요.');
-    }
-  };
-
-  // Excel 파일 다운로드 함수
-  const handleExcelDownload = () => {
-    if (!assessmentResult || !assessmentResult.matched_categories) {
-      alert('다운로드할 데이터가 없습니다. 먼저 중대성 평가를 완료해주세요.');
-      return;
-    }
-
-    try {
-      // Excel 워크북 생성
-      const wb = XLSX.utils.book_new();
-      
-      // 데이터를 워크시트로 변환
-      const wsData = assessmentResult.matched_categories.map((cat: { category_name: string; ranking: string; base_issue_pool: string }, index: number) => ({
-        '순위': cat.rank || index + 1,
-        '카테고리': cat.category || '',
-        'ESG 분류': cat.esg_classification || '미분류',
-        '최종점수': cat.final_score || 0,
-        '빈도점수': cat.frequency_score || 0,
-        '관련성점수': cat.relevance_score || 0,
-        '최신성점수': cat.recent_score || 0,
-        '순위점수': cat.rank_score || 0,
-        '참조점수': cat.reference_score || 0,
-        '부정성점수': cat.negative_score || 0,
-        '선택된 이슈풀': cat.selected_base_issue_pool || '',
-        '기사 수': cat.count || 0
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(wsData);
-      
-      // 워크시트를 워크북에 추가
-      XLSX.utils.book_append_sheet(wb, ws, '중대성평가결과');
-      
-      // 파일 다운로드
-      const fileName = `중대성평가결과_${companyId || 'unknown'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      
-      alert(`✅ Excel 파일이 다운로드되었습니다: ${fileName}`);
-    } catch (error) {
-      console.error('Excel 다운로드 실패:', error);
-      alert('❌ Excel 파일 다운로드에 실패했습니다.');
-    }
-  };
-
-  // Excel 데이터 관리 함수들
-  const handleExcelDataManagement = async () => {
-    try {
-      // 로컬 스토리지에서 데이터 로드
-      await loadFromStorage();
-      
-      // Excel 데이터 유효성 검사
-      if (isExcelValid && excelData.length > 0) {
-        alert(`✅ Excel 데이터가 로드되었습니다.\n\n파일명: ${excelFilename || 'N/A'}\n데이터 행 수: ${excelData.length}개`);
-      } else {
-        alert('⚠️ 유효한 Excel 데이터가 없습니다.');
-      }
-    } catch (error) {
-      console.error('Excel 데이터 관리 실패:', error);
-      alert('❌ Excel 데이터 관리에 실패했습니다.');
-    }
-  };
-
-  // Excel 데이터 저장 함수
-  const handleSaveExcelData = () => {
-    try {
-      saveToLocalStorage();
-      alert('✅ Excel 데이터가 로컬 스토리지에 저장되었습니다.');
-    } catch (error) {
-      console.error('Excel 데이터 저장 실패:', error);
-      alert('❌ Excel 데이터 저장에 실패했습니다.');
-    }
-  };
-
-  // 업로드된 Excel 데이터 로드 함수
-  const handleLoadUploadedExcelData = () => {
-    try {
-      loadUploadedExcelData(excelData);
-      setIsExcelValid(excelData.length > 0);
-      alert(`✅ 업로드된 Excel 데이터를 로드했습니다.\n데이터 행 수: ${excelData.length}개`);
-    } catch (error) {
-      console.error('업로드된 Excel 데이터 로드 실패:', error);
-      alert('❌ 업로드된 Excel 데이터 로드에 실패했습니다.');
-    }
-  };
-
-  // Excel 데이터 설정 함수
-  const handleSetExcelData = () => {
-    try {
-      // 샘플 데이터 생성
-      const sampleData = [
-        {
-          name: '홍길동',
-          position: '대표이사',
-          company: companyId || '샘플회사',
-          stakeholderType: '내부이해관계자',
-          email: 'hong@example.com'
-        },
-        {
-          name: '김철수',
-          position: '부사장',
-          company: companyId || '샘플회사',
-          stakeholderType: '내부이해관계자',
-          email: 'kim@example.com'
-        }
-      ];
-      
-      setExcelData(sampleData);
-      setIsExcelValid(true);
-      alert(`✅ 샘플 Excel 데이터가 설정되었습니다.\n데이터 행 수: ${sampleData.length}개`);
-    } catch (error) {
-      console.error('Excel 데이터 설정 실패:', error);
-      alert('❌ Excel 데이터 설정에 실패했습니다.');
-    }
-  };
-
-    return (
+  return (
     <div className="min-h-screen bg-white"> {/* ROOT */}
       {isMediaSearching && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -914,8 +741,8 @@ export default function MaterialityHomePage() {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">미디어 검색 중...</h3>
             <p className="text-gray-600">네이버 뉴스 API를 통해 기사를 수집하고 있습니다.</p>
             <p className="text-gray-500 text-sm mt-2">잠시만 기다려주세요.</p>
+          </div>
         </div>
-      </div>
       )}
   
       <NavigationTabs />
@@ -933,66 +760,12 @@ export default function MaterialityHomePage() {
                 </div>
                 
                 {/* 상단 고정 버튼 컨테이너 */}
-                <div className="flex gap-3 flex-wrap">
-          <button
+                <div className="flex gap-3">
+                  <button
                     onClick={() => setIsResetModalOpen(true)}
-                    className="px-4 py-2 bg-white hover:bg-red-50 text-gray-600 font-semibold rounded-lg transition-all duration-200 border-2 border-gray-300 hover:border-red-200 hover:text-red-500 shadow-lg hover:shadow-xl text-sm"
+                    className="px-6 py-3 bg-white hover:bg-red-50 text-gray-600 font-semibold rounded-lg transition-all duration-200 border-2 border-gray-300 hover:border-red-200 hover:text-red-500 shadow-lg hover:shadow-xl"
                   >
-                    🔄 리셋
-                  </button>
-                  <button
-                    onClick={handleLoadAssessmentResult}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📂 결과 불러오기
-                  </button>
-                  <button
-                    onClick={handleViewReportClick}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📋 지난 평가 조회
-                  </button>
-                  <button
-                    onClick={loadPreviousAssessments}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📚 평가 목록 로드
-                  </button>
-                  <button
-                    onClick={handleExcelDownload}
-                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📊 Excel 다운로드
-                  </button>
-                  <button
-                    onClick={handleExcelDataManagement}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📋 Excel 관리
-                  </button>
-                  <button
-                    onClick={handleSetExcelData}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📝 샘플 데이터
-                  </button>
-                  <button
-                    onClick={handleSaveExcelData}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    💾 저장
-                  </button>
-                  <button
-                    onClick={handleLoadUploadedExcelData}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📤 업로드 로드
-                  </button>
-                  <button
-                    onClick={handleMediaSearch}
-                    className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    🔍 미디어 검색
+                    🔄 미디어 검색 다시하기
                   </button>
                   <button
                     onClick={() => {
@@ -1001,12 +774,12 @@ export default function MaterialityHomePage() {
                       // 다음 단계로 이동
                       moveToNextStep();
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
                   >
                     다음 →
-          </button>
-        </div>
-      </div>
+                  </button>
+                </div>
+              </div>
           </div>
   
           {/* 선택 옵션 */}
@@ -1044,68 +817,6 @@ export default function MaterialityHomePage() {
               setCompanyId={setCompanyId}
               setSearchPeriod={setSearchPeriod}
             />
-          )}
-
-          {/* 미디어 스토어에서 가져온 기사들 표시 */}
-          {visibleSection === 'media-search' && articles && articles.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                📰 미디어 스토어 검색 결과 ({totalResults}개)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {articles.slice(0, 6).map((article: { title: string; url: string; publishedAt: string }, index: number) => {
-                  const mediaItem: MediaItem = {
-                    id: index,
-                    title: article.title || '제목 없음',
-                    keyword: article.keyword || '키워드 없음',
-                    url: article.originallink || article.url || '#',
-                    publishedAt: article.pubDate || article.publishedAt
-                  };
-                  
-                  return (
-                    <MediaCard
-                      key={index}
-                      item={mediaItem}
-                    />
-                  );
-                })}
-              </div>
-              {articles.length > 6 && (
-                <div className="mt-4 text-center">
-                  <p className="text-gray-500 text-sm">
-                    ... 및 {articles.length - 6}개 더
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 기업 검색 테스트 섹션 */}
-          {visibleSection === 'media-search' && (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                🔍 기업 검색 테스트
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    기업명 검색
-                  </label>
-                  <input
-                    type="text"
-                    value={companySearchTerm}
-                    onChange={handleCompanySearchChange}
-                    placeholder="기업명을 입력하세요"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p>현재 선택된 기업: <strong>{companyId || '없음'}</strong></p>
-                  <p>검색어: <strong>{companySearchTerm}</strong></p>
-                  <p>드롭다운 열림: <strong>{isCompanyDropdownOpen ? '예' : '아니오'}</strong></p>
-                </div>
-              </div>
-            </div>
           )}
           
 
@@ -1256,7 +967,7 @@ export default function MaterialityHomePage() {
                       {(() => {
                         const categories = assessmentResult?.matched_categories || assessmentResult?.data?.matched_categories || [];
                         if (categories.length > 0) {
-                          return categories.map((cat: { category_name: string; ranking: string; base_issue_pool: string }, index: number) => (
+                          return categories.map((cat: any, index: number) => (
                             <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
                               <div className="flex items-center justify-between mb-3">
                                 <h5 className="text-lg font-semibold text-gray-800">
@@ -1336,16 +1047,16 @@ export default function MaterialityHomePage() {
                       </p>
                     </div>
                   </div>
-        </div>
-
+                </div>
+                
                 {/* 모달 푸터 */}
                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10">
-          <button
+                  <button
                     onClick={() => setIsDetailModalOpen(false)}
                     className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
-          >
+                  >
                     닫기
-          </button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1364,14 +1075,14 @@ export default function MaterialityHomePage() {
                   <h3 className="text-xl font-bold text-gray-900">
                     Base Issue Pool 선택 - {selectedCategory.category}
                   </h3>
-          <button
+                  <button
                     onClick={() => setIsBaseIssuePoolModalOpen(false)}
                     className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-          </button>
+                  </button>
                 </div>
                 
                 {/* 모달 바디 */}
@@ -1460,7 +1171,7 @@ export default function MaterialityHomePage() {
                 {/* 모달 푸터 */}
                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10">
                   <div className="flex space-x-3">
-          <button
+                    <button
                       onClick={() => setIsBaseIssuePoolModalOpen(false)}
                       className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
                     >
@@ -1516,7 +1227,7 @@ export default function MaterialityHomePage() {
                                 company_id: companyId,
                                 timestamp: new Date().toISOString(),
                                 total_categories: updatedCategories.length,
-                                categories_with_base_issue_pool: updatedCategories.filter((cat: { selected_base_issue_pool: boolean }) => cat.selected_base_issue_pool).length
+                                categories_with_base_issue_pool: updatedCategories.filter((cat: any) => cat.selected_base_issue_pool).length
                               };
                               
                               if (typeof window !== 'undefined') {
@@ -1533,13 +1244,13 @@ export default function MaterialityHomePage() {
                       disabled={!(selectedBaseIssuePool || (isCustomBaseIssuePool && customBaseIssuePoolText.trim()))}
                       className={`px-4 py-2 font-medium rounded-lg transition-colors duration-200 ${
                         (selectedBaseIssuePool || (isCustomBaseIssuePool && customBaseIssuePoolText.trim()))
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
+                      }`}
+                    >
                       선택 완료
-          </button>
-        </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1564,8 +1275,8 @@ export default function MaterialityHomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-              </div>
-              
+                </div>
+                
                 {/* 모달 바디 */}
                 <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 140px)' }}>
 
@@ -1575,7 +1286,7 @@ export default function MaterialityHomePage() {
                       <h3 className="text-lg font-semibold text-gray-900">1️⃣ 카테고리 선택</h3>
                       <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
                         <div className="grid grid-cols-1 gap-2">
-                          {allCategories.map((category: { id: number; name: string }, index: number) => (
+                          {allCategories.map((category: any, index: number) => (
                             <button
                               key={index}
                               onClick={() => {
@@ -1610,13 +1321,13 @@ export default function MaterialityHomePage() {
                                     'bg-gray-100 text-gray-700'
                                   }`}>
                                     {category.esg_classification}
-                </span>
+                                  </span>
                                 )}
-                </div>
+                              </div>
                             </button>
                           ))}
-                </div>
-                </div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* 오른쪽: Base Issue Pool 선택 및 순위 설정 */}
@@ -1641,12 +1352,12 @@ export default function MaterialityHomePage() {
                                     'bg-gray-100 text-gray-700'
                                   }`}>
                                     ESG 분류: {selectedCat.esg_classification}
-                </span>
-                </div>
+                                  </span>
+                                </div>
                               ) : null;
                             })()}
-              </div>
-              
+                          </div>
+
                           {/* Base Issue Pool 선택 */}
                           <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
@@ -1672,7 +1383,7 @@ export default function MaterialityHomePage() {
                                     </option>
                                   ))}
                                 </select>
-                </div>
+                              </div>
                             )}
                             
                             {/* 구분선 */}
@@ -1681,7 +1392,7 @@ export default function MaterialityHomePage() {
                                 <div className="flex-1 border-t border-gray-300"></div>
                                 <span className="px-3 text-sm text-gray-500 bg-white">또는</span>
                                 <div className="flex-1 border-t border-gray-300"></div>
-                </div>
+                              </div>
                             )}
                             
                             {/* 직접 입력 옵션 */}
@@ -1709,9 +1420,9 @@ export default function MaterialityHomePage() {
                                       autoFocus
                                     />
                                   )}
-                </div>
+                                </div>
                               </label>
-            </div>
+                            </div>
                             
                             {/* 옵션이 없는 경우 안내 */}
                             {baseIssuePoolOptions.length === 0 && (
@@ -1721,12 +1432,12 @@ export default function MaterialityHomePage() {
                                 </svg>
                                 <p className="text-sm">이 카테고리에 매칭되는 base issue pool이 없습니다.</p>
                                 <p className="text-xs text-gray-400 mt-1">아래에서 직접 입력해주세요.</p>
-              </div>
+                              </div>
                             )}
-            </div>
+                          </div>
 
                           {/* 순위 설정 */}
-            <div>
+                          <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
                               순위
                             </label>
@@ -1737,26 +1448,7 @@ export default function MaterialityHomePage() {
                               onChange={(e) => setNewCategoryRank(e.target.value)}
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium"
                             />
-              </div>
-
-                          {/* ESG 분류 미리보기 */}
-                          {selectedNewCategory && (
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                              <h4 className="font-semibold text-gray-800 mb-2">ESG 분류 미리보기</h4>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-600">예상 분류:</span>
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                  getESGClassification(selectedNewCategory) === '환경' ? 'bg-green-100 text-green-700' :
-                                  getESGClassification(selectedNewCategory) === '사회' ? 'bg-orange-100 text-orange-700' :
-                                  getESGClassification(selectedNewCategory) === '지배구조' ? 'bg-blue-100 text-blue-700' :
-                                  getESGClassification(selectedNewCategory) === '경제' ? 'bg-purple-100 text-purple-700' :
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {getESGClassification(selectedNewCategory)}
-                  </span>
-                </div>
-              </div>
-                          )}
+                          </div>
 
                           {/* 추가 버튼 */}
                           <button
@@ -1790,18 +1482,18 @@ export default function MaterialityHomePage() {
                           >
                             ✅ 카테고리 추가하기
                           </button>
-            </div>
+                        </div>
                       )}
 
                       {!selectedNewCategory && (
                         <div className="text-center text-gray-500 py-8">
                           왼쪽에서 카테고리를 선택해주세요
-          </div>
+                        </div>
                       )}
-        </div>
-      </div>
-        </div>
-
+                    </div>
+                  </div>
+                </div>
+                
                 {/* 모달 푸터 */}
                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white sticky bottom-0 z-10">
                   <div className="flex space-x-3">
@@ -1821,7 +1513,7 @@ export default function MaterialityHomePage() {
                         addNewCategory(
                           selectedNewCategory,
                           finalBaseIssuePool,
-                          parseInt(newCategoryRank) || 1,
+                          String(parseInt(newCategoryRank) || 1),
                           assessmentResult,
                           setAssessmentResult,
                           setIsAddCategoryModalOpen,
@@ -1842,10 +1534,10 @@ export default function MaterialityHomePage() {
                     >
                       ✅ 카테고리 추가하기
                     </button>
-            </div>
+                  </div>
+                </div>
               </div>
             </div>
-              </div>
           )}
 
           {/* 리셋 확인 모달 */}
@@ -1867,14 +1559,14 @@ export default function MaterialityHomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-            </div>
+                </div>
                 
                 {/* 모달 바디 */}
                 <div className="p-6">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-3xl">⚠️</span>
-              </div>
+                    </div>
                     
                     <h4 className="text-lg font-semibold text-gray-900 mb-3">
                       모든 메모리가 삭제됩니다
@@ -1892,7 +1584,7 @@ export default function MaterialityHomePage() {
                         <li>• 업로드된 엑셀 파일</li>
                         <li>• 진행 상황 및 설정</li>
                       </ul>
-            </div>
+                    </div>
 
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
                       <p className="text-sm text-blue-700 font-medium mb-2">💡 다음 데이터는 유지됩니다:</p>
@@ -1901,13 +1593,13 @@ export default function MaterialityHomePage() {
                         <li>• 설문 응답 결과</li>
                         <li>• 설문 ID 및 메타데이터</li>
                       </ul>
-          </div>
+                    </div>
                     
                     <p className="text-sm text-gray-500 mb-6">
                       로컬 데이터 초기화 후 DB에서 설문 데이터를 자동으로 다시 불러옵니다. 계속하시겠습니까?
                     </p>
-        </div>
-      </div>
+                  </div>
+                </div>
                 
                 {/* 모달 푸터 */}
                 <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
@@ -1933,6 +1625,6 @@ export default function MaterialityHomePage() {
   
         </div> {/* /CONTAINER */}
       </div>   {/* /BG */}
-    </div>
+    </div>      
   );
 }
