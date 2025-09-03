@@ -22,48 +22,79 @@ import remarkGfm from 'remark-gfm';
 
 // 마크다운 테이블을 HTML 테이블로 변환하는 함수
 const convertMarkdownTablesToHTML = (text: string): string => {
-  // 마크다운 테이블 패턴 매칭
-  const tableRegex = /(\|.*\|[\r\n]+)+/g;
+  // 마크다운 테이블 패턴을 더 단순하게 매칭
+  const lines = text.split('\n');
+  let result = '';
+  let inTable = false;
+  let tableLines: string[] = [];
   
-  return text.replace(tableRegex, (match) => {
-    const lines = match.trim().split('\n');
-    if (lines.length < 2) return match; // 최소 헤더 + 1행 필요
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     
-    // 헤더와 구분선 분리
-    const headerLine = lines[0];
-    const dataLines = lines.slice(2);
-    
-    // 헤더 파싱
-    const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
-    
-    // 데이터 행들 파싱
-    const rows = dataLines.map(line => 
-      line.split('|').map(cell => cell.trim()).filter(cell => cell)
-    );
-    
-    // HTML 테이블 생성
-    let htmlTable = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
-    
-    // 헤더
-    htmlTable += '<thead><tr style="background-color: #f8f9fa;">';
-    headers.forEach(header => {
-      htmlTable += `<th style="border: 1px solid #dee2e6; padding: 8px; text-align: left; font-weight: bold;">${header}</th>`;
-    });
-    htmlTable += '</tr></thead>';
-    
-    // 데이터 행들
-    htmlTable += '<tbody>';
-    rows.forEach(row => {
-      htmlTable += '<tr>';
-      row.forEach(cell => {
-        htmlTable += `<td style="border: 1px solid #dee2e6; padding: 8px;">${cell}</td>`;
-      });
-      htmlTable += '</tr>';
-    });
-    htmlTable += '</tbody></table>';
-    
-    return htmlTable;
+    // 테이블 시작 감지 (|로 시작하고 끝나는 줄)
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      if (!inTable) {
+        inTable = true;
+        tableLines = [];
+      }
+      tableLines.push(line);
+    } else {
+      // 테이블이 끝났을 때 변환
+      if (inTable && tableLines.length > 0) {
+        result += convertTableLinesToHTML(tableLines);
+        tableLines = [];
+        inTable = false;
+      }
+      result += line + '\n';
+    }
+  }
+  
+  // 마지막에 테이블이 있을 경우 처리
+  if (inTable && tableLines.length > 0) {
+    result += convertTableLinesToHTML(tableLines);
+  }
+  
+  return result;
+};
+
+// 테이블 라인들을 HTML로 변환하는 헬퍼 함수
+const convertTableLinesToHTML = (tableLines: string[]): string => {
+  if (tableLines.length < 2) return tableLines.join('\n');
+  
+  // 헤더와 구분선 분리
+  const headerLine = tableLines[0];
+  const dataLines = tableLines.slice(2); // 구분선 건너뛰기
+  
+  // 헤더 파싱
+  const headers = headerLine.split('|').map(h => h.trim()).filter(h => h);
+  
+  // 데이터 행들 파싱
+  const rows = dataLines.map(line => 
+    line.split('|').map(cell => cell.trim()).filter(cell => cell)
+  );
+  
+  // HTML 테이블 생성
+  let htmlTable = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
+  
+  // 헤더
+  htmlTable += '<thead><tr style="background-color: #f8f9fa;">';
+  headers.forEach(header => {
+    htmlTable += `<th style="border: 1px solid #dee2e6; padding: 8px; text-align: left; font-weight: bold;">${header}</th>`;
   });
+  htmlTable += '</tr></thead>';
+  
+  // 데이터 행들
+  htmlTable += '<tbody>';
+  rows.forEach(row => {
+    htmlTable += '<tr>';
+    row.forEach(cell => {
+      htmlTable += `<td style="border: 1px solid #dee2e6; padding: 8px;">${cell}</td>`;
+    });
+    htmlTable += '</tr>';
+  });
+  htmlTable += '</tbody></table>';
+  
+  return htmlTable + '\n';
 };
 
 // Word 다운로드 유틸리티 함수
