@@ -58,11 +58,14 @@ export default function Finish({ companyId }: FinishProps) {
           const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`);
           if (responseData.ok) {
             const responses = await responseData.json();
+            console.log('🔍 설문 응답 데이터:', surveyId, responses);
             return {
               ...survey,
-              responses: responses.responses || [],
-              responseCount: responses.responses?.length || 0
+              responses: responses.responses || responses || [],
+              responseCount: (responses.responses || responses || []).length
             };
+          } else {
+            console.warn('⚠️ 설문 응답 데이터 요청 실패:', surveyId, responseData.status);
           }
           return { ...survey, responses: [], responseCount: 0 };
         } catch (error) {
@@ -73,7 +76,7 @@ export default function Finish({ companyId }: FinishProps) {
 
       // 최신 설문이 먼저 오도록 정렬
       const sortedSurveys = surveysWithResponses.sort((a: any, b: any) => {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(b.timestamp || b.created_at).getTime() - new Date(a.timestamp || a.created_at).getTime();
       });
 
       setAllSurveys(sortedSurveys);
@@ -114,11 +117,17 @@ export default function Finish({ companyId }: FinishProps) {
 
       if (isCompleted) {
         const savedResult = localStorage.getItem('materialityAssessmentResult');
+        console.log('🔍 localStorage에서 로드한 데이터:', savedResult);
         if (savedResult) {
           const parsedResult = JSON.parse(savedResult);
+          console.log('🔍 파싱된 결과:', parsedResult);
+          
           const categories = parsedResult.assessment_result?.data?.matched_categories || 
                             parsedResult.assessment_result?.matched_categories || 
-                            parsedResult.matched_categories || [];
+                            parsedResult.matched_categories || 
+                            parsedResult.categories || [];
+          
+          console.log('🔍 추출된 카테고리:', categories);
           
           // 최종 추천 카테고리만 필터링 (점수 기준으로 정렬)
           const sortedCategories = categories
@@ -128,6 +137,8 @@ export default function Finish({ companyId }: FinishProps) {
           
           setFinalCategories(sortedCategories);
           console.log('✅ 최종 추천 카테고리 로드 완료:', sortedCategories);
+        } else {
+          console.warn('⚠️ localStorage에 materialityAssessmentResult가 없습니다');
         }
       } else {
         setFinalCategories([]);
@@ -206,7 +217,7 @@ export default function Finish({ companyId }: FinishProps) {
                           )}
                         </div>
                         <div className="text-sm text-gray-500">
-                          생성일: {new Date(survey.created_at).toLocaleString('ko-KR')}
+                          생성일: {new Date(survey.timestamp || survey.created_at).toLocaleString('ko-KR')}
                         </div>
                       </div>
                       <div className="text-right">
@@ -224,12 +235,12 @@ export default function Finish({ companyId }: FinishProps) {
                       <span className="text-sm font-medium text-gray-600">설문 링크:</span>
                       <div className="mt-1">
                         <a
-                          href={survey.url}
+                          href={survey.url || `https://taeheonai.com/survey?id=${surveyId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-blue-600 hover:text-blue-800 break-all font-mono bg-blue-50 px-2 py-1 rounded inline-block"
                         >
-                          {survey.url}
+                          {survey.url || `https://taeheonai.com/survey?id=${surveyId}`}
                         </a>
                       </div>
                     </div>
