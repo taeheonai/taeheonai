@@ -3,9 +3,9 @@ import { z } from 'zod';
 // GRI 카테고리 스키마
 export const GRICategorySchema = z.object({
   id: z.number(),
-  code: z.string().catch(''),
-  title: z.string().catch(''),
-  display_order: z.number().catch(0),
+  code: z.string(),
+  title: z.string(),
+  display_order: z.number(),
 });
 
 // GRI 질문 스키마

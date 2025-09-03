@@ -75,8 +75,8 @@ export const useMediaStore = create<MediaState>((set, get) => ({
       } else {
         throw new Error(response.data.message || '미디어 검색 실패');
       }
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || '미디어 검색 요청 실패';
+    } catch (err: unknown) {
+      const message = (err as any)?.response?.data?.message || (err as any)?.message || '미디어 검색 요청 실패';
       set({ error: message, loading: false });
       throw err;
     }
