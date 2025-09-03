@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { type GRIReportStructure, type SavedAnswers } from '@/lib/griApi';
-import { PolishResult } from '@/components/PolishResult';
 import { useSessionStore } from '@/store/sessionStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMGStore } from '@/store/mgStore';
@@ -19,7 +18,7 @@ import {
 export default function GriReportPage() {
   const { user } = useAuthStore();
   const corpId = Number(user?.corporation_id);
-  const { sessionKey, ensureSession } = useSessionStore();
+  const { ensureSession } = useSessionStore();
 
   // 로컬 스토리지 데이터
   const mgData = useMGStore((state) => ({ resultsByIndex: state.resultsByIndex }));
