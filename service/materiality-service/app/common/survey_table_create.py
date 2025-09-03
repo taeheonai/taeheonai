@@ -34,7 +34,7 @@ class SurveyTableManager:
     def __init__(self):
         """초기화"""
         # Railway PostgreSQL 연결 정보 (1.py와 동일)
-        self.database_url = "postgresql://postgres:ZzfwBnlMFrPIUpGsleepqCrOrEVJCbAK@trolley.proxy.rlwy.net:52468/railway"
+        self.database_url = "postgresql://postgres:ZtQKhXPQZLiyEgINSWDfRznAIcrJZhAx@gondola.proxy.rlwy.net:15963/railway"
         self.engine = None
         self.SessionLocal = None
         

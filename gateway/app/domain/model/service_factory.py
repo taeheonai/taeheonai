@@ -31,6 +31,7 @@ class ServiceProxyFactory:
             ServiceType.auth: os.getenv("AUTH_SERVICE_URL", "https://disciplined-imagination-production-df5c.up.railway.app"),
             ServiceType.corporation: os.getenv("CORPORATION_SERVICE_URL", "https://corporation-service-production.up.railway.app"),
             ServiceType.llm: os.getenv("LLM_SERVICE_URL", "https://llm-service-production-c83a.up.railway.app"),  # LLM 서비스 URL 추가
+            ServiceType.search: os.getenv("MATERIALITY_SERVICE_URL", "https://materiality-service-production.up.railway.app"),  # search는 materiality로 라우팅
         }
         
         # corporation는 독립 서비스로 처리
@@ -56,6 +57,7 @@ class ServiceProxyFactory:
             ServiceType.report: "/v1/report",
             ServiceType.corporation: "/v1/corporation",
             ServiceType.llm: "/v1/llm",  # LLM 서비스 prefix 추가
+            ServiceType.search: "/v1/search",  # search 서비스 prefix 추가
         }
         prefix = prefixes.get(self.service_type, "")
         if not prefix:
@@ -73,6 +75,11 @@ class ServiceProxyFactory:
         if self.service_type == ServiceType.auth:
             return f"/v1/auth{path}"  # /v1/auth + /login = /v1/auth/login
         
+        # search 서비스의 경우 materiality-service로 라우팅하되 /search prefix 추가
+        if self.service_type == ServiceType.search:
+            # /companies → /v1/search/companies로 변환
+            return f"/v1/search{path}"
+        
         return f"{prefix}{path}"
 
     async def request(
@@ -89,7 +96,12 @@ class ServiceProxyFactory:
         if self.service_type == ServiceType.corporation:
             logger.info(f"🏢 corporation 서비스 요청: {path}")
         
-        base_url = self.base_urls.get(self.service_type)
+        # search 서비스는 materiality-service로 라우팅
+        service_type = self.service_type
+        if self.service_type == ServiceType.search:
+            service_type = ServiceType.materiality
+            
+        base_url = self.base_urls.get(service_type)
         if not base_url:
             raise HTTPException(status_code=404, detail=f"Service {self.service_type} not found")
 
@@ -125,8 +137,21 @@ class ServiceProxyFactory:
         logger.info(f"  - Accept: {fwd_headers.get('Accept', '설정됨')}")
         logger.info(f"  - 프록시 안전 헤더 제거: host, origin, referer, content-length")
 
-        # ✅ 리다이렉트 제대로 따라가기 + 타임아웃 설정
-        async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
+        # ✅ 리다이렉트 제대로 따라가기 + 타임아웃 설정 (kangyouwon.com/gateway 방식)
+        timeout = httpx.Timeout(
+            connect=float(os.getenv("HTTPX_CONNECT_TIMEOUT", "5")),
+            read=float(os.getenv("HTTPX_READ_TIMEOUT", "120")),
+            write=float(os.getenv("HTTPX_WRITE_TIMEOUT", "120")),
+            pool=float(os.getenv("HTTPX_POOL_TIMEOUT", "5")),
+        )
+        
+        limits = httpx.Limits(
+            max_connections=int(os.getenv("HTTPX_MAX_CONNECTIONS", "100")),
+            max_keepalive_connections=int(os.getenv("HTTPX_MAX_KEEPALIVE", "20")),
+            keepalive_expiry=60.0,
+        )
+        
+        async with httpx.AsyncClient(follow_redirects=True, timeout=timeout, limits=limits) as client:
             try:
                 if m == "GET":
                     response = await client.get(url, headers=fwd_headers, params=params)
@@ -158,6 +183,12 @@ class ServiceProxyFactory:
                 logger.info(f"✅ Response status: {response.status_code}")
                 
                 return response
+            except httpx.ReadTimeout as e:
+                logger.error(f"⏰ {self.service_type} 타임아웃 발생: {e}")
+                raise HTTPException(status_code=504, detail=f"Upstream timeout ({self.service_type})")
+            except httpx.ConnectTimeout as e:
+                logger.error(f"🔌 {self.service_type} 연결 타임아웃: {e}")
+                raise HTTPException(status_code=504, detail=f"Connection timeout ({self.service_type})")
             except httpx.RequestError as e:
                 logger.error(f"Request error: {e}")
                 raise HTTPException(status_code=503, detail=f"Service {self.service_type} unavailable")

@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
-      allowedOrigins: ['taeheonai.com', 'localhost:3000']
+      allowedOrigins: ['taeheonai.com', 'www.taeheonai.com', 'localhost:3000']
     },
   },
   
