@@ -17,6 +17,8 @@ import {
   getIntegrationSummary
 } from '@/lib/reportDataIntegrator';
 import { Download } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Word 다운로드 유틸리티 함수
 const downloadAsWord = (content: string, filename: string) => {
@@ -214,10 +216,38 @@ function SafeDataDisplay({ integratedData }: { integratedData: IntegratedAnswers
                           return (
                             <div key={questionKey} className="text-sm">
                               <span className="font-medium text-gray-700">Q{questionKey}:</span>
-                              <span className="ml-2 text-gray-600">{displayText}</span>
+                              <div className="ml-2 mt-2">
+                                <ReactMarkdown 
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    table: props => (
+                                      <table className="min-w-full divide-y divide-gray-300 my-4">
+                                        {props.children}
+                                      </table>
+                                    ),
+                                    thead: props => (
+                                      <thead className="bg-gray-50">
+                                        {props.children}
+                                      </thead>
+                                    ),
+                                    th: props => (
+                                      <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                                        {props.children}
+                                      </th>
+                                    ),
+                                    td: props => (
+                                      <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                                        {props.children}
+                                      </td>
+                                    ),
+                                  }}
+                                >
+                                  {displayText}
+                                </ReactMarkdown>
+                              </div>
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 answer.source === 'mg' ? 'bg-blue-100 text-blue-800' :
-                                answer.source === 'intake' ? 'bg-green-100 text-green-800' :
+                                answer.source === 'intake' ? 'bg-green-800 text-green-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
                                 {sourceBadge}
@@ -394,9 +424,33 @@ function ESGClassifiedMGDisplay() {
                   </span>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      table: props => (
+                        <table className="min-w-full divide-y divide-gray-300 my-4">
+                          {props.children}
+                        </table>
+                      ),
+                      thead: props => (
+                        <thead className="bg-gray-50">
+                          {props.children}
+                        </thead>
+                      ),
+                      th: props => (
+                        <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                          {props.children}
+                        </th>
+                      ),
+                      td: props => (
+                        <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                          {props.children}
+                        </td>
+                      ),
+                    }}
+                  >
                     {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
+                  </ReactMarkdown>
                 </div>
                 <div className="text-sm text-gray-500">
                   저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
@@ -434,9 +488,33 @@ function ESGClassifiedMGDisplay() {
                   </span>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      table: props => (
+                        <table className="min-w-full divide-y divide-gray-300 my-4">
+                          {props.children}
+                        </table>
+                      ),
+                      thead: props => (
+                        <thead className="bg-gray-50">
+                          {props.children}
+                        </thead>
+                      ),
+                      th: props => (
+                        <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                          {props.children}
+                        </th>
+                      ),
+                      td: props => (
+                        <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                          {props.children}
+                        </td>
+                      ),
+                    }}
+                  >
                     {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
+                  </ReactMarkdown>
                 </div>
                 <div className="text-sm text-gray-500">
                   저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
@@ -474,9 +552,33 @@ function ESGClassifiedMGDisplay() {
                   </span>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      table: props => (
+                        <table className="min-w-full divide-y divide-gray-300 my-4">
+                          {props.children}
+                        </table>
+                      ),
+                      thead: props => (
+                        <thead className="bg-gray-50">
+                          {props.children}
+                        </thead>
+                      ),
+                      th: props => (
+                        <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                          {props.children}
+                        </th>
+                      ),
+                      td: props => (
+                        <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                          {props.children}
+                        </td>
+                      ),
+                    }}
+                  >
                     {result.polished_text || '윤문 텍스트 없음'}
-                  </p>
+                  </ReactMarkdown>
                 </div>
                 <div className="text-sm text-gray-500">
                   저장: {result.savedAt ? new Date(result.savedAt).toLocaleDateString() : '날짜 없음'}
