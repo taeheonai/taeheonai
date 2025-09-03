@@ -4,6 +4,7 @@ import "./globals.css";
 import ManifestDebug from "./ManifestDebug";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAStatus from "@/components/PWAStatus";
+// import PWAInstall from "@/components/PWAInstall";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SessionInitializer from "@/components/SessionInitializer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -19,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TaeheonAI",
-  description: "지속가능 경영을 위한 AI 기반 솔루션",
+  title: "TaeheonAI - 중대성평가 GRI Report 자동화 플랫폼",
+  description: "ESG 경영의 핵심, 중대성 평가를 자동화하고 GRI Report를 효율적으로 생성하는 통합 플랫폼",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -71,6 +72,7 @@ export default function RootLayout({
             <PWAStatus />
             {children}
             <PWAInstallPrompt />
+            {/* <PWAInstall /> */}
           </ErrorBoundary>
         </AuthProvider>
       </body>

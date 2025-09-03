@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useAssessmentStore } from "@/store/kangyouwon/assessmentStore";
+import { useAssessmentStore } from "@/store/assessmentStore";
 import {
   SurveyResponse,
   GroupId,
   BaseWeights,
   defaultBaseWeights,
   normalizeBaseWeights,
-} from "@/lib/kangyouwon/materiality/surveyWeighting";
+} from "@/lib/materiality/surveyWeighting";
 
 /**
  * 설문 가중치 UI 컴포넌트
