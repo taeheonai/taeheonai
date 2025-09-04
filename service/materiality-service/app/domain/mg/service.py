@@ -73,25 +73,80 @@ class MGService:
         try:
             logger.info(f"인덱스 윤문 서비스 시작: gri_index={payload.gri_index}")
             
-            # 실제 윤문 로직은 LLM 서비스와 연동
-            # 현재는 임시 응답 생성
-            mock_response = PolishIndexResponse(
+            # LLM 서비스 호출을 위한 데이터 준비
+            import httpx
+            import os
+            
+            # LLM 서비스 URL
+            llm_service_url = os.getenv("LLM_SERVICE_URL", "https://llm-service-production-c83a.up.railway.app")
+            service_api_key = os.getenv("SERVICE_API_KEY", "default-service-key")
+            
+            # 답변 데이터를 LLM 서비스 형식으로 변환
+            answers = []
+            if payload.answers_by_key:
+                # key_alpha로 질문 조회하여 question_id 매핑
+                index_questions = await self.repository.get_index_questions(payload.category_id, payload.gri_index)
+                if index_questions and index_questions.questions:
+                    for question in index_questions.questions:
+                        key_alpha = question.key_alpha
+                        if key_alpha and key_alpha in payload.answers_by_key:
+                            answers.append({
+                                "question_id": question.id,
+                                "key_alpha": key_alpha,
+                                "text": payload.answers_by_key[key_alpha]
+                            })
+            
+            if not answers:
+                raise ValueError("윤문할 답변이 없습니다.")
+            
+            # LLM 서비스에 윤문 요청
+            llm_request = {
+                "session_key": payload.session_key,
+                "gri_index": payload.gri_index,
+                "answers": answers,
+                "extra_instructions": None,
+                "extra_meta": payload.extra_meta
+            }
+            
+            logger.info(f"LLM 서비스 호출: {llm_service_url}/v1/polish")
+            
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{llm_service_url}/v1/polish",
+                    json=llm_request,
+                    headers={
+                        "x-api-key": service_api_key,
+                        "Content-Type": "application/json"
+                    }
+                )
+                
+                if response.status_code != 200:
+                    logger.error(f"LLM 서비스 호출 실패: {response.status_code} - {response.text}")
+                    raise Exception(f"LLM 서비스 호출 실패: {response.status_code}")
+                
+                llm_result = response.json()
+                logger.info(f"LLM 서비스 응답 수신: {llm_result.get('status', 'unknown')}")
+                
+                if llm_result.get("status") != "success":
+                    raise Exception(f"LLM 서비스 윤문 실패: {llm_result.get('message', 'Unknown error')}")
+                
+                polished_text = llm_result["data"]["polished_text"]
+                model = llm_result["data"]["model"]
+            
+            # 윤문 결과를 PolishIndexResponse 형식으로 변환
+            result = PolishIndexResponse(
                 session_key=payload.session_key,
                 gri_index=payload.gri_index,
                 item_id=1,
                 item_title=f"{payload.gri_index} 윤문 결과",
-                polished_index_text=f"{payload.gri_index}에 대한 윤문된 텍스트입니다.",
+                polished_index_text=polished_text,
                 items=[
                     {
-                        "question_id": 1,
-                        "key_alpha": "a",
-                        "polished_text": "윤문된 답변 1"
-                    },
-                    {
-                        "question_id": 2,
-                        "key_alpha": "b", 
-                        "polished_text": "윤문된 답변 2"
+                        "question_id": answer["question_id"],
+                        "key_alpha": answer["key_alpha"],
+                        "polished_text": polished_text  # 전체 윤문 텍스트 사용
                     }
+                    for answer in answers
                 ]
             )
             
@@ -99,11 +154,11 @@ class MGService:
             await self.repository.save_polish_result({
                 "session_key": payload.session_key,
                 "gri_index": payload.gri_index,
-                "polished_text": mock_response.polished_index_text
+                "polished_text": polished_text
             })
             
-            logger.info(f"인덱스 윤문 서비스 완료: {payload.gri_index}")
-            return mock_response
+            logger.info(f"인덱스 윤문 서비스 완료: {payload.gri_index} (모델: {model})")
+            return result
             
         except Exception as e:
             logger.error(f"인덱스 윤문 서비스 오류: {str(e)}")
