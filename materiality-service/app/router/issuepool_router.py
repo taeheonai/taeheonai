@@ -2,8 +2,8 @@
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.legacy_entity.issuepool_entity import IssuePool
-from app.domain.legacy_schema.issuepool_schema import (
+from app.domain.entity.issuepool_entity import IssuePool
+from app.domain.schema.issuepool_schema import (
     IssuePoolDTO,
     IssuePoolCreateRequest,
     IssuePoolUpdateRequest,
@@ -11,8 +11,8 @@ from app.domain.legacy_schema.issuepool_schema import (
     IssuePoolListResponse,
     IssuePoolBulkCreateRequest
 )
-from app.common.database.issuepool_db import get_db
-from app.domain.legacy_controller.issuepool_controller import IssuePoolController
+from app.common.database import get_db
+from app.domain.controller.issuepool_controller import IssuePoolController
 import logging
 
 router = APIRouter(tags=["materiality"])

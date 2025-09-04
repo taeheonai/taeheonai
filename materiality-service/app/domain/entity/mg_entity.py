@@ -5,7 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-from app.common.database.issuepool_db import Base
+from app.common.database import Base
 
 
 # ==========================
