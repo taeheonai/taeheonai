@@ -10,6 +10,7 @@ from app.domain.legacy_entity.mg_entity import (
     GriItem,             # gri_item
     GriQuestion,         # gri_question
 )
+from app.common.database.issuepool_db import AsyncSessionLocal
 
 class MGRepository:
     def __init__(self, db: AsyncSession):
@@ -36,25 +37,38 @@ class MGRepository:
     # 1) 카테고리별 GRI 인덱스 조회 (그대로 유지)
     # -----------------------------
     async def get_gri_indexes_by_category(self, category_id: int) -> List[Dict[str, Any]]:
-        """카테고리 ID로 GRI 인덱스 조회 (issuepool_gri 만)"""
+        """카테고리 ID로 GRI 인덱스 조회 (실제 테이블의 category 컬럼 사용)"""
         try:
             print(f"[MG Repository] 카테고리 {category_id}로 GRI 인덱스 조회 시작")
 
-            query = (
-                select(
-                    IssuePoolGRIEntity.id.label("gri_id"),
-                    IssuePoolGRIEntity.gri_index,
-                    IssuePoolGRIEntity.frequency,
-                    IssuePoolGRIEntity.grade,
-                )
-                .where(IssuePoolGRIEntity.category_id == category_id)
-                .order_by(IssuePoolGRIEntity.frequency.desc(), IssuePoolGRIEntity.grade)
-            )
+            # category_id를 실제 카테고리 이름으로 매핑 (임시)
+            category_mapping = {
+                1: "인재관리/인재",
+                2: "리스크", 
+                3: "공급망",
+                4: "시장경쟁/시장점유/경제성과/재무성과",
+                5: "정보보안",
+                6: "친환경"
+            }
+            category_name = category_mapping.get(category_id, f"카테고리{category_id}")
 
-            result = await self.db.execute(query)
-            rows = result.mappings().all()
-            print(f"[MG Repository] 카테고리 {category_id}에서 {len(rows)}개 GRI 인덱스 조회됨")
-            return rows
+            # 새로운 세션을 사용하여 트랜잭션 오류 방지
+            async with AsyncSessionLocal() as new_session:
+                query = (
+                    select(
+                        IssuePoolGRIEntity.id.label("gri_id"),
+                        IssuePoolGRIEntity.gri_index,
+                        IssuePoolGRIEntity.frequency,
+                        IssuePoolGRIEntity.grade,
+                    )
+                    .where(IssuePoolGRIEntity.category == category_name)
+                    .order_by(IssuePoolGRIEntity.frequency.desc(), IssuePoolGRIEntity.grade)
+                )
+
+                result = await new_session.execute(query)
+                rows = result.mappings().all()
+                print(f"[MG Repository] 카테고리 {category_name}에서 {len(rows)}개 GRI 인덱스 조회됨")
+                return rows
 
         except Exception as e:
             print(f"[MG Repository] GRI 인덱스 조회 실패: {e}")
@@ -179,26 +193,39 @@ class MGRepository:
         - question_id, key_alpha, question_text, question_order
         """
         try:
-            stmt = (
-                select(
-                    GriItem.index_no.label("gri_index"),
-                    GriItem.id.label("item_id"),
-                    GriItem.title.label("item_title"),
-                    GriQuestion.id.label("question_id"),
-                    GriQuestion.key_alpha,
-                    GriQuestion.question_text,
-                    GriQuestion.display_order.label("question_order"),
+            # category_id를 실제 카테고리 이름으로 매핑
+            category_mapping = {
+                1: "인재관리/인재",
+                2: "리스크", 
+                3: "공급망",
+                4: "시장경쟁/시장점유/경제성과/재무성과",
+                5: "정보보안",
+                6: "친환경"
+            }
+            category_name = category_mapping.get(category_id, f"카테고리{category_id}")
+
+            # 새로운 세션을 사용하여 트랜잭션 오류 방지
+            async with AsyncSessionLocal() as new_session:
+                stmt = (
+                    select(
+                        GriItem.index_no.label("gri_index"),
+                        GriItem.id.label("item_id"),
+                        GriItem.title.label("item_title"),
+                        GriQuestion.id.label("question_id"),
+                        GriQuestion.key_alpha,
+                        GriQuestion.question_text,
+                        GriQuestion.display_order.label("question_order"),
+                    )
+                    .join(IssuePoolGRIEntity, IssuePoolGRIEntity.gri_index == GriItem.index_no)
+                    .join(GriQuestion, GriItem.id == GriQuestion.item_id)
+                    .where(
+                        IssuePoolGRIEntity.category == category_name,
+                        GriItem.index_no == gri_index
+                    )
+                    .order_by(GriQuestion.display_order)
                 )
-                .join(IssuePoolGRIEntity, IssuePoolGRIEntity.gri_index == GriItem.index_no)
-                .join(GriQuestion, GriItem.id == GriQuestion.item_id)
-                .where(
-                    IssuePoolGRIEntity.category_id == category_id,
-                    GriItem.index_no == gri_index
-                )
-                .order_by(GriQuestion.display_order)
-            )
-            res = await self.db.execute(stmt)
-            return res.mappings().all()
+                res = await new_session.execute(stmt)
+                return res.mappings().all()
         except Exception as e:
             print(f"[MG Repository] get_questions_for_index 실패: {e}")
             import traceback; traceback.print_exc()

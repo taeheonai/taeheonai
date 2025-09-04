@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useAssessmentStore } from "@/store/assessmentStore";
+import { useMGStore } from "@/store/mgStore";
+import { useRouter } from "next/navigation";
 import {
   SurveyResponse,
   GroupId,
@@ -175,6 +177,9 @@ const FinalIssuepool: React.FC = () => {
     topN,
     baseWeights,
   } = useAssessmentStore();
+
+  const { setFinalIssuepools } = useMGStore();
+  const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
@@ -545,6 +550,36 @@ const FinalIssuepool: React.FC = () => {
     }
   };
 
+  // MG 페이지로 이동하는 함수
+  const handleGoToMG = () => {
+    if (!finalTop || finalTop.length === 0) {
+      alert('최종 이슈풀을 먼저 계산해주세요.');
+      return;
+    }
+
+    try {
+      // 최종 이슈풀 데이터를 MG 스토어에 저장
+      const issuepools = finalTop.map((item, index) => ({
+        id: index + 1, // 임시 ID
+        corporation_id: 1, // 임시 corporation_id
+        publish_year: '2024',
+        ranking: item.rank.toString(),
+        issue_pool: item.category,
+        category_id: index + 1, // 임시 category_id
+        esg_classification_id: 1, // 임시 esg_classification_id
+      }));
+
+      console.log('🎯 MG 페이지로 전달할 이슈풀 데이터:', issuepools);
+      setFinalIssuepools(issuepools);
+
+      // MG 페이지로 이동
+      router.push('/mg');
+    } catch (error) {
+      console.error('❌ MG 페이지 이동 중 오류:', error);
+      alert('MG 페이지 이동 중 오류가 발생했습니다.');
+    }
+  };
+
   // 모든 파라미터를 기본값으로 리셋하는 함수
   const resetAllToDefaults = () => {
     console.log('🔄 모든 파라미터를 기본값으로 리셋');
@@ -740,6 +775,20 @@ const FinalIssuepool: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+
+          {/* MG 페이지로 이동 버튼 */}
+          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-800 mb-4">🚀 다음 단계</h3>
+            <p className="text-blue-700 mb-4">
+              최종 이슈풀이 계산되었습니다. 이제 GRI 인덱스 윤문을 위해 MG 페이지로 이동하세요.
+            </p>
+            <button
+              onClick={handleGoToMG}
+              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              📝 MG 페이지로 이동 (GRI 인덱스 윤문)
+            </button>
           </div>
         </div>
       ) : (

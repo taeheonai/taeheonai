@@ -48,8 +48,19 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         try:
             yield session
+        except Exception as e:
+            # 트랜잭션 오류 발생 시 롤백
+            try:
+                await session.rollback()
+            except:
+                pass
+            logger.error(f"❌ 데이터베이스 세션 오류: {str(e)}")
+            raise
         finally:
-            await session.close()
+            try:
+                await session.close()
+            except:
+                pass
 
 # 연결 테스트 함수
 async def test_connection():
