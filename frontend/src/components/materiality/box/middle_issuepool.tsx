@@ -72,9 +72,10 @@ const applyWeightsToResults = (originalResult: any, weights: WeightConfig) => {
       rank: cat.rank
     })));
     
-    // 결과 구조 유지하면서 업데이트
+    // 결과 구조 유지하면서 업데이트 (matched_categories를 최상위에도 추가)
     return {
       ...originalResult,
+      matched_categories: rankedCategories, // 최상위에 추가
       data: {
         ...resultData,
         matched_categories: rankedCategories
@@ -327,6 +328,10 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
 
   // 가중치 초기화 핸들러
   const handleWeightReset = () => {
+    console.log('🔄 가중치 초기화 버튼 클릭됨');
+    console.log('🔍 현재 가중치:', weights);
+    console.log('🔍 기본 가중치:', DEFAULT_WEIGHTS);
+    
     setWeights(DEFAULT_WEIGHTS);
     localStorage.removeItem('materialityWeights');
     
@@ -690,6 +695,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
                   const weightedResult = applyWeightsToResults(filteredResponseData, weights);
                   setAssessmentResult(weightedResult);
                   console.log('🔍 assessmentResult 상태 설정 (가중치 적용됨):', weightedResult);
+                  console.log('🔍 weightedResult.matched_categories:', weightedResult.matched_categories);
                   
                   // localStorage에 자동 저장 (필터링된 카테고리 사용)
                   try {

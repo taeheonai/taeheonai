@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ManifestDebug from "./ManifestDebug";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import PWAStatus from "@/components/PWAStatus";
+// import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+// import PWAStatus from "@/components/PWAStatus";
 // import PWAInstall from "@/components/PWAInstall";
 import { AuthProvider } from "@/contexts/AuthContext";
 import SessionInitializer from "@/components/SessionInitializer";
@@ -69,9 +69,9 @@ export default function RootLayout({
           <ErrorBoundary>
             <SessionInitializer />
             <ManifestDebug />
-            <PWAStatus />
+            {/* <PWAStatus /> */}
             {children}
-            <PWAInstallPrompt />
+            {/* <PWAInstallPrompt /> */}
             {/* <PWAInstall /> */}
           </ErrorBoundary>
         </AuthProvider>

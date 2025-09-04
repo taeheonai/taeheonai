@@ -173,7 +173,15 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
 
   // total 및 sent 업데이트
   useEffect(() => {
-    setSendStatus((p) => ({ ...p, total: validEmails.length, sent: sentRecipientsCount }));
+    setSendStatus((prevStatus) => {
+      const newStatus = { ...prevStatus, total: validEmails.length, sent: sentRecipientsCount };
+      console.log('📊 발송 상태 업데이트:', {
+        total: validEmails.length,
+        sent: sentRecipientsCount,
+        responded: newStatus.responded
+      });
+      return newStatus;
+    });
   }, [validEmails, sentRecipientsCount]);
 
   // localStorage 변경 감지 (storage 이벤트만 사용, 주기적 확인 제거)
@@ -319,6 +327,11 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
     const responseRate =
       sendStatus.total > 0 ? Math.round((sendStatus.responded / sendStatus.total) * 100) : 0;
     setSendStatus((p) => ({ ...p, responseRate }));
+    console.log('📊 응답률 계산:', {
+      total: sendStatus.total,
+      responded: sendStatus.responded,
+      responseRate: responseRate
+    });
   }, [sendStatus.responded, sendStatus.total]);
 
   // 기업명 추출 (미디어 검색에서 선택된 기업명 사용)
