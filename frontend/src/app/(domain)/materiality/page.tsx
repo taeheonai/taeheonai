@@ -23,6 +23,7 @@ import Finish from '@/components/materiality/box/finish';
 // import { fetchAllCategories } from '@/components/materiality/fetch_all_categories';
 
 import { addNewCategory } from '@/components/materiality/add_new_category';
+import { useAuthStore } from '@/store/useAuthStore';
 // import { getESGClassification } from '@/components/materiality/get_esg_classification';
 
 
@@ -31,6 +32,9 @@ export default function MaterialityHomePage() {
   // React를 명시적으로 사용하여 linter 경고 해결
   const reactVersion = React.version;
   console.log('React version:', reactVersion);
+  
+  // 로그인한 사용자 정보 가져오기
+  const { user } = useAuthStore();
   
   // Zustand store 사용
   const {
@@ -468,13 +472,22 @@ export default function MaterialityHomePage() {
       if (typeof window === 'undefined') return;
 
       try {
+        // Zustand store에서 사용자 정보 가져오기 (우선순위)
+        if (user?.companyname && !companyId) {
+          setCompanyId(user.companyname);
+          setCompanySearchTerm(user.companyname);
+          console.log('✅ Zustand store에서 사용자의 기업명 설정:', user.companyname);
+          return;
+        }
+
+        // localStorage에서도 확인 (fallback)
         const userData = localStorage.getItem('user');
         if (userData) {
-          const user = JSON.parse(userData);
-          if (user.company_id && !companyId) {
-            setCompanyId(user.company_id);
-            setCompanySearchTerm(user.company_id);
-            console.log('✅ 로그인된 사용자의 기업명 설정:', user.company_id);
+          const userFromStorage = JSON.parse(userData);
+          if (userFromStorage.company_id && !companyId) {
+            setCompanyId(userFromStorage.company_id);
+            setCompanySearchTerm(userFromStorage.company_id);
+            console.log('✅ localStorage에서 사용자의 기업명 설정:', userFromStorage.company_id);
           }
         }
       } catch (error) {
@@ -1010,6 +1023,8 @@ export default function MaterialityHomePage() {
                     <div className="space-y-4">
                       {(() => {
                         const categories = assessmentResult?.matched_categories || assessmentResult?.data?.matched_categories || [];
+                        console.log('🔍 모달에서 사용할 categories 데이터:', categories);
+                        console.log('🔍 assessmentResult 전체 데이터:', assessmentResult);
                         if (categories.length > 0) {
                           return categories.map((cat: any, index: number) => (
                             <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
