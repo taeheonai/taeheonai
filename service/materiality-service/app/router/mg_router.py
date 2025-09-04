@@ -1,9 +1,10 @@
 """
 MG (Materiality GRI) Router - FastAPI 라우터
 """
-from fastapi import APIRouter, HTTPException, Request, Header, Query
+from fastapi import APIRouter, HTTPException, Request, Header, Query, Depends
 from fastapi.responses import JSONResponse
 from typing import List, Optional
+from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
 # 로거 설정
@@ -20,6 +21,7 @@ from app.domain.mg.schema import (
 from app.domain.mg.controller import MGController
 from app.domain.mg.service import MGService
 from app.domain.mg.repository import MGRepository
+from app.common.database.issuepool_db import get_db
 
 # 임시 데이터베이스 세션 (실제로는 의존성 주입 사용)
 class MockDBSession:
@@ -44,13 +46,14 @@ def get_mg_controller():
     return MGController(service)
 
 @mg_router.post("/indexes", summary="MG 인덱스 조회")
-async def get_mg_indexes(request: MGIndexesRequest):
+async def get_mg_indexes(request: MGIndexesRequest, db: AsyncSession = Depends(get_db)):
     """
-    이슈풀 ID들로 MG 인덱스 조회
+    이슈풀 ID들로 MG 인덱스 조회 (기존 프로젝트 MG 기능 사용)
     
     Args:
         request: MGIndexesRequest
             - issuepool_ids: 이슈풀 ID 목록
+        db: 데이터베이스 세션
     
     Returns:
         MGIndexesResponse: MG 인덱스 목록
@@ -59,12 +62,17 @@ async def get_mg_indexes(request: MGIndexesRequest):
     try:
         logger.info(f"MG 인덱스 조회 시도: {len(request.issuepool_ids)}개 ID")
         
-        # 컨트롤러를 통해 서비스 호출
-        controller = get_mg_controller()
-        result = await controller.get_mg_indexes(request)
+        # 기존 프로젝트의 MG 컨트롤러 사용
+        from app.domain.legacy_controller.mg_controller import MGController
+        controller = MGController(db)
+        result = await controller.resolve_indexes_by_ids(request.issuepool_ids)
         
-        logger.info(f"✅ MG 인덱스 조회 완료: {len(result.items)}개 항목")
-        return result
+        # MGIndexesResponse 형태로 변환
+        from app.domain.mg.schema import MGIndexesResponse
+        response = MGIndexesResponse(items=result)
+        
+        logger.info(f"✅ MG 인덱스 조회 완료: {len(result)}개 항목")
+        return response
         
     except Exception as e:
         logger.error(f"❌ MG 인덱스 조회 중 오류: {str(e)}")
