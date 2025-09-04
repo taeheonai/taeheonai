@@ -67,15 +67,15 @@ class MGController:
             gri_indexes = await self.repository.get_gri_indexes_by_category(category_id)
             print(f"[MG Controller] GRI 인덱스 {len(gri_indexes)}개 조회 완료")
             
-            # MGIndexDTO 형태로 변환
+            # MGIndexDTO 형태로 변환 (실제 데이터베이스 데이터 사용)
             result = MGIndexDTO(
-                issuepool_id=issuepool_data.id,
-                issue_pool=issuepool_data.issue_pool,
-                ranking=issuepool_data.ranking,
-                publish_year=issuepool_data.publish_year,
-                corporation_id=issuepool_data.corporation_id,
-                category_id=issuepool_data.category_id,
-                esg_classification_id=issuepool_data.esg_classification_id,
+                issuepool_id=issuepool_data.id,  # 실제 데이터베이스의 id
+                issue_pool=issuepool_data.issue_pool,  # 실제 데이터베이스의 issue_pool
+                ranking=issuepool_data.ranking,  # 실제 데이터베이스의 ranking
+                publish_year=issuepool_data.publish_year,  # 실제 데이터베이스의 publish_year
+                corporation_id=issuepool_data.corporation_id,  # 실제 데이터베이스의 corporation_id
+                category_id=issuepool_data.category_id,  # 실제 데이터베이스의 category_id
+                esg_classification_id=issuepool_data.esg_classification_id,  # 실제 데이터베이스의 esg_classification_id
                 gri_indexes=gri_indexes
             )
             
