@@ -167,11 +167,28 @@ export default function Finish({ companyId }: FinishProps) {
                 esgClassificationId = 3;
               }
               
+              // materiality_category 테이블의 category_name과 매칭
+              const categoryNameMapping: Record<string, number> = {
+                '고용/일자리': 1,
+                '공급망': 2,
+                '기후변화': 3,
+                '노사관계': 4,
+                '대기오염': 5,
+                '리스크': 6,
+                '생물다양성/산림보호': 7,
+                '성장': 8,
+                '시장경쟁/시장점유/경제성과/재무성과': 9,
+                '안전보건': 10
+              };
+              
+              const categoryName = category.category || '카테고리명 없음';
+              const mappedCategoryId = categoryNameMapping[categoryName] || (index + 1);
+              
               return {
                 id: index + 1, // 임시 ID
                 corporation_id: 1, // 한온시스템 ID
-                issue_pool: category.category || '카테고리명 없음',
-                category_id: category.category_id || (index + 1),
+                issue_pool: categoryName,
+                category_id: mappedCategoryId,
                 esg_classification_id: esgClassificationId,
                 ranking: (index + 1).toString(),
                 publish_year: new Date().getFullYear().toString()
@@ -440,17 +457,36 @@ export default function Finish({ companyId }: FinishProps) {
                 <button
                   onClick={() => {
                     // 최종 카테고리 목록을 MG 페이지로 전달하고 이동
-                    const finalIssuePools = finalCategories.map((category, index) => ({
-                      id: index + 1,
-                      issue_pool: category.category || category.selected_base_issue_pool || '카테고리명 없음',
-                      category: category.category,
-                      category_id: category.category_id || 1, // 기본값 설정
-                      ranking: index + 1,
-                      score: category.score || 0,
-                      corporation_id: 1, // 기본값
-                      publish_year: '2024', // 기본값
-                      esg_classification_id: 1 // 기본값
-                    }));
+                    // materiality_category 테이블의 category_name과 매칭
+                    const categoryNameMapping: Record<string, number> = {
+                      '고용/일자리': 1,
+                      '공급망': 2,
+                      '기후변화': 3,
+                      '노사관계': 4,
+                      '대기오염': 5,
+                      '리스크': 6,
+                      '생물다양성/산림보호': 7,
+                      '성장': 8,
+                      '시장경쟁/시장점유/경제성과/재무성과': 9,
+                      '안전보건': 10
+                    };
+                    
+                    const finalIssuePools = finalCategories.map((category, index) => {
+                      const categoryName = category.category || category.selected_base_issue_pool || '카테고리명 없음';
+                      const mappedCategoryId = categoryNameMapping[categoryName] || (index + 1);
+                      
+                      return {
+                        id: index + 1,
+                        issue_pool: categoryName,
+                        category: category.category,
+                        category_id: mappedCategoryId,
+                        ranking: index + 1,
+                        score: category.score || 0,
+                        corporation_id: 1, // 기본값
+                        publish_year: '2024', // 기본값
+                        esg_classification_id: 1 // 기본값
+                      };
+                    });
                     
                     // Zustand store에 최종 이슈풀 저장
                     localStorage.setItem('finalIssuePools', JSON.stringify(finalIssuePools));
