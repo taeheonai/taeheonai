@@ -24,6 +24,16 @@ from app.router.survey_router import survey_router
 from app.router.email_router import email_router
 from app.router.mg_router import mg_router
 
+# 기존 프로젝트 라우터들 (레거시 호환성)
+try:
+    from app.legacy_router.issuepool_router import router as legacy_issuepool_router
+    from app.legacy_router.mg_router import router as legacy_mg_router
+    logger.info("✅ 기존 프로젝트 라우터들 로드 성공")
+except ImportError as e:
+    logger.warning(f"⚠️ 기존 프로젝트 라우터 로드 실패: {e}")
+    legacy_issuepool_router = None
+    legacy_mg_router = None
+
 # 환경 변수 로드 (Railway 환경에서는 건너뛰기)
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
     load_dotenv()
@@ -100,6 +110,15 @@ app.include_router(category_router, prefix="/materiality-service", tags=["catego
 app.include_router(survey_router, prefix="/materiality-service", tags=["survey"])
 app.include_router(email_router, prefix="/materiality-service", tags=["email"])
 app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])
+
+# 기존 프로젝트 라우터들 등록 (레거시 호환성)
+if legacy_issuepool_router:
+    app.include_router(legacy_issuepool_router, prefix="/v1/materiality", tags=["legacy-issuepool"])
+    logger.info("✅ 기존 IssuePool 라우터 등록: /v1/materiality")
+
+if legacy_mg_router:
+    app.include_router(legacy_mg_router, prefix="/v1/materiality/mg", tags=["legacy-mg"])
+    logger.info("✅ 기존 MG 라우터 등록: /v1/materiality/mg")
 
 @app.get("/")
 async def root():
