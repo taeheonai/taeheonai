@@ -67,7 +67,7 @@ async def get_all_issuepool_data_endpoint():
         logger.error(f"❌ issuepool DB 전체 데이터 조회 엔드포인트 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"서버 내부 오류: {str(e)}")
 
-@middleissue_router.post("/assessment/weights", response_model=WeightUpdateResponse)
+@middleissue_router.post("/middleissue/assessment/weights", response_model=WeightUpdateResponse)
 async def update_assessment_weights(request: WeightUpdateRequest):
     """가중치 설정 업데이트 및 중대성 평가 결과 재계산"""
     try:
