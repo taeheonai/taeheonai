@@ -15,6 +15,7 @@ class IssuePoolDTO(BaseModel):
     category_id: int
     # 🔧 두 가지 방법 모두 지원
     esg_classification_id: ESG  # 방법 1: Literal
+    esg_classification_name: Optional[str] = None  # 누락된 필드 추가
     # esg_classification_id: int = Field(ge=1, le=4)  # 방법 2: Field (주석 처리)
 
     # ★ Pydantic v2: ORM 직렬화 허용
@@ -41,6 +42,7 @@ class IssuePoolCreateRequest(BaseModel):
     issue_pool: str
     category_id: int
     esg_classification_id: ESG
+    esg_classification_name: Optional[str] = None  # 누락된 필드 추가
 
 class IssuePoolUpdateRequest(BaseModel):
     """axios로부터 받은 JSON 데이터로 IssuePool 업데이트"""
@@ -51,6 +53,7 @@ class IssuePoolUpdateRequest(BaseModel):
     issue_pool: Optional[str] = None
     category_id: Optional[int] = None
     esg_classification_id: Optional[ESG] = None
+    esg_classification_name: Optional[str] = None  # 누락된 필드 추가
 
 class IssuePoolFilter(BaseModel):
     """필터 조건에 따른 IssuePool 목록 조회"""
@@ -94,6 +97,7 @@ class IssuePoolResponse(BaseModel):
     issue_pool: str
     category_id: int
     esg_classification_id: int
+    esg_classification_name: Optional[str] = None  # 누락된 필드 추가
     model_config = ConfigDict(from_attributes=True)
 
 class IssuePoolCreateResponse(BaseModel):
