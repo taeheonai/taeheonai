@@ -39,20 +39,22 @@ export default function IndexBar() {
         setMaxReachedStep(parsedState.maxReachedStep || 'media-search');
         console.log('🔄 IndexBar 상태 복원 완료:', parsedState);
         
-        // 상위 컴포넌트에 복원된 상태 알림
-        const progressUpdateEvent = new CustomEvent('progressUpdate', {
-          detail: {
+        // 상위 컴포넌트에 복원된 상태 알림 (약간 지연)
+        setTimeout(() => {
+          const progressUpdateEvent = new CustomEvent('progressUpdate', {
+            detail: {
+              visibleSection: parsedState.visibleSection || 'media-search',
+              completedSteps: parsedState.completedSteps || [],
+              maxReachedStep: parsedState.maxReachedStep || 'media-search'
+            }
+          });
+          window.dispatchEvent(progressUpdateEvent);
+          console.log('📢 복원된 상태로 진행률 업데이트 이벤트 발생:', {
             visibleSection: parsedState.visibleSection || 'media-search',
             completedSteps: parsedState.completedSteps || [],
             maxReachedStep: parsedState.maxReachedStep || 'media-search'
-          }
-        });
-        window.dispatchEvent(progressUpdateEvent);
-        console.log('📢 복원된 상태로 진행률 업데이트 이벤트 발생:', {
-          visibleSection: parsedState.visibleSection || 'media-search',
-          completedSteps: parsedState.completedSteps || [],
-          maxReachedStep: parsedState.maxReachedStep || 'media-search'
-        });
+          });
+        }, 100);
       }
     } catch (error) {
       console.error('❌ IndexBar 상태 복원 실패:', error);
