@@ -7,6 +7,86 @@ import { addNewCategory } from '../add_new_category';
 import { WeightConfig, DEFAULT_WEIGHTS } from '../../../types/weights';
 import WeightSettingsPanel from './WeightSettingsPanel';
 
+// 가중치를 적용한 결과 재계산 함수
+const applyWeightsToResults = (originalResult: any, weights: WeightConfig) => {
+  try {
+    console.log('⚖️ 가중치 적용 시작:', weights);
+    
+    // 결과 데이터 구조 확인
+    const resultData = originalResult?.data || originalResult;
+    const categories = resultData?.matched_categories || [];
+    
+    if (!categories || categories.length === 0) {
+      console.log('⚠️ 재계산할 카테고리가 없습니다');
+      return originalResult;
+    }
+    
+    // 각 카테고리에 가중치 적용
+    const weightedCategories = categories.map((cat: any) => {
+      // 기본 점수들 (백엔드에서 계산된 값)
+      const frequencyScore = cat.frequency_score || 0;
+      const relevanceScore = cat.relevance_score || 0;
+      const recentScore = cat.recent_score || 0;
+      const rankScore = cat.rank_score || 0;
+      const referenceScore = cat.reference_score || 0;
+      const negativeScore = cat.negative_score || 0;
+      
+      // 가중치 적용 계산 (이미지의 공식에 맞게 수정)
+      // 최종점수 = 0.4 × 빈도점수 + 0.6 × 관련성점수 + 0.2 × 최신성점수 + 0.4 × 순위점수 + 0.6 × 참조점수 + 0.8 × 부정성점수 × (1 + 0.5 × 빈도점수 + 0.5 × 관련성점수)
+      const weightedFinalScore = 
+        (frequencyScore * weights.frequency.value) +
+        (relevanceScore * weights.relevance.value) +
+        (recentScore * weights.recent.value) +
+        (rankScore * weights.rank.value) +
+        (referenceScore * 0.6) + // 참조점수는 고정 가중치 0.6
+        (negativeScore * weights.negative.value) * (1 + (frequencyScore * weights.negative.boost.frequency) + (relevanceScore * weights.negative.boost.relevance));
+      
+      return {
+        ...cat,
+        final_score: weightedFinalScore,
+        // 가중치 적용된 점수들도 저장 (디버깅용)
+        weighted_scores: {
+          frequency: frequencyScore * weights.frequency.value,
+          relevance: relevanceScore * weights.relevance.value,
+          recent: recentScore * weights.recent.value,
+          rank: rankScore * weights.rank.value,
+          negative: negativeScore * weights.negative.value,
+          frequency_boost: frequencyScore * weights.negative.boost.frequency,
+          relevance_boost: relevanceScore * weights.negative.boost.relevance
+        }
+      };
+    });
+    
+    // 최종 점수로 정렬
+    weightedCategories.sort((a: any, b: any) => b.final_score - a.final_score);
+    
+    // 순위 재할당
+    const rankedCategories = weightedCategories.map((cat: any, index: number) => ({
+      ...cat,
+      rank: index + 1
+    }));
+    
+    console.log('✅ 가중치 적용 완료:', rankedCategories.slice(0, 5).map(cat => ({
+      category: cat.category,
+      final_score: cat.final_score,
+      rank: cat.rank
+    })));
+    
+    // 결과 구조 유지하면서 업데이트
+    return {
+      ...originalResult,
+      data: {
+        ...resultData,
+        matched_categories: rankedCategories
+      }
+    };
+    
+  } catch (error) {
+    console.error('❌ 가중치 적용 중 오류:', error);
+    return originalResult;
+  }
+};
+
 // 뉴스 데이터에서 추출된 카테고리를 기존 API와 연결하는 함수
 const connectWithExistingCategories = async (rawCategories: any[]) => {
   try {
@@ -211,7 +291,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
     console.log('✅ 사용자 활동 기록됨');
   };
 
-  // 가중치 변경 핸들러 (로컬 스토리지만 사용)
+  // 가중치 변경 핸들러 (프론트엔드에서 재계산)
   const handleWeightChange = (newWeights: WeightConfig) => {
     try {
       setIsWeightUpdateLoading(true);
@@ -220,15 +300,21 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
       // 가중치 설정을 localStorage에 저장
       localStorage.setItem('materialityWeights', JSON.stringify(newWeights));
 
-      // 로컬에서 가중치 적용 (백엔드 API 호출 제거)
       console.log('✅ 가중치 설정이 로컬 스토리지에 저장되었습니다:', newWeights);
       
-      // TODO: 필요시 프론트엔드에서 가중치를 적용한 결과 재계산 로직 추가
-      // 현재는 가중치만 저장하고, 실제 계산은 다른 곳에서 처리
+      // 기존 결과가 있으면 가중치를 적용한 결과로 재계산
+      if (assessmentResult) {
+        console.log('🔄 가중치 변경으로 인한 결과 재계산 시작');
+        const weightedResult = applyWeightsToResults(assessmentResult, newWeights);
+        setAssessmentResult(weightedResult);
+        console.log('✅ 가중치 적용된 결과로 업데이트 완료');
+      } else {
+        console.log('⚠️ 재계산할 결과가 없습니다. 먼저 중대성 평가를 실행해주세요.');
+      }
       
     } catch (error) {
-      console.error('❌ 가중치 저장 중 오류:', error);
-      alert('가중치 저장 중 오류가 발생했습니다.');
+      console.error('❌ 가중치 저장 및 재계산 중 오류:', error);
+      alert('가중치 저장 및 재계산 중 오류가 발생했습니다.');
     } finally {
       setIsWeightUpdateLoading(false);
     }
@@ -239,6 +325,14 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
     setWeights(DEFAULT_WEIGHTS);
     localStorage.removeItem('materialityWeights');
     console.log('✅ 가중치가 기본값으로 초기화되었습니다');
+    
+    // 기존 결과가 있으면 기본 가중치로 재계산
+    if (assessmentResult) {
+      console.log('🔄 기본 가중치로 결과 재계산 시작');
+      const weightedResult = applyWeightsToResults(assessmentResult, DEFAULT_WEIGHTS);
+      setAssessmentResult(weightedResult);
+      console.log('✅ 기본 가중치 적용된 결과로 업데이트 완료');
+    }
   };
 
   // 저장된 가중치 불러오기
@@ -578,8 +672,11 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
                     ...responseData,
                     matched_categories: filteredCategories
                   };
-                  setAssessmentResult(filteredResponseData);
-                  console.log('🔍 assessmentResult 상태 설정 (미분류 제외):', filteredResponseData);
+                  
+                  // 6. 가중치 적용 (프론트엔드에서 재계산)
+                  const weightedResult = applyWeightsToResults(filteredResponseData, weights);
+                  setAssessmentResult(weightedResult);
+                  console.log('🔍 assessmentResult 상태 설정 (가중치 적용됨):', weightedResult);
                   
                   // localStorage에 자동 저장 (필터링된 카테고리 사용)
                   try {
@@ -615,7 +712,10 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
                     ...responseData,
                     matched_categories: []
                   };
-                  setAssessmentResult(emptyResponseData);
+                  
+                  // 빈 결과에도 가중치 적용 (결과는 동일하지만 일관성 유지)
+                  const weightedEmptyResult = applyWeightsToResults(emptyResponseData, weights);
+                  setAssessmentResult(weightedEmptyResult);
                   
                   // 빈 결과도 localStorage에 자동 저장
                   try {

@@ -143,11 +143,28 @@ const WeightSettingsPanel: React.FC<WeightSettingsPanelProps> = ({
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <h4 className="text-sm font-medium text-blue-800 mb-2">
+          📊 점수 계산 공식
+        </h4>
+        <div className="bg-white p-3 rounded border mb-3">
+          <code className="text-sm text-gray-800 leading-relaxed">
+            최종점수 = 빈도점수 × <span className="font-bold text-blue-600">{weights.frequency.value.toFixed(1)}</span> + 
+            관련성점수 × <span className="font-bold text-blue-600">{weights.relevance.value.toFixed(1)}</span> + 
+            최신성점수 × <span className="font-bold text-blue-600">{weights.recent.value.toFixed(1)}</span> + 
+            순위점수 × <span className="font-bold text-blue-600">{weights.rank.value.toFixed(1)}</span> + 
+            참조점수 × <span className="font-bold text-gray-600">0.6</span> + 
+            부정성점수 × <span className="font-bold text-blue-600">{weights.negative.value.toFixed(1)}</span> × 
+            (1 + 빈도점수 × <span className="font-bold text-green-600">{weights.negative.boost.frequency.toFixed(1)}</span> + 
+            관련성점수 × <span className="font-bold text-green-600">{weights.negative.boost.relevance.toFixed(1)}</span>)
+          </code>
+        </div>
+        
+        <h4 className="text-sm font-medium text-blue-800 mb-2">
           💡 가중치 설정 도움말
         </h4>
         <ul className="text-sm text-blue-700 space-y-2">
           <li>• 각 가중치는 0.0에서 1.0 사이의 값을 가질 수 있습니다.</li>
           <li>• 부정성 가중치는 빈도와 관련성에 대한 부스트 효과가 추가됩니다.</li>
+          <li>• 참조점수는 고정 가중치 0.6이 적용됩니다.</li>
           <li>• 가중치 변경 시 실시간으로 결과가 업데이트됩니다.</li>
           <li>• 기본값으로 초기화하면 시스템 기본 가중치가 적용됩니다.</li>
         </ul>
