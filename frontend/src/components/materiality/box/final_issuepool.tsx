@@ -558,6 +558,19 @@ const FinalIssuepool: React.FC = () => {
     }
 
     try {
+      // 카테고리 이름을 실제 데이터베이스의 category_id로 매핑
+      const categoryNameToId: Record<string, number> = {
+        "인재관리/인재": 1,
+        "리스크": 2,
+        "공급망": 3,
+        "시장경쟁/시장점유/경제성과/재무성과": 4,
+        "정보보안": 5,
+        "친환경": 6,
+        "제품안전/제품품질": 7,
+        "환경영향/환경오염/오염물질/유해화학물질": 8,
+        "연구개발(R&D)": 9
+      };
+
       // 최종 이슈풀 데이터를 MG 스토어에 저장
       const issuepools = finalTop.map((item, index) => ({
         id: index + 1, // 임시 ID
@@ -565,7 +578,7 @@ const FinalIssuepool: React.FC = () => {
         publish_year: '2024',
         ranking: item.rank.toString(),
         issue_pool: item.category,
-        category_id: index + 1, // 임시 category_id
+        category_id: categoryNameToId[item.category] || (index + 1), // 실제 카테고리 ID 매핑
         esg_classification_id: 1, // 임시 esg_classification_id
       }));
 

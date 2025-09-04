@@ -95,22 +95,27 @@ export const useMGStore = create<MGState>()(
 
       loadIndexes: async () => {
         const sel = get().selected;
+        console.log('🔍 loadIndexes 시작 - selected 데이터:', sel);
 
         // 1) 카테고리 기반으로 GRI 인덱스 조회
         const categoryIds = sel.map((i) => i.category_id).filter(Number.isFinite);
+        console.log('🔍 추출된 categoryIds:', categoryIds);
         
         const grouped: Record<number, MGIndexDTO> = {};
 
         // 2) 카테고리 기반 API 호출
         if (categoryIds.length) {
           try {
+            console.log('🔍 fetchMGCategoryIndexes API 호출 시작:', categoryIds);
             const items = await fetchMGCategoryIndexes(categoryIds);
+            console.log('✅ fetchMGCategoryIndexes API 응답:', items);
 
             for (const item of items) {
               grouped[item.category_id] = item; // 카테고리 ID로 그룹화
+              console.log(`✅ 카테고리 ${item.category_id} 데이터 저장:`, item);
             }
           } catch (e) {
-            console.error('fetchMGCategoryIndexes 실패:', e);
+            console.error('❌ fetchMGCategoryIndexes 실패:', e);
             // 실패해도 진행 (외부 지표 보정 및 UI는 계속 동작)
           }
         }
@@ -118,6 +123,7 @@ export const useMGStore = create<MGState>()(
         // 3) 외부 지표는 프론트에서 "빈 인덱스"로 보정해 UI가 멈추지 않도록
         for (const ext of sel) {
           if (!grouped[ext.category_id]) {
+            console.log(`⚠️ 카테고리 ${ext.category_id}에 대한 데이터가 없어 빈 배열로 설정`);
             grouped[ext.category_id] = {
               issuepool_id: ext.id,
               issue_pool: ext.issue_pool,
@@ -131,6 +137,7 @@ export const useMGStore = create<MGState>()(
           }
         }
 
+        console.log('🔍 최종 grouped 데이터:', grouped);
         set({ indexesByIssue: grouped });
       },
 

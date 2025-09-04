@@ -12,16 +12,16 @@ from app.common.database.issuepool_db import Base
 # 1. IssuePoolGRI
 # ==========================
 class IssuePoolGRIEntity(Base):
-    __tablename__ = "_issuepool_gri_stage"
+    __tablename__ = "issuepool_gri"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    category = Column(Text, index=True, nullable=False)  # 실제 테이블의 category 컬럼
+    category_id = Column(Integer, index=True, nullable=False)  # 기존 프로젝트와 일치
     gri_index = Column(Text, index=True, nullable=False)
     frequency = Column(Integer, default=0)
     grade = Column(String(1), default="C")  # 'A' | 'B' | 'C'
 
     __table_args__ = (
-        UniqueConstraint("category", "gri_index", name="uq_category_gri"),
+        UniqueConstraint("category_id", "gri_index", name="uq_category_gri"),
     )
 
 

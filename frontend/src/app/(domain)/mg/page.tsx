@@ -28,28 +28,10 @@ export default function MGPage() {
   }, [ensureSession]);
 
   useEffect(() => {
-    if (selected.length === 0) {
-      try {
-        const stored = sessionStorage.getItem('selectedIssuePools');
-        console.log('🔍 sessionStorage에서 selectedIssuePools 확인:', stored);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          console.log('🔍 파싱된 selectedIssuePools:', parsed);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const { setSelected } = useMGStore.getState();
-            setSelected(parsed);
-            console.log('✅ selectedIssuePools 로드 완료:', parsed.length, '개');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('세션 스토리지 복원 실패:', error);
-      }
-    }
-    
     // selected가 변경되었을 때만 loadIndexes 실행
     if (selected.length > 0) {
       console.log('🔍 selected 데이터로 loadIndexes 실행:', selected.length, '개');
+      console.log('🔍 selected 데이터:', selected);
       // store에서 직접 함수 호출하여 참조 문제 방지
       const { loadIndexes: storeLoadIndexes } = useMGStore.getState();
       storeLoadIndexes();
