@@ -131,6 +131,7 @@ export const usePolishStore = create<PolishState>()(
                    company_context: "true",
                    corporation_id: user.corporation_id,
                    company_name: user.companyname, // ✅ 백엔드 필드명과 일치
+                   companyname: user.companyname,   // ✅ 호환성을 위해 추가
                  };
                  console.log('✅ 회사이름 전달:', {
                    company_name: user.companyname,
