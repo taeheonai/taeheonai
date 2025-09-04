@@ -12,7 +12,7 @@ from app.common.database.issuepool_db import Base
 # 1. IssuePoolGRI
 # ==========================
 class IssuePoolGRIEntity(Base):
-    __tablename__ = "issuepool_gri"
+    __tablename__ = "_issuepool_gri_stage"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     category_id = Column(Integer, index=True, nullable=False)
