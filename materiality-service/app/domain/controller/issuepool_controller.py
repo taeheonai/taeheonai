@@ -2,8 +2,8 @@
 from typing import List, Optional, Dict, Any
 from fastapi import HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.legacy_service.issuepool_service import IssuePoolService
-from app.domain.legacy_schema.issuepool_schema import (
+from app.domain.service.issuepool_service import IssuePoolService
+from app.domain.schema.issuepool_schema import (
     IssuePoolDTO, 
     IssuePoolFilter, 
     IssuePoolListResponse,
@@ -11,8 +11,8 @@ from app.domain.legacy_schema.issuepool_schema import (
     IssuePoolUpdateRequest,
     IssuePoolBulkCreateRequest
 )
-from app.domain.legacy_entity.issuepool_entity import IssuePool
-from app.common.database.issuepool_db import get_db
+from app.domain.entity.issuepool_entity import IssuePool
+from app.common.database import get_db
 import logging
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 # app/domain/entity/issuepool_entity.py
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, Text
-from app.common.database.issuepool_db import Base  # Declarative Base
+from app.common.database import Base  # Declarative Base
 
 class IssuePool(Base):
     __tablename__ = "issuepool"
