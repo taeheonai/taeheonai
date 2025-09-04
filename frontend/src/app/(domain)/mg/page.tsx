@@ -323,6 +323,7 @@ export default function MGPage() {
                                       sessionKey={sessionKey}
                                       threadId={threadId}
                                       corporationId={issue.corporation_id}
+                                      questions={questionsByItem[gri.gri_id] || []}
                                     />
                                   </div>
                                 </div>

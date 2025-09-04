@@ -1,7 +1,7 @@
 // components/mg/IndexPolisher.tsx
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
+import { fetchIndexQuestions, polishIndex, MGIndexBlock, MGQuestion } from "@/lib/mg";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -12,8 +12,8 @@ import { safeTrim } from "@/lib/utils";
 type DisplayMode = 'table' | 'prose';
 
 export default function IndexPolisher({
-  categoryId, griIndex, sessionKey, threadId, corporationId
-}: { categoryId: number; griIndex: string; sessionKey: string; threadId?: string; corporationId?: number }) {
+  categoryId, griIndex, sessionKey, threadId, corporationId, itemId, questions
+}: { categoryId: number; griIndex: string; sessionKey: string; threadId?: string; corporationId?: number; itemId?: number; questions?: MGQuestion[] }) {
   const [block, setBlock] = useState<MGIndexBlock | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [displayMode, setDisplayMode] = useState<Record<string, DisplayMode>>({});
@@ -29,7 +29,21 @@ export default function IndexPolisher({
   // 초기 데이터 로드
   useEffect(() => {
     const loadData = async () => {
-      const b = await fetchIndexQuestions(categoryId, griIndex);
+      let b: MGIndexBlock;
+      
+      // 전달받은 질문 데이터가 있으면 사용, 없으면 API 호출
+      if (questions && questions.length > 0) {
+        b = {
+          gri_index: griIndex,
+          questions: questions,
+          item_id: itemId || 0
+        };
+        console.log(`✅ IndexPolisher: 전달받은 질문 ${questions.length}개 사용`);
+      } else {
+        b = await fetchIndexQuestions(categoryId, griIndex);
+        console.log(`✅ IndexPolisher: API로 질문 ${b.questions.length}개 로드`);
+      }
+      
       setBlock(b);
       
       // 저장된 데이터 가져오기
@@ -54,7 +68,7 @@ export default function IndexPolisher({
     };
     
     loadData();
-  }, [categoryId, griIndex]); // getPolishedItem 제거
+  }, [categoryId, griIndex, questions]); // questions 의존성 추가
 
   // 디바운스 타이머를 위한 ref
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -317,6 +331,42 @@ export default function IndexPolisher({
           )}
         </button>
       </div>
+
+      {/* 표 모드 미리보기 */}
+      {buildTablesMarkdown() && (
+        <div className="p-4 border-2 border-green-100 rounded-xl bg-green-50 mt-4">
+          <div className="font-semibold text-lg text-green-900 mb-2">표 미리보기</div>
+          <div className="prose prose-green max-w-none">
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                table: props => (
+                  <table className="min-w-full divide-y divide-gray-300 my-4">
+                    {props.children}
+                  </table>
+                ),
+                thead: props => (
+                  <thead className="bg-gray-50">
+                    {props.children}
+                  </thead>
+                ),
+                th: props => (
+                  <th className="py-2 px-4 text-left text-sm font-semibold text-gray-900">
+                    {props.children}
+                  </th>
+                ),
+                td: props => (
+                  <td className="py-2 px-4 text-sm text-gray-500 border-t">
+                    {props.children}
+                  </td>
+                ),
+              }}
+            >
+              {buildTablesMarkdown()}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
 
       {polishedIndexText && (
         <div className="p-6 border-2 border-blue-100 rounded-xl bg-blue-50 mt-6">
