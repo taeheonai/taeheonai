@@ -1046,20 +1046,138 @@ def debug_labeling_results(labeled_articles: List[Dict[str, Any]], category_scor
 
 async def get_all_issuepool_data() -> Dict[str, Any]:
     """
-    issuepool DB에서 모든 데이터를 가져오는 함수
+    issuepool DB에서 모든 데이터를 가져오는 함수 - 실제 데이터베이스에서 조회
     
     Returns:
-        Dict[str, Any]: issuepool DB의 모든 데이터 (중복 제거, 행 단위 매칭)
+        Dict[str, Any]: issuepool DB의 모든 데이터
     """
     try:
-        repository = MiddleIssueRepository()
-        logger.warning("🔍 issuepool DB 전체 데이터 조회 시작")
+        from app.common.database.issuepool_db import get_all_issuepools
         
-        # 1. 모든 카테고리와 ESG 분류 정보 조회
-        all_categories = await repository.get_all_categories_with_esg()
+        logger.warning("🔍 issuepool DB 전체 데이터 조회 시작 - 실제 데이터베이스에서 조회")
         
-        # 2. 모든 base issue pool 정보 조회
-        all_base_issuepools = await repository.get_all_base_issuepools()
+        # 실제 issuepool 테이블에서 모든 데이터 조회
+        all_issuepools = await get_all_issuepools()
+        
+        logger.info(f"✅ 실제 issuepool 데이터 조회 완료: {len(all_issuepools)}개")
+        
+        # 실제 데이터 확인을 위한 로그
+        if all_issuepools:
+            first_item = all_issuepools[0]
+            logger.info(f"🔍 첫 번째 데이터 확인: id={first_item.id}, corporation_id={first_item.corporation_id}, issue_pool={first_item.issue_pool}")
+            
+            # 실제 데이터베이스에서 조회된 데이터인지 확인
+            if hasattr(first_item, 'corporation_id') and first_item.corporation_id == 103:
+                logger.info("✅ 실제 데이터베이스에서 조회된 데이터 확인됨!")
+            else:
+                logger.warning("⚠️ 더미 데이터가 조회되고 있습니다!")
+        else:
+            logger.warning("🔍 조회된 데이터가 없습니다!")
+        
+        # 실제 데이터베이스에 직접 연결해서 확인
+        try:
+            from app.common.database.issuepool_db import AsyncSessionLocal
+            from sqlalchemy import text
+            
+            async with AsyncSessionLocal() as session:
+                # 먼저 테이블 존재 여부 확인
+                result = await session.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'issuepool')"))
+                table_exists = result.scalar()
+                logger.info(f"🔍 issuepool 테이블 존재 여부: {table_exists}")
+                
+                if table_exists:
+                    result = await session.execute(text("SELECT COUNT(*) FROM issuepool"))
+                    count = result.scalar()
+                    logger.info(f"🔍 실제 데이터베이스 issuepool 테이블 데이터 개수: {count}")
+                    
+                    if count > 0:
+                        result = await session.execute(text("SELECT * FROM issuepool LIMIT 3"))
+                        samples = result.fetchall()
+                        logger.info(f"🔍 실제 데이터베이스 샘플 데이터: {samples}")
+                        
+                        # 실제 데이터베이스에서 조회된 데이터인지 확인
+                        if samples and len(samples) > 0:
+                            first_sample = samples[0]
+                            if hasattr(first_sample, 'corporation_id') and first_sample.corporation_id == 103:
+                                logger.info("✅ 실제 데이터베이스에서 조회된 데이터 확인됨!")
+                            else:
+                                logger.warning("⚠️ 실제 데이터베이스에도 더미 데이터가 있습니다!")
+                                
+                    # 실제 데이터베이스에서 직접 조회해서 반환
+                    if count > 0:
+                        result = await session.execute(text("SELECT * FROM issuepool"))
+                        real_issuepools = result.fetchall()
+                        logger.info(f"🔍 실제 데이터베이스에서 {len(real_issuepools)}개 데이터 조회됨")
+                        
+                        # 실제 데이터로 구조화
+                        structured_data = {
+                            "items": [],
+                            "summary": {
+                                "total_issuepools": len(real_issuepools),
+                                "corporation_ids": list(set([ip.corporation_id for ip in real_issuepools])),
+                                "publish_years": list(set([ip.publish_year for ip in real_issuepools])),
+                                "category_ids": list(set([ip.category_id for ip in real_issuepools]))
+                            }
+                        }
+                        
+                        # 각 issuepool 데이터를 구조화 (실제 테이블 컬럼과 일치)
+                        for ip in real_issuepools:
+                            item = {
+                                "id": ip.id,  # issuepool_id → id로 수정
+                                "corporation_id": ip.corporation_id,
+                                "publish_year": str(ip.publish_year),
+                                "ranking": str(ip.ranking),
+                                "base_issue_pool": ip.base_issue_pool,
+                                "issue_pool": ip.issue_pool,
+                                "category_id": ip.category_id,
+                                "esg_classification_id": ip.esg_classification_id
+                            }
+                            structured_data["items"].append(item)
+                        
+                        logger.info(f"✅ 실제 데이터베이스 데이터 구조화 완료: {len(structured_data['items'])}개 항목")
+                        return {"success": True, **structured_data}
+                else:
+                    logger.error("❌ issuepool 테이블이 존재하지 않습니다!")
+                    
+                    # 다른 테이블명으로 시도
+                    result = await session.execute(text("SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%issue%' OR table_name LIKE '%pool%'"))
+                    similar_tables = result.fetchall()
+                    logger.info(f"🔍 유사한 테이블명들: {[t[0] for t in similar_tables]}")
+                    
+        except Exception as e:
+            logger.error(f"❌ 실제 데이터베이스 직접 조회 실패: {e}")
+        
+        # 실제 데이터베이스에서 조회한 데이터가 있으면 반환, 없으면 기존 로직 사용
+        if 'structured_data' in locals() and structured_data.get('items'):
+            return {"success": True, **structured_data}
+        
+        # 데이터 구조화
+        structured_data = {
+            "items": [],
+            "summary": {
+                "total_issuepools": len(all_issuepools),
+                "corporation_ids": list(set([ip.corporation_id for ip in all_issuepools])),
+                "publish_years": list(set([ip.publish_year for ip in all_issuepools])),
+                "category_ids": list(set([ip.category_id for ip in all_issuepools]))
+            }
+        }
+        
+        # 각 issuepool 데이터를 구조화 (실제 테이블 컬럼과 일치)ㅈ정1738
+        for ip in all_issuepools:
+            item = {
+                "id": ip.id,  # issuepool_id → id로 수정
+                "corporation_id": ip.corporation_id,
+                "publish_year": str(ip.publish_year),
+                "ranking": str(ip.ranking),
+                "base_issue_pool": ip.base_issue_pool,
+                "issue_pool": ip.issue_pool,
+                "category_id": ip.category_id,
+                "esg_classification_id": ip.esg_classification_id
+            }
+            structured_data["items"].append(item)
+        
+        logger.info(f"✅ issuepool 데이터 구조화 완료: {len(structured_data['items'])}개 항목")
+        return {"success": True, **structured_data}
         
         # 3. 데이터 구조화 및 중복 제거
         structured_data = {

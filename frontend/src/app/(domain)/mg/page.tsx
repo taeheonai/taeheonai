@@ -39,8 +39,8 @@ export default function MGPage() {
         const { setSelected } = useMGStore.getState();
         setSelected(parsedData);
         
-        // localStorage에서 데이터 제거 (한 번만 사용)
-        localStorage.removeItem('finalIssuePools');
+        // localStorage 데이터는 유지 (새로고침 시에도 사용 가능)
+        console.log('✅ 최종 이슈풀 데이터를 MG store에 설정 완료');
       } catch (error) {
         console.error('❌ 최종 이슈풀 데이터 파싱 실패:', error);
       }

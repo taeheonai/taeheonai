@@ -90,11 +90,13 @@ async def get_mg_category_indexes(request: MGCategoryIndexesRequest, db: AsyncSe
         from app.domain.legacy_controller.mg_controller import MGController
         controller = MGController(db)
         
-        # 카테고리 ID 리스트로 GRI 인덱스 조회
+        # 카테고리 ID 리스트로 실제 issuepool 데이터와 GRI 인덱스 조회
         result = []
         for category_id in request.category_ids:
-            category_indexes = await controller.get_gri_indexes_by_category(category_id)
-            result.extend(category_indexes)
+            # 실제 issuepool 테이블에서 해당 category_id의 데이터 조회
+            category_data = await controller.get_issuepool_by_category_id(category_id)
+            if category_data:
+                result.append(category_data)
         
         # MGCategoryIndexesResponse 형태로 변환
         response = MGCategoryIndexesResponse(items=result)

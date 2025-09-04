@@ -19,6 +19,56 @@ class MGRepository:
     # -----------------------------
     # 0) IssuePool 기본 조회
     # -----------------------------
+    async def get_issuepool_by_category_id(self, category_id: int) -> IssuePool:
+        """카테고리 ID로 IssuePool 정보 조회 - 실제 데이터베이스에서 직접 조회"""
+        try:
+            from sqlalchemy import text
+            from app.common.database.issuepool_db import AsyncSessionLocal
+            
+            print(f"[MG Repository] 카테고리 {category_id}의 실제 IssuePool 조회 시작")
+            
+            # 새로운 세션을 사용하여 실제 데이터베이스에서 직접 조회
+            async with AsyncSessionLocal() as new_session:
+                # 실제 issuepool 테이블에서 직접 조회
+                result = await new_session.execute(
+                    text("""
+                        SELECT id, corporation_id, publish_year, ranking, 
+                               base_issue_pool, issue_pool, category_id, esg_classification_id
+                        FROM issuepool 
+                        WHERE category_id = :category_id 
+                        ORDER BY ranking 
+                        LIMIT 1
+                    """),
+                    {"category_id": category_id}
+                )
+                
+                row = result.fetchone()
+                
+                if row:
+                    # IssuePool 엔티티 형태로 변환
+                    issuepool = IssuePool(
+                        id=row.id,
+                        corporation_id=row.corporation_id,
+                        publish_year=row.publish_year,
+                        ranking=row.ranking,
+                        base_issue_pool=row.base_issue_pool,
+                        issue_pool=row.issue_pool,
+                        category_id=row.category_id,
+                        esg_classification_id=row.esg_classification_id
+                    )
+                    
+                    print(f"[MG Repository] 카테고리 {category_id}의 실제 IssuePool 조회 성공: {issuepool.issue_pool}")
+                    print(f"[MG Repository] 실제 데이터 - corporation_id: {issuepool.corporation_id}, publish_year: {issuepool.publish_year}")
+                    return issuepool
+                else:
+                    print(f"[MG Repository] 카테고리 {category_id}의 IssuePool 데이터가 없음")
+                    return None
+            
+        except Exception as e:
+            print(f"[MG Repository] 카테고리 {category_id}의 IssuePool 조회 실패: {e}")
+            import traceback; traceback.print_exc()
+            return None
+
     async def get_issuepools_by_ids(self, issuepool_ids: List[int]) -> List[IssuePool]:
         """ID 리스트로 IssuePool 정보 조회"""
         try:
