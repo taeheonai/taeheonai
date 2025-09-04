@@ -106,6 +106,9 @@ export default function MaterialityHomePage() {
   // 모달 상태
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   
+  // 가중치 상태 (모달에서 공식 표시용)
+  const [currentWeights, setCurrentWeights] = useState<any>(null);
+  
   // base issue pool 선택 모달 상태
   const [isBaseIssuePoolModalOpen, setIsBaseIssuePoolModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -901,6 +904,7 @@ export default function MaterialityHomePage() {
             setIsCustomBaseIssuePool={setIsCustomBaseIssuePool}
             setCustomBaseIssuePoolText={setCustomBaseIssuePoolText}
             setIsDetailModalOpen={setIsDetailModalOpen}
+            setCurrentWeights={setCurrentWeights}
             excelData={excelData}
           />
           )}
