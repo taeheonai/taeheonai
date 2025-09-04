@@ -133,6 +133,21 @@ export default function IndexBar() {
         const newCompletedSteps = [...completedSteps, visibleSection];
         setCompletedSteps(newCompletedSteps);
         
+        // 상위 컴포넌트에 상태 변경 알림
+        const progressUpdateEvent = new CustomEvent('progressUpdate', {
+          detail: {
+            visibleSection: nextStep.id,
+            completedSteps: newCompletedSteps,
+            maxReachedStep: nextStep.id
+          }
+        });
+        window.dispatchEvent(progressUpdateEvent);
+        console.log('📢 진행률 업데이트 이벤트 발생:', {
+          visibleSection: nextStep.id,
+          completedSteps: newCompletedSteps,
+          maxReachedStep: nextStep.id
+        });
+        
         // localStorage에 상태 저장
         const stateToSave = {
           visibleSection: nextStep.id,

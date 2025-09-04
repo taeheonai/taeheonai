@@ -415,11 +415,28 @@ export default function MaterialityHomePage() {
       }
     };
 
+    // 진행률 업데이트 이벤트 감지 (IndexBar에서 발생)
+    const handleProgressUpdate = (event: CustomEvent) => {
+      const { visibleSection: newVisibleSection, completedSteps: newCompletedSteps, maxReachedStep: newMaxReachedStep } = event.detail;
+      if (newVisibleSection) {
+        setVisibleSection(newVisibleSection);
+      }
+      if (newCompletedSteps) {
+        setCompletedSteps(newCompletedSteps);
+      }
+      if (newMaxReachedStep) {
+        setMaxReachedStep(newMaxReachedStep);
+      }
+      console.log('📢 진행률 업데이트 이벤트 수신:', event.detail);
+    };
+
     // 커스텀 이벤트 리스너 등록
     window.addEventListener('sectionChange', handleSectionChange as EventListener);
+    window.addEventListener('progressUpdate', handleProgressUpdate as EventListener);
 
     return () => {
       window.removeEventListener('sectionChange', handleSectionChange as EventListener);
+      window.removeEventListener('progressUpdate', handleProgressUpdate as EventListener);
     };
   }, []);
 
