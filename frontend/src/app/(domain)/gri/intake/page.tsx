@@ -122,8 +122,20 @@ export default function GRIIntakePage() {
   function buildTablesMarkdown() {
     if (!selectedItem) return '';
     let md = '';
+    console.log('🔍 buildTablesMarkdown 시작:', {
+      selectedItem: selectedItem.index_no,
+      questions: selectedItem.questions.length,
+      displayMode
+    });
+    
     for (const q of selectedItem.questions) {
               const qid = String(q.id);
+        console.log(`🔍 질문 ${qid} 체크:`, {
+          displayMode: displayMode[qid],
+          isTable: displayMode[qid] === 'table',
+          answer: savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text
+        });
+        
         if (displayMode[qid] !== 'table') continue;
         const text = savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text || '';
         if (!text) continue;
@@ -242,6 +254,11 @@ export default function GRIIntakePage() {
     try {
       // 표 모드 답변들을 마크다운으로 변환
       const tablesMarkdown = buildTablesMarkdown();
+      console.log('🔍 표 마크다운 생성 결과:', {
+        tablesMarkdown,
+        length: tablesMarkdown?.length || 0,
+        displayMode: Object.keys(displayMode).filter(key => displayMode[key] === 'table')
+      });
       
       // 윤문 API 호출
       const answers = selectedItem.questions
@@ -258,6 +275,16 @@ export default function GRIIntakePage() {
       }
 
       // GRI 윤문 API 호출 (GRIApiService 사용)
+      console.log('🔍 API 호출 데이터:', {
+        session_key: sessionKey,
+        gri_index: selectedItem.index_no,
+        answers: answers.length,
+        tables_markdown: tablesMarkdown,
+        extra_meta: {
+          tables_markdown: tablesMarkdown,
+        }
+      });
+      
       const result = await GRIApiService.runPolish({
         session_key: sessionKey,
         gri_index: selectedItem.index_no,
