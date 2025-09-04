@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { usePolishStore } from "@/store/polishStore";
 import { useMGStore } from "@/store/mgStore";
 import { safeTrim } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 type DisplayMode = 'table' | 'prose';
 
