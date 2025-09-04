@@ -27,11 +27,11 @@ export default function Finish({ companyId }: FinishProps) {
       let response;
       if (companyId === '한온시스템' || companyId === '1') {
         console.log('🔍 한온시스템을 숫자 ID 1로 변환하여 요청');
-        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/1`);
+        response = await fetch(`https://taeheonai-production-2130.up.railway.app/materiality-service/surveys/corporation/1`);
       } else {
         const encodedCompanyId = encodeURIComponent(companyId);
         console.log('🔍 회사 ID 인코딩:', { companyId, encodedCompanyId });
-        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/${encodedCompanyId}`);
+        response = await fetch(`https://taeheonai-production-2130.up.railway.app/materiality-service/surveys/corporation/${encodedCompanyId}`);
       }
       
       if (!response.ok) {
@@ -68,7 +68,7 @@ export default function Finish({ companyId }: FinishProps) {
           }
           
           console.log('🔍 설문 응답 데이터 요청:', surveyId);
-          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`);
+          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/materiality-service/surveys/${surveyId}/responses`);
           console.log('🔍 설문 응답 API 상태:', surveyId, responseData.status, responseData.ok);
           if (responseData.ok) {
             const responses = await responseData.json();
