@@ -1,6 +1,6 @@
 // components/mg/IndexPolisher.tsx
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchIndexQuestions, polishIndex, MGIndexBlock } from "@/lib/mg";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -54,20 +54,30 @@ export default function IndexPolisher({
     };
     
     loadData();
-  }, [categoryId, griIndex, getPolishedItem]);
+  }, [categoryId, griIndex]); // getPolishedItem 제거
+
+  // 디바운스 타이머를 위한 ref
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const onChange = (k: string, v: string) => {
     const newAnswers = { ...answers, [k]: v };
     setAnswers(newAnswers);
     
-    // 답변이 변경될 때마다 local storage에 저장
-    savePolishedItem({
-      gri_index: griIndex,
-      category_id: categoryId,
-      polished_text: savedItem?.polished_text || "",
-      answers: newAnswers,
-      last_modified: new Date().toISOString(),
-    });
+    // 이전 타이머가 있으면 취소
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // 답변이 변경될 때마다 local storage에 저장 (디바운스 적용)
+    saveTimeoutRef.current = setTimeout(() => {
+      savePolishedItem({
+        gri_index: griIndex,
+        category_id: categoryId,
+        polished_text: savedItem?.polished_text || "",
+        answers: newAnswers,
+        last_modified: new Date().toISOString(),
+      });
+    }, 500); // 500ms 디바운스
   };
 
   // 표 형식으로 변환
@@ -129,18 +139,29 @@ export default function IndexPolisher({
   // 컴포넌트 마운트 시 회사 정보 조회
   useEffect(() => {
     const loadCompanyInfo = async () => {
-      if (user?.corporation_id) {
+      if (user?.corporation_id && !company) {
         await fetchCompanyInfo();
-        console.log('회사 정보 로드됨:', { user, company });
+        console.log('회사 정보 로드됨:', { corporationId: user.corporation_id });
       }
     };
     loadCompanyInfo();
-  }, [user?.corporation_id, fetchCompanyInfo, user, company]);
+  }, [user?.corporation_id, fetchCompanyInfo]); // user, company 제거
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const onPolish = async () => {
+    if (isLoading) return; // 이미 로딩 중이면 중복 실행 방지
+    
     setIsLoading(true);
     try {
-      console.log("Polishing with user context:", { user, corporationId });
+      console.log("🔧 윤문 시작:", { griIndex, categoryId });
       
       // 기업 정보를 extra_meta에 포함
       const res = await polishIndex({
@@ -183,12 +204,10 @@ export default function IndexPolisher({
       // ESG 분류 ID 가져오기 (이슈풀에서 가져오거나 기본값 사용)
       const esgClassificationId = issuePool?.esg_classification_id || 4; // 기본값을 4(환경)로 설정
       
-      console.log('🔍 ESG 분류 정보:', {
+      console.log('✅ 윤문 완료:', {
         griIndex,
-        categoryId,
         issuePool: issuePool?.issue_pool,
-        esgClassificationId,
-        issuePoolEsgId: issuePool?.esg_classification_id
+        esgClassificationId
       });
 
       // MG 스토어에 윤문 결과와 ESG 정보 함께 저장
@@ -201,7 +220,7 @@ export default function IndexPolisher({
       }, categoryId, esgClassificationId);
 
     } catch (error) {
-      console.error('윤문 처리 중 오류:', error);
+      console.error('❌ 윤문 처리 중 오류:', error);
     } finally {
       setIsLoading(false);
     }
