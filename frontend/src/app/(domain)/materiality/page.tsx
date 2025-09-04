@@ -771,101 +771,7 @@ export default function MaterialityHomePage() {
                 
                                 {/* 상단 고정 버튼 컨테이너 */}
                 <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => setIsResetModalOpen(true)}
-                    className="px-4 py-2 bg-white hover:bg-red-50 text-gray-600 font-semibold rounded-lg transition-all duration-200 border-2 border-gray-300 hover:border-red-200 hover:text-red-500 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    🔄 리셋
-                  </button>
-                  <button
-                    onClick={() => {
-                      // 미디어 검색 실행
-                      if (companyId && searchPeriod.start_date && searchPeriod.end_date) {
-                        searchMedia({
-                          company_id: companyId,
-                          search_period: searchPeriod
-                        });
-                        if (error) {
-                          alert(`검색 중 오류가 발생했습니다: ${error}`);
-                        } else if (articles && articles.length > 0) {
-                          alert(`✅ ${totalResults}개의 기사를 찾았습니다!`);
-                        } else {
-                          alert('검색 결과가 없습니다. 다른 검색 조건을 시도해보세요.');
-                        }
-                      } else {
-                        alert('기업명과 검색 기간을 모두 입력해주세요.');
-                      }
-                    }}
-                    className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    🔍 미디어 검색
-                  </button>
-                                    <button
-                    onClick={() => {
-                      // Excel 데이터 관리
-                      if (isExcelValid && excelData.length > 0) {
-                        alert(`✅ Excel 데이터가 로드되었습니다.\n파일명: ${excelFilename || 'N/A'}\n데이터 행 수: ${excelData.length}개`);
-                      } else {
-                        alert('⚠️ 유효한 Excel 데이터가 없습니다.');
-                      }
-                    }}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📋 Excel 관리
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Excel 데이터 저장
-                      saveToLocalStorage();
-                      alert('✅ Excel 데이터가 로컬 스토리지에 저장되었습니다.');
-                    }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    💾 저장
-                  </button>
-                  <button
-                    onClick={() => {
-                      // 업로드된 Excel 데이터 로드
-                      loadUploadedExcelData(excelData);
-                      setIsExcelValid(excelData.length > 0);
-                      alert(`✅ 업로드된 Excel 데이터를 로드했습니다.\n데이터 행 수: ${excelData.length}개`);
-                    }}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📤 업로드 로드
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Excel 데이터 설정 및 로드
-                      const sampleData = [
-                        { name: '홍길동', position: '대표이사', company: companyId || '샘플회사', stakeholderType: '내부이해관계자', email: 'hong@example.com' },
-                        { name: '김철수', position: '부사장', company: companyId || '샘플회사', stakeholderType: '내부이해관계자', email: 'kim@example.com' }
-                      ];
-                      setExcelData(sampleData);
-                      loadFromStorage();
-                      alert(`✅ 샘플 Excel 데이터가 설정되었습니다.\n데이터 행 수: ${sampleData.length}개`);
-                    }}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📝 샘플 데이터
-                  </button>
-                  <button
-                    onClick={() => {
-                      // 기업 검색 테스트
-                      console.log('기업 검색 테스트:', { companyId, companySearchTerm });
-                      alert(`현재 선택된 기업: ${companyId || '없음'}\n검색어: ${companySearchTerm}`);
-                    }}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    🏢 기업 검색
-                  </button>
-                  <button
-                    onClick={loadPreviousAssessments}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    📚 평가 목록 로드
-                  </button>
-                  <button
+          <button
                     onClick={() => {
                       // 현재 상태 저장
                       saveCurrentState();
@@ -875,7 +781,7 @@ export default function MaterialityHomePage() {
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
                   >
                     다음 →
-                  </button>
+          </button>
         </div>
       </div>
           </div>
@@ -951,33 +857,7 @@ export default function MaterialityHomePage() {
             </div>
           )}
 
-          {/* 기업 검색 테스트 섹션 */}
-          {visibleSection === 'media-search' && (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                🔍 기업 검색 테스트
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    기업명 검색
-                  </label>
-                  <input
-                    type="text"
-                    value={companySearchTerm}
-                    onChange={handleCompanySearchChange}
-                    placeholder="기업명을 입력하세요"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p>현재 선택된 기업: <strong>{companyId || '없음'}</strong></p>
-                  <p>검색어: <strong>{companySearchTerm}</strong></p>
-                  <p>드롭다운 열림: <strong>{isCompanyDropdownOpen ? '예' : '아니오'}</strong></p>
-                </div>
-              </div>
-            </div>
-          )}
+
           
 
   
