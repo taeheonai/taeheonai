@@ -93,6 +93,48 @@ async def get_all_issuepools():
             
             issuepools = result.fetchall()
             logger.info(f"✅ 이슈풀 조회 완료: {len(issuepools)}개 이슈")
+            
+            # 실제 데이터 확인을 위한 로그
+            if issuepools:
+                first_item = issuepools[0]
+                logger.info(f"🔍 첫 번째 데이터 확인: id={first_item.id}, corporation_id={first_item.corporation_id}, issue_pool={first_item.issue_pool}")
+                logger.info(f"🔍 전체 데이터 개수: {len(issuepools)}")
+                for i, item in enumerate(issuepools[:3]):  # 처음 3개만 로그
+                    logger.info(f"🔍 데이터 {i+1}: id={item.id}, corporation_id={item.corporation_id}, issue_pool={item.issue_pool}, publish_year={item.publish_year}")
+                
+                # 실제 데이터베이스에서 조회된 데이터인지 확인
+                if hasattr(first_item, 'corporation_id') and first_item.corporation_id == 103:
+                    logger.info("✅ 실제 데이터베이스에서 조회된 데이터 확인됨!")
+                else:
+                    logger.warning("⚠️ 더미 데이터가 조회되고 있습니다!")
+                    
+                # 실제 데이터베이스에 직접 연결해서 확인
+                try:
+                    from app.common.database.issuepool_db import AsyncSessionLocal
+                    from sqlalchemy import text
+                    
+                    async with AsyncSessionLocal() as session:
+                        result = await session.execute(text("SELECT COUNT(*) FROM issuepool"))
+                        count = result.scalar()
+                        logger.info(f"🔍 실제 데이터베이스 issuepool 테이블 데이터 개수: {count}")
+                        
+                        if count > 0:
+                            result = await session.execute(text("SELECT * FROM issuepool LIMIT 3"))
+                            samples = result.fetchall()
+                            logger.info(f"🔍 실제 데이터베이스 샘플 데이터: {samples}")
+                            
+                            # 실제 데이터베이스에서 조회된 데이터인지 확인
+                            if samples and len(samples) > 0:
+                                first_sample = samples[0]
+                                if hasattr(first_sample, 'corporation_id') and first_sample.corporation_id == 103:
+                                    logger.info("✅ 실제 데이터베이스에서 조회된 데이터 확인됨!")
+                                else:
+                                    logger.warning("⚠️ 실제 데이터베이스에도 더미 데이터가 있습니다!")
+                except Exception as e:
+                    logger.error(f"❌ 실제 데이터베이스 직접 조회 실패: {e}")
+            else:
+                logger.warning("🔍 조회된 데이터가 없습니다!")
+            
             return issuepools
             
     except Exception as e:

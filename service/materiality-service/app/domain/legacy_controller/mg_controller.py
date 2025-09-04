@@ -50,6 +50,43 @@ class MGController:
             print(f"MG Index 조회 실패: {e}")
             raise Exception(f"MG Index 조회에 실패했습니다: {str(e)}")
 
+    async def get_issuepool_by_category_id(self, category_id: int) -> MGIndexDTO:
+        """카테고리 ID로 실제 issuepool 데이터와 GRI 인덱스 조회"""
+        try:
+            print(f"[MG Controller] 카테고리 {category_id}의 실제 issuepool 데이터 조회 시작")
+            
+            # Repository에서 실제 issuepool 데이터 조회
+            issuepool_data = await self.repository.get_issuepool_by_category_id(category_id)
+            if not issuepool_data:
+                print(f"[MG Controller] 카테고리 {category_id}의 issuepool 데이터가 없음")
+                return None
+                
+            print(f"[MG Controller] 실제 issuepool 데이터 조회 성공: {issuepool_data.issue_pool}")
+            
+            # 해당 카테고리의 GRI 인덱스 조회
+            gri_indexes = await self.repository.get_gri_indexes_by_category(category_id)
+            print(f"[MG Controller] GRI 인덱스 {len(gri_indexes)}개 조회 완료")
+            
+            # MGIndexDTO 형태로 변환
+            result = MGIndexDTO(
+                issuepool_id=issuepool_data.id,
+                issue_pool=issuepool_data.issue_pool,
+                ranking=issuepool_data.ranking,
+                publish_year=issuepool_data.publish_year,
+                corporation_id=issuepool_data.corporation_id,
+                category_id=issuepool_data.category_id,
+                esg_classification_id=issuepool_data.esg_classification_id,
+                gri_indexes=gri_indexes
+            )
+            
+            print(f"[MG Controller] MGIndexDTO 생성 완료: {result.issue_pool}")
+            return result
+            
+        except Exception as e:
+            print(f"[MG Controller] 카테고리 {category_id}의 issuepool 데이터 조회 실패: {e}")
+            import traceback; traceback.print_exc()
+            return None
+
     async def get_gri_indexes_by_category(self, category_id: int) -> List[MGIndexDTO]:
         """카테고리 ID로 GRI 인덱스 조회"""
         try:
