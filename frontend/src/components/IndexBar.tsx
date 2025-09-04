@@ -137,6 +137,29 @@ export default function IndexBar() {
     }
   };
 
+  // 다음 단계로 이동
+  const moveToNextStep = () => {
+    const currentIndex = indexItems.findIndex(item => item.id === visibleSection);
+    if (currentIndex < indexItems.length - 1) {
+      const nextStep = indexItems[currentIndex + 1];
+      
+      // 현재 단계를 완료된 단계에 추가
+      if (!completedSteps.includes(visibleSection)) {
+        setCompletedSteps(prev => [...prev, visibleSection]);
+      }
+      
+      // 최대 도달 단계 업데이트
+      setMaxReachedStep(nextStep.id);
+      
+      // 다음 단계로 이동
+      scrollToSection(nextStep.id);
+      
+      console.log('✅ 다음 단계로 이동:', nextStep.id);
+    } else {
+      console.log('🎉 모든 단계 완료!');
+    }
+  };
+
   // 토글 기능
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
@@ -283,6 +306,21 @@ export default function IndexBar() {
                 }}
               />
             </div>
+          </div>
+          
+          {/* 다음 버튼 */}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={moveToNextStep}
+              disabled={visibleSection === indexItems[indexItems.length - 1].id}
+              className={`px-4 py-2 font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm ${
+                visibleSection === indexItems[indexItems.length - 1].id
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              다음 →
+            </button>
           </div>
         </div>
       </div>
