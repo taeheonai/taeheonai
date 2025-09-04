@@ -200,3 +200,24 @@ class RankedCategory(BaseModel):
     reference_score: float
     negative_score: float
     final_score: float
+
+# ===== 가중치 설정 관련 스키마 =====
+class WeightConfig(BaseModel):
+    """가중치 설정 스키마 - 7개 가중치 설정"""
+    frequency_weight: float = Field(..., ge=0.0, le=1.0, description="빈도 가중치 - 해당 카테고리의 기사가 전체 기사 중 차지하는 비율")
+    relevance_weight: float = Field(..., ge=0.0, le=1.0, description="관련성 가중치 - 기사 제목에 기업명이 포함된 정도")
+    recent_weight: float = Field(..., ge=0.0, le=1.0, description="최신성 가중치 - 최근 3개월 이내(1.0), 3~6개월(0.5), 6개월 이상(0.0)")
+    rank_weight: float = Field(..., ge=0.0, le=1.0, description="순위 가중치 - 이전 연도 중대성 평가에서의 순위 반영")
+    negative_weight: float = Field(..., ge=0.0, le=1.0, description="부정성 가중치 - 부정적 이슈의 영향도")
+    frequency_boost: float = Field(..., ge=0.0, le=1.0, description="빈도 부스트")
+    relevance_boost: float = Field(..., ge=0.0, le=1.0, description="관련성 부스트")
+
+class WeightUpdateRequest(BaseModel):
+    """가중치 업데이트 요청 스키마"""
+    weights: WeightConfig
+
+class WeightUpdateResponse(BaseModel):
+    """가중치 업데이트 응답 스키마"""
+    success: bool
+    message: str
+    data: Optional[MiddleIssueAssessmentResponse] = None
