@@ -3,8 +3,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { MGIndexDTO, GRIIndex } from '@/lib/mg';
-import { fetchMGIndexes, fetchMGCategoryIndexes, requestMGPolish } from '@/lib/mg';
+import type { MGIndexDTO, GRIIndex, MGQuestion } from '@/lib/mg';
+import { fetchMGIndexes, fetchMGCategoryIndexes, requestMGPolish, fetchQuestionsByItemId } from '@/lib/mg';
 
 type IssuePool = {
   id: number;
@@ -38,6 +38,9 @@ type MGState = {
   /** 이슈풀ID -> 숨긴 gri_index[] */
   excludedByIssue: Record<number, string[]>;
 
+  /** item_id -> 질문 목록 */
+  questionsByItem: Record<number, MGQuestion[]>;
+
   /** 선택 세트 저장 */
   setSelected: (items: IssuePool[]) => void;
 
@@ -57,6 +60,9 @@ type MGState = {
   /** 카테고리 단위로 인덱스 숨기기/복원 */
   excludeIndex: (categoryId: number, griIndex: string) => void;
   undoExclude: (categoryId: number, griIndex: string) => void;
+
+  /** item_id로 질문들 로드 */
+  loadQuestionsByItemId: (itemId: number) => Promise<void>;
 
   /** 렌더 편의를 위한 셀렉터: 숨기지 않은 인덱스만 반환 */
   visibleIndexesSelector: (categoryId: number) => GRIIndex[];
@@ -85,6 +91,7 @@ export const useMGStore = create<MGState>()(
       indexesByIssue: {},
       resultsByIndex: {},
       excludedByIssue: {},
+      questionsByItem: {},
 
       setSelected: (items) => set({ selected: items }),
 
@@ -311,6 +318,23 @@ export const useMGStore = create<MGState>()(
           };
         }
         set({ resultsByIndex: next });
+      },
+
+      loadQuestionsByItemId: async (itemId: number) => {
+        try {
+          console.log(`🔍 item_id ${itemId}의 질문들 로드 시작`);
+          const questions = await fetchQuestionsByItemId(itemId);
+          console.log(`✅ item_id ${itemId}의 질문 ${questions.length}개 로드 완료:`, questions);
+          
+          set((state) => ({
+            questionsByItem: {
+              ...state.questionsByItem,
+              [itemId]: questions
+            }
+          }));
+        } catch (error) {
+          console.error(`❌ item_id ${itemId}의 질문 로드 실패:`, error);
+        }
       },
     }),
     { name: 'taeheon-mg' }

@@ -15,12 +15,23 @@ export default function MGPage() {
     undoExclude,
     excludedByIssue,
     visibleIndexesSelector,
+    questionsByItem,
+    loadQuestionsByItemId,
   } = useMGStore();
   const { sessionKey, threadId, ensureSession } = useSessionStore();
 
   // ✅ 펼쳐진 카드 상태
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const toggleOpen = (k: string) => setOpenKey((prev) => (prev === k ? null : k));
+  const toggleOpen = async (k: string, itemId?: number) => {
+    const isCurrentlyOpen = openKey === k;
+    setOpenKey((prev) => (prev === k ? null : k));
+    
+    // 카드를 열 때만 질문들을 로드
+    if (!isCurrentlyOpen && itemId) {
+      console.log(`🔍 GRI 인덱스 ${k} 클릭 - item_id ${itemId}의 질문들 로드 시작`);
+      await loadQuestionsByItemId(itemId);
+    }
+  };
 
   // 세션 초기화
   useEffect(() => {
@@ -264,7 +275,7 @@ export default function MGPage() {
                                   </button>
                                   {/* 윤문하기 버튼 */}
                                   <button
-                                    onClick={() => toggleOpen(key)}
+                                    onClick={() => toggleOpen(key, gri.gri_id)}
                                     className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                                   >
                                     {isOpen ? '접기' : '윤문하기'}
@@ -274,13 +285,46 @@ export default function MGPage() {
 
                               {isOpen && (
                                 <div className="mt-4">
-                                  <IndexPolisher
-                                    categoryId={issue.category_id}
-                                    griIndex={gri.gri_index}
-                                    sessionKey={sessionKey}
-                                    threadId={threadId}
-                                    corporationId={issue.corporation_id}
-                                  />
+                                  {/* 질문들 표시 */}
+                                  {questionsByItem[gri.gri_id] && questionsByItem[gri.gri_id].length > 0 ? (
+                                    <div className="space-y-4">
+                                      <h4 className="font-semibold text-gray-800">질문 목록:</h4>
+                                      {questionsByItem[gri.gri_id].map((question, qIndex) => (
+                                        <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
+                                          <div className="flex items-start space-x-3">
+                                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 text-sm font-medium rounded-full flex items-center justify-center">
+                                              {question.key_alpha || (qIndex + 1)}
+                                            </span>
+                                            <div className="flex-1">
+                                              <p className="text-gray-800 text-sm leading-relaxed">
+                                                {question.question_text}
+                                              </p>
+                                              {question.reference_text && (
+                                                <p className="text-gray-600 text-xs mt-2 italic">
+                                                  참조: {question.reference_text}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                      <p>질문을 불러오는 중...</p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* 기존 IndexPolisher 컴포넌트도 유지 */}
+                                  <div className="mt-6">
+                                    <IndexPolisher
+                                      categoryId={issue.category_id}
+                                      griIndex={gri.gri_index}
+                                      sessionKey={sessionKey}
+                                      threadId={threadId}
+                                      corporationId={issue.corporation_id}
+                                    />
+                                  </div>
                                 </div>
                               )}
                             </div>

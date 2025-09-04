@@ -274,3 +274,58 @@ class MGRepository:
             print(f"[MG Repository] get_questions_for_index 실패: {e}")
             import traceback; traceback.print_exc()
             return []
+    
+    async def get_questions_by_item_id(self, item_id: int) -> List[Dict[str, Any]]:
+        """
+        item_id로 gri_question 테이블에서 질문들 조회
+        
+        Args:
+            item_id: gri_item 테이블의 ID
+        
+        Returns:
+            List[Dict[str, Any]]: 질문 목록
+        """
+        try:
+            print(f"[MG Repository] item_id {item_id}의 질문들 조회 시작")
+            
+            # 새로운 세션을 사용하여 트랜잭션 오류 방지
+            async with AsyncSessionLocal() as new_session:
+                stmt = (
+                    select(
+                        GriQuestion.id,
+                        GriQuestion.item_id,
+                        GriQuestion.key_alpha,
+                        GriQuestion.question_text,
+                        GriQuestion.reference_text,
+                        GriQuestion.question_type,
+                        GriQuestion.display_order,
+                        GriQuestion.required,
+                    )
+                    .where(GriQuestion.item_id == item_id)
+                    .order_by(GriQuestion.display_order, GriQuestion.key_alpha)
+                )
+                result = await new_session.execute(stmt)
+                questions = result.mappings().all()
+                
+                # Dict 형태로 변환
+                question_list = []
+                for question in questions:
+                    question_dict = {
+                        "id": question.id,
+                        "item_id": question.item_id,
+                        "key_alpha": question.key_alpha,
+                        "question_text": question.question_text,
+                        "reference_text": question.reference_text,
+                        "question_type": question.question_type,
+                        "display_order": question.display_order,
+                        "required": question.required,
+                    }
+                    question_list.append(question_dict)
+                
+                print(f"[MG Repository] item_id {item_id}의 질문 {len(question_list)}개 조회 완료")
+                return question_list
+                
+        except Exception as e:
+            print(f"[MG Repository] get_questions_by_item_id 실패: {e}")
+            import traceback; traceback.print_exc()
+            return []

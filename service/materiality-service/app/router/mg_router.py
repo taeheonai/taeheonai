@@ -194,6 +194,34 @@ async def polish_legacy(
         logger.error(f"❌ 레거시 윤문 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"윤문 중 오류가 발생했습니다: {str(e)}")
 
+@mg_router.get("/questions/item/{item_id}", summary="아이템별 질문 조회")
+async def get_questions_by_item_id(item_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    item_id로 gri_question 테이블에서 질문들 조회
+    
+    Args:
+        item_id: gri_item 테이블의 ID
+        db: 데이터베이스 세션
+    
+    Returns:
+        List[dict]: 질문 목록
+    """
+    logger.info(f"📋 아이템별 질문 조회 GET 요청 받음: item_id={item_id}")
+    try:
+        # 기존 프로젝트의 MG 컨트롤러 사용
+        from app.domain.legacy_controller.mg_controller import MGController
+        controller = MGController(db)
+        
+        # item_id로 질문들 조회
+        questions = await controller.get_questions_by_item_id(item_id)
+        
+        logger.info(f"✅ 아이템별 질문 조회 완료: {len(questions)}개 질문")
+        return {"questions": questions}
+        
+    except Exception as e:
+        logger.error(f"❌ 아이템별 질문 조회 중 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"질문 조회 중 오류가 발생했습니다: {str(e)}")
+
 @mg_router.post("/polish/index", summary="인덱스 단위 윤문")
 async def polish_index(payload: PolishIndexPayload):
     """

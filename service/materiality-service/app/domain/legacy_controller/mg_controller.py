@@ -158,3 +158,21 @@ class MGController:
 
     async def get_questions_for_index(self, category_id: int, gri_index: str) -> MGIndexBlock:
             return await self.service.get_questions_for_index(category_id=category_id, gri_index=gri_index)
+    
+    async def get_questions_by_item_id(self, item_id: int) -> List[dict]:
+        """
+        item_id로 gri_question 테이블에서 질문들 조회
+        
+        Args:
+            item_id: gri_item 테이블의 ID
+        
+        Returns:
+            List[dict]: 질문 목록
+        """
+        try:
+            # repository를 통해 gri_question 테이블에서 질문들 조회
+            questions = await self.repository.get_questions_by_item_id(item_id)
+            return questions
+        except Exception as e:
+            print(f"질문 조회 실패 (item_id={item_id}): {e}")
+            raise Exception(f"질문 조회에 실패했습니다: {str(e)}")
