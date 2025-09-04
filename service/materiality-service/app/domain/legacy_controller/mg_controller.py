@@ -67,12 +67,15 @@ class MGController:
             gri_indexes_data = await self.repository.get_gri_indexes_by_category(category_id)
             print(f"[MG Controller] GRI 인덱스 {len(gri_indexes_data)}개 조회 완료")
             
-            # GRIIndex 형태로 변환
+            # GRIIndex 형태로 변환 (실제 item_id 사용git
             from app.domain.legacy_schema.mg_schema import GRIIndex
             gri_indexes = []
             for gri_data in gri_indexes_data:
+                # item_id가 있으면 그것을 사용, 없으면 gri_id 사용
+                actual_item_id = gri_data.get("item_id") or gri_data["gri_id"]
+                print(f"[MG Controller] GRI 인덱스 {gri_data['gri_index']}: gri_id={gri_data['gri_id']}, item_id={actual_item_id}")
                 gri_index = GRIIndex(
-                    gri_id=gri_data["gri_id"],
+                    gri_id=actual_item_id,  # 실제 item_id로 변경
                     gri_index=gri_data["gri_index"],
                     frequency=gri_data["frequency"],
                     grade=gri_data["grade"]

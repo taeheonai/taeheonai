@@ -103,13 +103,19 @@ class MGRepository:
                     print(f"[MG Repository] issuepool_gri 테이블이 존재하지 않습니다!")
                     return []
                 
-                # 직접 SQL 쿼리로 테스트
+                # issuepool_gri와 gri_item을 조인해서 실제 item_id 조회
                 result = await new_session.execute(
                     text("""
-                        SELECT id as gri_id, gri_index, frequency, grade
-                        FROM issuepool_gri 
-                        WHERE category_id = :category_id 
-                        ORDER BY frequency DESC, grade
+                        SELECT 
+                            ig.id as gri_id, 
+                            ig.gri_index, 
+                            ig.frequency, 
+                            ig.grade,
+                            gi.id as item_id
+                        FROM issuepool_gri ig
+                        LEFT JOIN gri_item gi ON ig.gri_index = gi.index_no
+                        WHERE ig.category_id = :category_id 
+                        ORDER BY ig.frequency DESC, ig.grade
                     """),
                     {"category_id": category_id}
                 )
