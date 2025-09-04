@@ -3,49 +3,49 @@ import { z } from 'zod';
 // GRI 카테고리 스키마
 export const GRICategorySchema = z.object({
   id: z.number(),
-  code: z.string().catch(''),
-  title: z.string().catch(''),
-  display_order: z.number().catch(0),
+  code: z.string().optional().default(''),
+  title: z.string().optional().default(''),
+  display_order: z.number().optional().default(0),
 });
 
 // GRI 질문 스키마
 export const GRIQuestionSchema = z.object({
   id: z.number(),
-  key_alpha: z.string().catch(''),
-  question_text: z.string().catch(''),
-  reference_text: z.string().nullable().catch(null),
-  question_type: z.string().catch(''),
-  display_order: z.number().catch(0),
-  required: z.boolean().catch(false),
+  key_alpha: z.string().optional().default(''),
+  question_text: z.string().optional().default(''),
+  reference_text: z.string().nullable().optional().default(null),
+  question_type: z.string().optional().default(''),
+  display_order: z.number().optional().default(0),
+  required: z.boolean().optional().default(false),
 });
 
 // GRI 아이템 스키마
 export const GRIItemSchema = z.object({
   id: z.number(),
-  index_no: z.string().catch(''),
-  title: z.string().catch(''),
-  questions: z.array(GRIQuestionSchema).catch([]),
+  index_no: z.string().optional().default(''),
+  title: z.string().optional().default(''),
+  questions: z.array(GRIQuestionSchema).optional().default([]),
 });
 
 // GRI 완전 데이터 스키마
 export const GRICompleteDataSchema = z.object({
   category: GRICategorySchema,
   items: z.array(GRIItemSchema),
-  item_count: z.number().catch(0),
+  item_count: z.number().optional().default(0),
 });
 
 // 카테고리 목록 응답 스키마
 export const CategoriesResponseSchema = z.object({
   categories: z.array(GRICategorySchema),
-  count: z.number().catch(0),
+  count: z.number().optional().default(0),
 });
 
 // Materiality 랜덤 질문 스키마
 export const MaterialityRandomSchema = z.object({
   id: z.number(),
-  question: z.string().catch(''),
-  category: z.string().catch(''),
-  weight: z.number().catch(0),
+  question: z.string().optional().default(''),
+  category: z.string().optional().default(''),
+  weight: z.number().optional().default(0),
 });
 
 // Materiality 랜덤 질문 목록 응답 스키마
