@@ -201,38 +201,8 @@ export default function MaterialityHomePage() {
     }
   };
 
-  // 다음 단계로 이동 함수
-  const moveToNextStep = () => {
-    const currentIndex = stepOrder.indexOf(visibleSection);
-    if (currentIndex < stepOrder.length - 1) {
-      const nextStep = stepOrder[currentIndex + 1];
-      
-      // 현재 단계를 완료된 단계에 추가
-      if (!completedSteps.includes(visibleSection)) {
-        setCompletedSteps(prev => [...prev, visibleSection]);
-      }
-      
-      // 최대 도달 단계 업데이트
-      setMaxReachedStep(nextStep);
-      
-      // 다음 단계로 이동
-      setVisibleSection(nextStep);
-      
-      // IndexBar에 섹션 변경 이벤트 발생
-      const sectionChangeEvent = new CustomEvent('sectionChange', { 
-        detail: { 
-          sectionId: nextStep,
-          completedSteps: [...completedSteps, visibleSection],
-          maxReachedStep: nextStep
-        } 
-      });
-      window.dispatchEvent(sectionChangeEvent);
-      
-      console.log('✅ 다음 단계로 이동:', nextStep);
-    } else {
-      console.log('🎉 모든 단계 완료!');
-    }
-  };
+  // 다음 단계로 이동 함수 (IndexBar로 이동됨)
+  // const moveToNextStep = () => { ... } // IndexBar.tsx로 이동됨
 
   // 저장된 상태 복원 함수
   const restoreSavedState = () => {
@@ -473,10 +443,12 @@ export default function MaterialityHomePage() {
 
       try {
         // Zustand store에서 사용자 정보 가져오기 (우선순위)
-        if (user?.companyname && !companyId) {
+        if (user?.companyname) {
           setCompanyId(user.companyname);
           setCompanySearchTerm(user.companyname);
           console.log('✅ Zustand store에서 사용자의 기업명 설정:', user.companyname);
+          console.log('🔍 companyId 상태:', user.companyname);
+          console.log('🔍 companySearchTerm 상태:', user.companyname);
           return;
         }
 
@@ -484,10 +456,27 @@ export default function MaterialityHomePage() {
         const userData = localStorage.getItem('user');
         if (userData) {
           const userFromStorage = JSON.parse(userData);
-          if (userFromStorage.company_id && !companyId) {
+          if (userFromStorage.company_id) {
             setCompanyId(userFromStorage.company_id);
             setCompanySearchTerm(userFromStorage.company_id);
             console.log('✅ localStorage에서 사용자의 기업명 설정:', userFromStorage.company_id);
+            console.log('🔍 companyId 상태:', userFromStorage.company_id);
+            console.log('🔍 companySearchTerm 상태:', userFromStorage.company_id);
+            return;
+          }
+        }
+
+        // auth-storage에서도 확인 (추가 fallback)
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          const authData = JSON.parse(authStorage);
+          const userCompany = authData?.state?.user?.companyname;
+          if (userCompany) {
+            setCompanyId(userCompany);
+            setCompanySearchTerm(userCompany);
+            console.log('✅ auth-storage에서 사용자의 기업명 설정:', userCompany);
+            console.log('🔍 companyId 상태:', userCompany);
+            console.log('🔍 companySearchTerm 상태:', userCompany);
           }
         }
       } catch (error) {
@@ -496,7 +485,7 @@ export default function MaterialityHomePage() {
     };
 
     getUserCompany();
-  }, [companyId]);
+  }, [user, setCompanyId]);
 
   // 페이지 로드 시 설문 대상 업로드 데이터와 displayCategoryCount 자동 불러오기
   useEffect(() => {
@@ -784,21 +773,6 @@ export default function MaterialityHomePage() {
                   <h1 className="text-4xl font-bold text-gray-900">중대성 평가 자동화 플랫폼</h1>
                   <p className="text-lg text-gray-600 mt-2">기업의 중대성 이슈를 자동으로 추천합니다</p>
                 </div>
-                
-                                {/* 상단 고정 버튼 컨테이너 */}
-                <div className="flex gap-3 flex-wrap">
-          <button
-                    onClick={() => {
-                      // 현재 상태 저장
-                      saveCurrentState();
-                      // 다음 단계로 이동
-                      moveToNextStep();
-                    }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl text-sm"
-                  >
-                    다음 →
-          </button>
-        </div>
       </div>
           </div>
   

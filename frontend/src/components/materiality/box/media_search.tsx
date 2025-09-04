@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useEffect } from 'react';
 import { handleClearSearch } from '../handle_clear_search';
 import { handleCompanySelect } from '../handle_company_select';
 import { handleMediaSearch } from '../handle_media_search';
@@ -40,6 +40,12 @@ const MediaSearch: React.FC<MediaSearchProps> = ({
   setExcelBase64,
   setLoading
 }) => {
+  // 디버깅: companySearchTerm 값 확인
+  useEffect(() => {
+    console.log('🔍 MediaSearch 컴포넌트에서 companySearchTerm:', companySearchTerm);
+    console.log('🔍 MediaSearch 컴포넌트에서 companyId:', companyId);
+  }, [companySearchTerm, companyId]);
+
   const handleCompanySearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCompanySearchTerm(e.target.value);
   };
