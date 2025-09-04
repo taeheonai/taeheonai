@@ -217,6 +217,7 @@ interface FirstAssessmentProps {
   setIsCustomBaseIssuePool: (custom: boolean) => void;
   setCustomBaseIssuePoolText: (text: string) => void;
   setIsDetailModalOpen: (open: boolean) => void;
+  setCurrentWeights: (weights: any) => void;
   excelData: any[];
 }
 
@@ -258,6 +259,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   setIsCustomBaseIssuePool,
   setCustomBaseIssuePoolText,
   setIsDetailModalOpen,
+  setCurrentWeights,
   excelData
 }) => {
   const [isDataHidden, setIsDataHidden] = React.useState(true);
@@ -300,6 +302,9 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
       // 가중치 설정을 localStorage에 저장
       localStorage.setItem('materialityWeights', JSON.stringify(newWeights));
 
+      // 상위 컴포넌트에 가중치 정보 전달 (모달에서 공식 표시용)
+      setCurrentWeights(newWeights);
+
       console.log('✅ 가중치 설정이 로컬 스토리지에 저장되었습니다:', newWeights);
       
       // 기존 결과가 있으면 가중치를 적용한 결과로 재계산
@@ -324,6 +329,10 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   const handleWeightReset = () => {
     setWeights(DEFAULT_WEIGHTS);
     localStorage.removeItem('materialityWeights');
+    
+    // 상위 컴포넌트에 기본 가중치 정보 전달 (모달에서 공식 표시용)
+    setCurrentWeights(DEFAULT_WEIGHTS);
+    
     console.log('✅ 가중치가 기본값으로 초기화되었습니다');
     
     // 기존 결과가 있으면 기본 가중치로 재계산
@@ -343,6 +352,10 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
         try {
           const parsedWeights = JSON.parse(savedWeights);
           setWeights(parsedWeights);
+          
+          // 상위 컴포넌트에 저장된 가중치 정보 전달 (모달에서 공식 표시용)
+          setCurrentWeights(parsedWeights);
+          
           console.log('💾 저장된 가중치 설정 로드됨');
         } catch (error) {
           console.error('❌ 저장된 가중치 파싱 실패:', error);

@@ -1087,7 +1087,21 @@ export default function MaterialityHomePage() {
                     <h4 className="text-xl font-semibold text-gray-800 mb-4">📈 점수 계산 공식</h4>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <p className="text-sm text-gray-700 leading-relaxed">
-                        <strong>최종점수</strong> = 0.4×빈도점수 + 0.6×관련성점수 + 0.2×최신성점수 + 0.4×순위점수 + 0.6×참조점수 + 0.8×부정성점수×(1+0.5×빈도점수+0.5×관련성점수)
+                        <strong>최종점수</strong> = 
+                        {currentWeights ? (
+                          <>
+                            빈도점수 × <span className="font-bold text-blue-600">{currentWeights.frequency?.value?.toFixed(1) || '0.3'}</span> + 
+                            관련성점수 × <span className="font-bold text-blue-600">{currentWeights.relevance?.value?.toFixed(1) || '0.3'}</span> + 
+                            최신성점수 × <span className="font-bold text-blue-600">{currentWeights.recent?.value?.toFixed(1) || '0.2'}</span> + 
+                            순위점수 × <span className="font-bold text-blue-600">{currentWeights.rank?.value?.toFixed(1) || '0.1'}</span> + 
+                            참조점수 × <span className="font-bold text-gray-600">0.6</span> + 
+                            부정성점수 × <span className="font-bold text-blue-600">{currentWeights.negative?.value?.toFixed(1) || '0.1'}</span> × 
+                            (1 + 빈도점수 × <span className="font-bold text-green-600">{currentWeights.negative?.boost?.frequency?.toFixed(1) || '0.0'}</span> + 
+                            관련성점수 × <span className="font-bold text-green-600">{currentWeights.negative?.boost?.relevance?.toFixed(1) || '0.0'}</span>)
+                          </>
+                        ) : (
+                          '0.4×빈도점수 + 0.6×관련성점수 + 0.2×최신성점수 + 0.4×순위점수 + 0.6×참조점수 + 0.8×부정성점수×(1+0.5×빈도점수+0.5×관련성점수)'
+                        )}
                       </p>
                     </div>
                   </div>
