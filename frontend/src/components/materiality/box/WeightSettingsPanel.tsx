@@ -14,6 +14,11 @@ const WeightSettingsPanel: React.FC<WeightSettingsPanelProps> = ({
   onReset,
   isLoading = false
 }) => {
+  // 디버깅: weights prop 변경 감지
+  React.useEffect(() => {
+    console.log('🔍 WeightSettingsPanel weights prop 변경됨:', weights);
+  }, [weights]);
+
   const handleWeightChange = (
     category: keyof WeightConfig,
     value: number,
@@ -43,7 +48,11 @@ const WeightSettingsPanel: React.FC<WeightSettingsPanelProps> = ({
           </p>
         </div>
         <button
-          onClick={onReset}
+          onClick={() => {
+            console.log('🔄 WeightSettingsPanel에서 초기화 버튼 클릭됨');
+            console.log('🔍 현재 weights prop:', weights);
+            onReset();
+          }}
           disabled={isLoading}
           className={`px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
             isLoading

@@ -332,13 +332,19 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
     console.log('🔍 현재 가중치:', weights);
     console.log('🔍 기본 가중치:', DEFAULT_WEIGHTS);
     
-    setWeights(DEFAULT_WEIGHTS);
+    // 강제로 상태 업데이트
+    setWeights({ ...DEFAULT_WEIGHTS });
     localStorage.removeItem('materialityWeights');
     
     // 상위 컴포넌트에 기본 가중치 정보 전달 (모달에서 공식 표시용)
-    setCurrentWeights(DEFAULT_WEIGHTS);
+    setCurrentWeights({ ...DEFAULT_WEIGHTS });
     
     console.log('✅ 가중치가 기본값으로 초기화되었습니다');
+    
+    // 상태 업데이트 확인을 위한 추가 로그
+    setTimeout(() => {
+      console.log('🔍 초기화 후 weights 상태:', weights);
+    }, 100);
     
     // 기존 결과가 있으면 기본 가중치로 재계산
     if (assessmentResult) {
