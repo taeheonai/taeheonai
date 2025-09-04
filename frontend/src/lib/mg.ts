@@ -121,6 +121,12 @@ export async function fetchIndexQuestions(categoryId: number, griIndex: string):
   return data as MGIndexBlock;
 }
 
+/** ---------- 신규: item_id로 질문들 조회 ---------- */
+export async function fetchQuestionsByItemId(itemId: number): Promise<MGQuestion[]> {
+  const { data } = await api.get(`/v1/materiality/mg/questions/item/${itemId}`);
+  return data.questions as MGQuestion[];
+}
+
 /** ---------- 신규: 인덱스 단위(a,b,c...) 한 번에 윤문 ---------- */
 export async function polishIndex(payload: PolishIndexPayload): Promise<PolishIndexResponse> {
   const { data } = await api.post('/v1/materiality/mg/polish/index', payload);
