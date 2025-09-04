@@ -35,9 +35,35 @@ export default function MGPage() {
         const parsedData = JSON.parse(finalIssuePools);
         console.log('🔍 localStorage에서 최종 이슈풀 데이터 발견:', parsedData);
         
+        // materiality_category 테이블의 category_name과 매칭
+        const categoryNameMapping: Record<string, number> = {
+          '고용/일자리': 1,
+          '공급망': 2,
+          '기후변화': 3,
+          '노사관계': 4,
+          '대기오염': 5,
+          '리스크': 6,
+          '생물다양성/산림보호': 7,
+          '성장': 8,
+          '시장경쟁/시장점유/경제성과/재무성과': 9,
+          '안전보건': 10
+        };
+        
+        const dataWithUniqueCategoryIds = parsedData.map((item: any, index: number) => {
+          const categoryName = item.issue_pool || item.category || '카테고리명 없음';
+          const mappedCategoryId = categoryNameMapping[categoryName] || (index + 1);
+          
+          return {
+            ...item,
+            category_id: mappedCategoryId
+          };
+        });
+        
+        console.log('🔍 고유한 category_id 할당된 데이터:', dataWithUniqueCategoryIds);
+        
         // 최종 이슈풀 데이터를 MG store에 설정
         const { setSelected } = useMGStore.getState();
-        setSelected(parsedData);
+        setSelected(dataWithUniqueCategoryIds);
         
         // localStorage 데이터는 유지 (새로고침 시에도 사용 가능)
         console.log('✅ 최종 이슈풀 데이터를 MG store에 설정 완료');
