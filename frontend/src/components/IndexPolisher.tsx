@@ -269,7 +269,7 @@ export default function IndexPolisher({
                     </div>
                   </div>
 
-                  <div className="text-sm font-medium mb-2">{q.text}</div>
+                                     <div className="text-sm font-medium mb-2">{q.question_text}</div>
                   <textarea
                     className="w-full border rounded-md p-2 text-sm"
                     rows={3}
