@@ -240,6 +240,9 @@ export default function GRIIntakePage() {
     setIsLoading(true);
     setMessage('');
     try {
+      // 표 모드 답변들을 마크다운으로 변환
+      const tablesMarkdown = buildTablesMarkdown();
+      
       // 윤문 API 호출
       const answers = selectedItem.questions
         .filter((q) => safeTrim(savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text))
@@ -261,12 +264,20 @@ export default function GRIIntakePage() {
         item_title: selectedItem.title,
         answers: answers,
         extra_instructions: 'kor_gri_v1',
+        extra_meta: {
+          tables_markdown: tablesMarkdown, // 표 마크다운 포함
+        }
       });
       
       // 윤문 결과를 intake store에 저장
       if (result.polished_text) {
+        // 표 마크다운과 윤문 결과 결합
+        const combinedText = tablesMarkdown 
+          ? `${tablesMarkdown}\n\n${result.polished_text || ""}`
+          : result.polished_text || "";
+          
         saveItem(selectedItem.index_no, { 
-          polished_text: result.polished_text,
+          polished_text: combinedText,
           last_modified: new Date().toISOString()
         });
         setMessage('윤문이 완료되었습니다. 윤문 결과를 자동으로 저장합니다...');

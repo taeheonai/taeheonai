@@ -204,7 +204,7 @@ export const PolishResult: React.FC<PolishResultProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-semibold mb-4">윤문 결과</h3>
+      <h3 className="text-lg font-semibold mb-4">intake_result</h3>
       <div className="prose max-w-none">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
           {filteredMarkdown || '_표시할 내용이 없습니다._'}
