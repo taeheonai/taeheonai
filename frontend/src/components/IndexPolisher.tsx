@@ -295,7 +295,8 @@ export default function IndexPolisher({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4">
+      {/* 질문 입력 필드들 - 숨김 처리 */}
+      <div className="grid gap-4" style={{ display: 'none' }}>
         {block.questions.map(q => {
           const key = q.key_alpha ?? "";
           const mode = displayMode[key] ?? 'prose';
@@ -349,6 +350,46 @@ export default function IndexPolisher({
             </div>
           );
         })}
+      </div>
+
+      {/* intake_result 섹션 - Q 접두사 제거 */}
+      <div className="border rounded-xl p-4 bg-gray-50">
+        <div className="text-sm font-medium text-gray-700 mb-2">intake_result</div>
+        <div className="text-sm text-gray-600">
+          {polishedIndexText ? (
+            <div className="prose prose-sm max-w-none">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  table: props => (
+                    <table className="min-w-full divide-y divide-gray-300 my-2">
+                      {props.children}
+                    </table>
+                  ),
+                  thead: props => (
+                    <thead className="bg-gray-50">
+                      {props.children}
+                    </thead>
+                  ),
+                  th: props => (
+                    <th className="py-1 px-3 text-left text-xs font-semibold text-gray-900">
+                      {props.children}
+                    </th>
+                  ),
+                  td: props => (
+                    <td className="py-1 px-3 text-xs text-gray-500 border-t">
+                      {props.children}
+                    </td>
+                  ),
+                }}
+              >
+                {polishedIndexText}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="text-gray-400 italic">윤문 결과가 없습니다. 윤문을 실행해주세요.</div>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 mt-4">
