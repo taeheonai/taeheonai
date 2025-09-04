@@ -115,7 +115,7 @@ app.include_router(middleissue_router, prefix="/materiality-service", tags=["mid
 app.include_router(category_router, prefix="/materiality-service", tags=["category"])
 app.include_router(survey_router, prefix="/materiality-service", tags=["survey"])
 app.include_router(email_router, prefix="/materiality-service", tags=["email"])
-app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])
+# app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])  # 기존 프로젝트 MG 라우터 사용으로 비활성화
 
 # 기존 프로젝트 라우터들 등록 (레거시 호환성)
 if legacy_issuepool_router:
