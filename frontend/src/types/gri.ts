@@ -1,32 +1,32 @@
 // GRI 데이터 타입 정의
 export interface GRICategory {
   id: number;
-  code: string;
-  title: string;
-  display_order: number;
+  code?: string;
+  title?: string;
+  display_order?: number; 
 }
 
 export interface GRIQuestion {
   id: number;
-  key_alpha: string;
-  question_text: string;
-  reference_text: string | null;
-  question_type: string;
-  display_order: number;
-  required: boolean;
+  key_alpha?: string;
+  question_text?: string;
+  reference_text?: string | null;
+  question_type?: string;
+  display_order?: number;
+  required?: boolean;
 }
 
 export interface GRIItem {
   id: number;
-  index_no: string;
-  title: string;
-  questions: GRIQuestion[];
+  index_no?: string;
+  title?: string;
+  questions?: GRIQuestion[];
 }
 
 export interface GRICompleteData {
   category: GRICategory;
   items: GRIItem[];
-  item_count: number;
+  item_count?: number;
 }
 
 // 답변 관련 인터페이스
