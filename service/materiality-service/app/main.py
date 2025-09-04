@@ -29,10 +29,14 @@ try:
     from app.legacy_router.issuepool_router import router as legacy_issuepool_router
     from app.legacy_router.mg_router import router as legacy_mg_router
     legacy_router_loaded = True
+    print("✅ 기존 프로젝트 라우터들 import 성공")
 except ImportError as e:
     legacy_router_loaded = False
     legacy_issuepool_router = None
     legacy_mg_router = None
+    print(f"❌ 기존 프로젝트 라우터들 import 실패: {e}")
+    import traceback
+    traceback.print_exc()
 
 # 환경 변수 로드 (Railway 환경에서는 건너뛰기)
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -115,7 +119,7 @@ app.include_router(middleissue_router, prefix="/materiality-service", tags=["mid
 app.include_router(category_router, prefix="/materiality-service", tags=["category"])
 app.include_router(survey_router, prefix="/materiality-service", tags=["survey"])
 app.include_router(email_router, prefix="/materiality-service", tags=["email"])
-# app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])  # 기존 프로젝트 MG 라우터 사용으로 비활성화
+app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])
 
 # 기존 프로젝트 라우터들 등록 (레거시 호환성)
 if legacy_issuepool_router:
