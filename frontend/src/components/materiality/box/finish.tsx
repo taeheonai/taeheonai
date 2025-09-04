@@ -489,6 +489,7 @@ export default function Finish({ companyId }: FinishProps) {
                             {category.esg_classification}
                           </span>
                         )}
+                        </div>
                       </div>
                     </div>
                     
@@ -501,8 +502,8 @@ export default function Finish({ companyId }: FinishProps) {
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-lg p-6 text-center">
