@@ -132,6 +132,16 @@ export const usePolishStore = create<PolishState>()(
                    corporation_id: user.corporation_id,
                    company_name: user.companyname, // ✅ 백엔드 필드명과 일치
                  };
+                 console.log('✅ 회사이름 전달:', {
+                   company_name: user.companyname,
+                   corporation_id: user.corporation_id,
+                   extra_meta
+                 });
+               } else {
+                 console.warn('⚠️ 회사이름 또는 corporation_id가 없습니다:', {
+                   corporation_id: user.corporation_id,
+                   companyname: user.companyname
+                 });
                }
              } catch (e) {
                console.warn('사용자 정보 파싱 실패:', e);
