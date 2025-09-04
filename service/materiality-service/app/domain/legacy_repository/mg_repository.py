@@ -3,9 +3,9 @@ from typing import List, Dict, Any, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.entity.issuepool_entity import IssuePool
+from app.domain.legacy_entity.issuepool_entity import IssuePool
 # mg_entity 안에 3개 엔티티를 함께 관리
-from app.domain.entity.mg_entity import (
+from app.domain.legacy_entity.mg_entity import (
     IssuePoolGRIEntity,  # issuepool_gri
     GriItem,             # gri_item
     GriQuestion,         # gri_question

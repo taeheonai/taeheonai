@@ -82,3 +82,33 @@ class IssuePoolListRequest(BaseModel):
     company_id: str = Field(..., description="기업명")
     report_period: ReportPeriod = Field(..., description="보고기간")
     search_context: Optional[SearchContext] = Field(None, description="검색 컨텍스트")
+
+# 기존 프로젝트에서 사용하는 스키마들 추가
+class IssuePoolResponse(BaseModel):
+    """이슈풀 응답 스키마"""
+    id: int
+    corporation_id: Optional[int] = None
+    publish_year: Optional[str] = None
+    ranking: Optional[str] = None
+    base_issue_pool: Optional[str] = None
+    issue_pool: str
+    category_id: int
+    esg_classification_id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class IssuePoolCreateResponse(BaseModel):
+    """이슈풀 생성 응답 스키마"""
+    success: bool
+    message: str
+    data: Optional[IssuePoolResponse] = None
+
+class IssuePoolUpdateResponse(BaseModel):
+    """이슈풀 업데이트 응답 스키마"""
+    success: bool
+    message: str
+    data: Optional[IssuePoolResponse] = None
+
+class IssuePoolDeleteResponse(BaseModel):
+    """이슈풀 삭제 응답 스키마"""
+    success: bool
+    message: str

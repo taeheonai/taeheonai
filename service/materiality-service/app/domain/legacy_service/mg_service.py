@@ -3,8 +3,8 @@ from typing import List, Dict, Any, Optional
 import os
 import httpx
 
-from app.domain.repository.mg_repository import MGRepository
-from app.domain.schema.mg_schema import (
+from app.domain.legacy_repository.mg_repository import MGRepository
+from app.domain.legacy_schema.mg_schema import (
     MGIndexDTO,                # 기존: issuepool → gri_indexes 맵
     MGPolishIndexRequest,      # 신규: 인덱스 단위 윤문 요청 DTO
     MGPolishIndexResponse,     # 신규: 인덱스 단위 윤문 응답 DTO

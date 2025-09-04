@@ -1,9 +1,9 @@
 # app/domain/service/issuepool_service.py
 from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.repository.issuepool_repository import IssuePoolRepository
-from app.domain.schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter, IssuePoolListResponse
-from app.domain.entity.issuepool_entity import IssuePool
+from app.domain.legacy_repository.issuepool_repository import IssuePoolRepository
+from app.domain.legacy_schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter, IssuePoolListResponse
+from app.domain.legacy_entity.issuepool_entity import IssuePool
 import logging
 import traceback
 from fastapi import HTTPException

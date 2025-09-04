@@ -2,8 +2,8 @@
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.entity.issuepool_entity import IssuePool
-from app.domain.schema.issuepool_schema import (
+from app.domain.legacy_entity.issuepool_entity import IssuePool
+from app.domain.legacy_schema.issuepool_schema import (
     IssuePoolDTO,
     IssuePoolCreateRequest,
     IssuePoolUpdateRequest,
