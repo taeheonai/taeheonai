@@ -57,8 +57,10 @@ class ServiceProxyFactory:
         
         # materiality 서비스의 경우 /materiality-service prefix 사용 (최우선 처리)
         if self.service_type == ServiceType.materiality:
-            # /surveys → /materiality-service/surveys로 변환
-            # /search-media → /materiality-service/search-media로 변환
+            # /v1/materiality/assessment/weights → /materiality-service/assessment/weights로 변환
+            # /v1/materiality/surveys → /materiality-service/surveys로 변환
+            if path.startswith("/v1/materiality/"):
+                path = path[15:]  # /v1/materiality/ 제거
             return f"/materiality-service{path}"
         
         # search 서비스의 경우 materiality-service로 라우팅하되 /materiality-service/search prefix 추가
