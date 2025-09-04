@@ -43,7 +43,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Header with Login Status */}
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">TaeheonAI</h1>
+            <h1 className="text-3xl font-bold text-gray-900"></h1>
             <div className="flex items-center gap-4">
               {isLoggedIn ? (
                 <div className="flex items-center gap-3">
@@ -87,16 +87,16 @@ export default function HomePage() {
 
           {/* 메인 제목 */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 bg-clip-text text-transparent leading-tight">
-            중대성평가
+            ESG MATE
             <span className="block text-4xl md:text-5xl mt-2 text-gray-600 font-normal">
-              GRI Report 자동화 플랫폼
+              ESG 공시 보고서 자동화 플랫폼
             </span>
           </h1>
 
           {/* 설명 텍스트 */}
           <p className="text-xl md:text-2xl text-gray-600 mb-16 max-w-3xl mx-auto leading-relaxed">
             ESG 경영의 핵심, 중대성 평가를 <span className="font-semibold text-blue-600">자동화</span>하고 
-            <span className="font-semibold text-indigo-600"> GRI Report</span>를 효율적으로 생성하는 
+            <span className="font-semibold text-indigo-600"> GRI, TCFD Report</span>를 효율적으로 생성하는 
             <span className="font-semibold text-purple-600"> 통합 플랫폼</span>입니다
           </p>
 
@@ -109,7 +109,7 @@ export default function HomePage() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">자동화된 분석</h3>
-              <p className="text-gray-600 text-sm">AI 기반 뉴스 크롤링 및 자동 카테고리 분류</p>
+              <p className="text-gray-600 text-sm"> 뉴스 크롤링 및 자동 카테고리 분류</p>
             </div>
 
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
