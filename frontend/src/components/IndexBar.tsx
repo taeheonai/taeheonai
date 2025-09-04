@@ -26,8 +26,38 @@ export default function IndexBar() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]); // 완료된 단계들
   const [maxReachedStep, setMaxReachedStep] = useState<string>('media-search'); // 최대 도달한 단계
 
-  // 저장된 상태 복원 (materiality/page.tsx에서 관리하므로 제거)
-  // useEffect(() => { ... }, []); // 제거됨
+  // 저장된 상태 복원
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const savedState = localStorage.getItem('materialityProgressState');
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+        setVisibleSection(parsedState.visibleSection || 'media-search');
+        setCompletedSteps(parsedState.completedSteps || []);
+        setMaxReachedStep(parsedState.maxReachedStep || 'media-search');
+        console.log('🔄 IndexBar 상태 복원 완료:', parsedState);
+        
+        // 상위 컴포넌트에 복원된 상태 알림
+        const progressUpdateEvent = new CustomEvent('progressUpdate', {
+          detail: {
+            visibleSection: parsedState.visibleSection || 'media-search',
+            completedSteps: parsedState.completedSteps || [],
+            maxReachedStep: parsedState.maxReachedStep || 'media-search'
+          }
+        });
+        window.dispatchEvent(progressUpdateEvent);
+        console.log('📢 복원된 상태로 진행률 업데이트 이벤트 발생:', {
+          visibleSection: parsedState.visibleSection || 'media-search',
+          completedSteps: parsedState.completedSteps || [],
+          maxReachedStep: parsedState.maxReachedStep || 'media-search'
+        });
+      }
+    } catch (error) {
+      console.error('❌ IndexBar 상태 복원 실패:', error);
+    }
+  }, []);
 
   // 섹션 변경 이벤트 감지
   useEffect(() => {
