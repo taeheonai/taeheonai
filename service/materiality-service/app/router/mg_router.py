@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # 의존성 주입을 위한 임시 구현
 from app.domain.mg.schema import (
     MGIndexesRequest, MGIndexesResponse,
+    MGCategoryIndexesRequest, MGCategoryIndexesResponse,
     MGQuestionsRequest, MGIndexResponse,
     MGIndexQuestionsRequest, MGIndexBlock,
     PolishIndexPayload, PolishIndexResponse,
@@ -77,6 +78,33 @@ async def get_mg_indexes(request: MGIndexesRequest, db: AsyncSession = Depends(g
     except Exception as e:
         logger.error(f"❌ MG 인덱스 조회 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"MG 인덱스 조회 중 오류가 발생했습니다: {str(e)}")
+
+@mg_router.post("/category-indexes", summary="카테고리 기반 MG 인덱스 조회")
+async def get_mg_category_indexes(request: MGCategoryIndexesRequest, db: AsyncSession = Depends(get_db)):
+    """카테고리 ID 리스트로 GRI 인덱스 조회"""
+    logger.info("📊 카테고리 기반 MG 인덱스 조회 POST 요청 받음")
+    try:
+        logger.info(f"카테고리 기반 MG 인덱스 조회 시도: {len(request.category_ids)}개 카테고리 ID")
+        
+        # 기존 프로젝트의 MG 컨트롤러 사용
+        from app.domain.legacy_controller.mg_controller import MGController
+        controller = MGController(db)
+        
+        # 카테고리 ID 리스트로 GRI 인덱스 조회
+        result = []
+        for category_id in request.category_ids:
+            category_indexes = await controller.get_gri_indexes_by_category(category_id)
+            result.extend(category_indexes)
+        
+        # MGCategoryIndexesResponse 형태로 변환
+        response = MGCategoryIndexesResponse(items=result)
+        
+        logger.info(f"✅ 카테고리 기반 MG 인덱스 조회 완료: {len(result)}개 카테고리")
+        return response
+        
+    except Exception as e:
+        logger.error(f"❌ 카테고리 기반 MG 인덱스 조회 중 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"카테고리 기반 MG 인덱스 조회 중 오류가 발생했습니다: {str(e)}")
 
 @mg_router.get("/questions", summary="카테고리별 질문 조회")
 async def get_questions_by_category(category_id: int = Query(..., description="카테고리 ID")):

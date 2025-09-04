@@ -110,6 +110,15 @@ class MGIndexesResponse(BaseModel):
     """MG 인덱스 조회 응답"""
     items: List[MGIndexDTO]
 
+# 카테고리 기반 GRI 인덱스 조회를 위한 새로운 스키마
+class MGCategoryIndexesRequest(BaseModel):
+    """카테고리 기반 MG 인덱스 조회 요청"""
+    category_ids: List[int]
+
+class MGCategoryIndexesResponse(BaseModel):
+    """카테고리 기반 MG 인덱스 조회 응답"""
+    items: List[MGIndexDTO]
+
 class MGQuestionsRequest(BaseModel):
     """카테고리별 질문 조회 요청"""
     category_id: int

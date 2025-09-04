@@ -50,6 +50,33 @@ class MGController:
             print(f"MG Index 조회 실패: {e}")
             raise Exception(f"MG Index 조회에 실패했습니다: {str(e)}")
 
+    async def get_gri_indexes_by_category(self, category_id: int) -> List[MGIndexDTO]:
+        """카테고리 ID로 GRI 인덱스 조회"""
+        try:
+            # Repository에서 카테고리별 GRI 인덱스 조회
+            gri_indexes = await self.repository.get_gri_indexes_by_category(category_id)
+            
+            # MGIndexDTO 형태로 변환
+            result = []
+            if gri_indexes:
+                # 카테고리별로 하나의 MGIndexDTO 생성
+                mg_index_dto = MGIndexDTO(
+                    issuepool_id=category_id,  # 임시로 category_id 사용
+                    issue_pool=f"카테고리 {category_id}",  # 임시 이슈풀명
+                    category_id=category_id,
+                    esg_classification_id=1,  # 임시 ESG 분류 ID
+                    corporation_id=1,  # 임시 기업 ID
+                    publish_year="2024",
+                    ranking="1",
+                    gri_indexes=gri_indexes
+                )
+                result.append(mg_index_dto)
+            
+            return result
+        except Exception as e:
+            print(f"카테고리별 GRI 인덱스 조회 실패: {e}")
+            raise Exception(f"카테고리별 GRI 인덱스 조회에 실패했습니다: {str(e)}")
+
     # -------------------------------
     # 2) 레거시 Polish 요청 (배열 기반)
     # -------------------------------

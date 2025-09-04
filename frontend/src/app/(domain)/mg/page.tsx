@@ -118,9 +118,9 @@ export default function MGPage() {
             </div>
           ) : (
             selected.map((issue) => {
-            const mgData = indexesByIssue[issue.id];
-            const visible = visibleIndexesSelector(issue.id);
-            const excluded = excludedByIssue[issue.id] ?? [];
+            const mgData = indexesByIssue[issue.category_id];
+            const visible = visibleIndexesSelector(issue.category_id);
+            const excluded = excludedByIssue[issue.category_id] ?? [];
 
             return (
               <section key={issue.id} className="bg-white rounded-lg shadow-md p-6">
@@ -145,7 +145,7 @@ export default function MGPage() {
                       <h3 className="font-medium text-gray-900">GRI 인덱스:</h3>
                       {excluded.length > 0 && (
                         <button
-                          onClick={() => excluded.forEach((idx) => undoExclude(issue.id, idx))}
+                          onClick={() => excluded.forEach((idx) => undoExclude(issue.category_id, idx))}
                           className="flex items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                         >
                           <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@ export default function MGPage() {
                     {visible.length > 0 ? (
                       <div className="space-y-3">
                         {visible.map((gri) => {
-                          const key = `${issue.id}-${gri.gri_index}`;
+                          const key = `${issue.category_id}-${gri.gri_index}`;
                           const isOpen = openKey === key;
 
                           return (
@@ -181,7 +181,7 @@ export default function MGPage() {
                                   <button
                                     onClick={() => {
                                       if (window.confirm(`${gri.gri_index} 인덱스를 삭제하시겠습니까?\n삭제된 인덱스는 하단의 '삭제된 인덱스 복원' 버튼으로 복원할 수 있습니다.`)) {
-                                        excludeIndex(issue.id, gri.gri_index);
+                                        excludeIndex(issue.category_id, gri.gri_index);
                                       }
                                     }}
                                     className="p-2 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-200 group"

@@ -87,6 +87,13 @@ export async function fetchMGIndexes(issuepoolIds: number[]): Promise<MGIndexDTO
   return data.items;
 }
 
+// 카테고리 기반 GRI 인덱스 조회
+export async function fetchMGCategoryIndexes(categoryIds: number[]): Promise<MGIndexDTO[]> {
+  const clean = categoryIds.map(Number).filter(Number.isFinite);
+  const { data } = await api.post('/v1/materiality/mg/category-indexes', { category_ids: clean });
+  return data.items;
+}
+
 /**
  * ⚠️ 레거시: 백엔드 /mg/polish 는 MGIndexDTO[] 입력을 기대함.
  * 현재 시그니처는 GRIIndex[]였는데, 기존 코드와의 호환을 위해 남겨둡니다.
