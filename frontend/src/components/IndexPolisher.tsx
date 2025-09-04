@@ -226,8 +226,19 @@ export default function IndexPolisher({
         indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
       );
       
+      console.log('🔍 이슈풀 찾기 디버깅:', {
+        griIndex,
+        selected: selected.map(s => ({ id: s.id, issue_pool: s.issue_pool, esg_classification_id: s.esg_classification_id })),
+        indexesByIssue: Object.keys(indexesByIssue),
+        foundIssuePool: issuePool ? {
+          id: issuePool.id,
+          issue_pool: issuePool.issue_pool,
+          esg_classification_id: issuePool.esg_classification_id
+        } : null
+      });
+      
       // ESG 분류 ID 가져오기 (이슈풀에서 가져오거나 기본값 사용)
-      const esgClassificationId = issuePool?.esg_classification_id || 4; // 기본값을 4(환경)로 설정
+      const esgClassificationId = issuePool?.esg_classification_id || 1; // 기본값을 1(사회)로 설정
       
       console.log('✅ 윤문 완료:', {
         griIndex,
