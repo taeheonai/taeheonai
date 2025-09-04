@@ -230,10 +230,8 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
             recent_weight: newWeights.recent.value,
             rank_weight: newWeights.rank.value,
             negative_weight: newWeights.negative.value,
-            negative_boost: {
-              frequency: newWeights.negative.boost.frequency,
-              relevance: newWeights.negative.boost.relevance
-            }
+            frequency_boost: newWeights.negative.boost.frequency,
+            relevance_boost: newWeights.negative.boost.relevance
           }
         }
       );
@@ -901,14 +899,6 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
         )}
       </div>
 
-      {/* 가중치 설정 패널 */}
-      <WeightSettingsPanel
-        weights={weights}
-        onChange={handleWeightChange}
-        onReset={handleWeightReset}
-        isLoading={isWeightUpdateLoading}
-      />
-
       {/* 세 번째 섹션: 1차 중대성 평가 결과 */}
       <div className="bg-gray-50 rounded-xl border border-gray-200 p-6">
         <div className="text-center mb-4">
@@ -1278,6 +1268,16 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
          )}
        </div>
      </div>
+
+      {/* 가중치 설정 패널 - 맨 아래로 이동, 박스 크기 자유롭게 */}
+      <div className="mt-8">
+        <WeightSettingsPanel
+          weights={weights}
+          onChange={handleWeightChange}
+          onReset={handleWeightReset}
+          isLoading={isWeightUpdateLoading}
+        />
+      </div>
    </div>
    );
  };
