@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useIntakeStore } from '@/store/intakeStore';
 import { useGriUIStore } from '@/store/griUIStore';
+import { useMGStore } from '@/store/mgStore';
 import { PolishResult } from '@/components/PolishResult';
 import type { GRIQuestion, GRICategory, GRIItem, GRICompleteData } from '@/types/gri';
 import { GRIApiService } from '@/lib/griApi';
@@ -322,10 +323,25 @@ export default function GRIIntakePage() {
       
       // 윤문 결과를 intake store에 저장
       if (result.polished_text) {
+        // polished_text를 문자열로 변환
+        let polishedText = '';
+        if (typeof result.polished_text === 'string') {
+          polishedText = result.polished_text;
+        } else if (typeof result.polished_text === 'object' && result.polished_text !== null) {
+          // 객체인 경우 text 필드 추출
+          polishedText = result.polished_text.text || JSON.stringify(result.polished_text);
+        }
+        
+        console.log('🔍 polished_text 변환:', {
+          original: result.polished_text,
+          type: typeof result.polished_text,
+          converted: polishedText
+        });
+        
         // 표 마크다운과 윤문 결과 결합
         const combinedText = tablesMarkdown 
-          ? `${tablesMarkdown}\n\n${result.polished_text || ""}`
-          : result.polished_text || "";
+          ? `${tablesMarkdown}\n\n${polishedText}`
+          : polishedText;
           
         saveItem(selectedItem.index_no, { 
           polished_text: combinedText,
