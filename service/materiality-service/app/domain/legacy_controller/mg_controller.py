@@ -64,8 +64,22 @@ class MGController:
             print(f"[MG Controller] 실제 issuepool 데이터 조회 성공: {issuepool_data.issue_pool}")
             
             # 해당 카테고리의 GRI 인덱스 조회
-            gri_indexes = await self.repository.get_gri_indexes_by_category(category_id)
-            print(f"[MG Controller] GRI 인덱스 {len(gri_indexes)}개 조회 완료")
+            gri_indexes_data = await self.repository.get_gri_indexes_by_category(category_id)
+            print(f"[MG Controller] GRI 인덱스 {len(gri_indexes_data)}개 조회 완료")
+            
+            # GRIIndex 형태로 변환
+            from app.domain.legacy_schema.mg_schema import GRIIndex
+            gri_indexes = []
+            for gri_data in gri_indexes_data:
+                gri_index = GRIIndex(
+                    gri_id=gri_data["gri_id"],
+                    gri_index=gri_data["gri_index"],
+                    frequency=gri_data["frequency"],
+                    grade=gri_data["grade"]
+                )
+                gri_indexes.append(gri_index)
+            
+            print(f"[MG Controller] GRIIndex 변환 완료: {len(gri_indexes)}개")
             
             # MGIndexDTO 형태로 변환 (실제 데이터베이스 데이터 사용)
             result = MGIndexDTO(
