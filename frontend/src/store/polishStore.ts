@@ -130,7 +130,7 @@ export const usePolishStore = create<PolishState>()(
                    ...extra_meta,
                    company_context: "true",
                    corporation_id: user.corporation_id,
-                   companyname: user.companyname, // ✅ DB 컬럼명과 일치
+                   company_name: user.companyname, // ✅ 백엔드 필드명과 일치
                  };
                }
              } catch (e) {
