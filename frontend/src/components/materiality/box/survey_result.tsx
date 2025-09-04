@@ -480,8 +480,8 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
         console.error('발송 완료된 명단 수 계산 실패:', error);
       }
       
-      // 총 발송 대상자 수 = 현재 설문 대상자 + 발송 완료된 명단
-      const totalEmails = validEmails.length + sentRecipientsCount;
+      // 총 발송 대상자 수 = 발송 완료된 명단만 (실제 발송한 인원)
+      const totalEmails = sentRecipientsCount;
       const responseRate = totalEmails > 0 ? Math.round((newResponses.length / totalEmails) * 100) : 0;
       
       setResponseStatus({

@@ -299,8 +299,9 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
     const currentSurveySent = sentSurveys.find(s => s.surveyId === selectedSurveyId);
     const totalSent = currentSurveySent ? currentSurveySent.totalSent : 0;
     
-    // 총 발송 대상자 수 = 현재 설문 대상자 + 발송 완료된 명단
-    const totalRecipients = validEmails.length + sentRecipientsCount;
+    // 총 발송 대상자 수 = 실제 발송한 인원 (발송 완료된 명단)
+    // 발송 전에는 현재 대상자 수, 발송 후에는 실제 발송한 수
+    const totalRecipients = totalSent > 0 ? totalSent : sentRecipientsCount;
     
     setSendStatus((p) => ({ 
       ...p, 
