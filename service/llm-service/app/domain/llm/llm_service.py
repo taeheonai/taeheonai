@@ -162,16 +162,19 @@ class GriPolisher:
                         meta = json.loads(meta_str)
                         logger.info(f"Parsed metadata: {meta}")
                         
-                        if meta.get("company_context") == "true" and meta.get("company_name"):
+                        # company_name 또는 companyname 필드에서 회사이름 가져오기
+                        company_name = meta.get("company_name") or meta.get("companyname")
+                        
+                        if meta.get("company_context") == "true" and company_name:
                             company_context = (
-                                f"중요: 이 응답은 {meta['company_name']} 기업의 ESG 보고서를 위한 것입니다. "
-                                f"모든 'ABC', '회사', '조직' 등의 표현을 '{meta['company_name']}'으로 대체하고, "
+                                f"중요: 이 응답은 {company_name} 기업의 ESG 보고서를 위한 것입니다. "
+                                f"모든 'ABC', '회사', '조직' 등의 표현을 '{company_name}'으로 대체하고, "
                                 f"기업 특성에 맞게 응답을 조정하세요."
                             )
-                            logger.info(f"✅ 회사이름 적용됨: {meta['company_name']}")
+                            logger.info(f"✅ 회사이름 적용됨: {company_name}")
                             logger.info(f"Created company context: {company_context}")
                         else:
-                            logger.warning(f"⚠️ 회사 컨텍스트 누락: company_context={meta.get('company_context')}, company_name={meta.get('company_name')}")
+                            logger.warning(f"⚠️ 회사 컨텍스트 누락: company_context={meta.get('company_context')}, company_name={company_name}")
                 except Exception as e:
                     logger.error(f"Error processing company context: {str(e)}")
 
