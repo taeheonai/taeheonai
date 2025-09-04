@@ -442,10 +442,14 @@ export default function Finish({ companyId }: FinishProps) {
                     // 최종 카테고리 목록을 MG 페이지로 전달하고 이동
                     const finalIssuePools = finalCategories.map((category, index) => ({
                       id: index + 1,
+                      issue_pool: category.category || category.selected_base_issue_pool || '카테고리명 없음',
                       category: category.category,
                       category_id: category.category_id || 1, // 기본값 설정
                       ranking: index + 1,
-                      score: category.score || 0
+                      score: category.score || 0,
+                      corporation_id: 1, // 기본값
+                      publish_year: '2024', // 기본값
+                      esg_classification_id: 1 // 기본값
                     }));
                     
                     // Zustand store에 최종 이슈풀 저장
