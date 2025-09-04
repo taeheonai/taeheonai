@@ -522,7 +522,16 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
                 request_type: 'middleissue_assessment',
                 timestamp: new Date().toISOString(),
                 articles: formattedArticles,
-                total_results: searchResult.data.total_results || 0
+                total_results: searchResult.data.total_results || 0,
+                weights: {
+                  frequency_weight: weights.frequency.value,
+                  relevance_weight: weights.relevance.value,
+                  recent_weight: weights.recent.value,
+                  rank_weight: weights.rank.value,
+                  negative_weight: weights.negative.value,
+                  frequency_boost: weights.negative.boost.frequency,
+                  relevance_boost: weights.negative.boost.relevance
+                }
               };
 
               console.log('🚀 중대성 평가 요청 데이터:', requestData);
