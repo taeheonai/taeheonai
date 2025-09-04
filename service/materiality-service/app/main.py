@@ -244,7 +244,7 @@ async def startup_event():
     logger.info("   - GET  /materiality-service/surveys/corporation/{corporation_id} (신규: 회사별 설문 목록)")
     logger.info("   - POST /materiality-service/surveys/{survey_id}/responses (신규: 설문 응답 제출)")
     logger.info("   - POST /materiality-service/mg/indexes (신규: MG 인덱스 조회)")
-    logger.info("   - POST /materiality-service/middleissue/assessment/weights (신규: 가중치 업데이트)")
+    logger.info("   - POST /materiality-service/assessment/weights (신규: 가중치 업데이트)")
     logger.info("   - GET  /materiality-service/mg/questions (신규: 카테고리별 질문 조회)")
     logger.info("   - GET  /materiality-service/mg/questions/index (신규: 인덱스별 질문 조회)")
     logger.info("   - POST /materiality-service/mg/polish (신규: 레거시 윤문)")
