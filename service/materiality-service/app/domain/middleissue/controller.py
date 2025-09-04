@@ -35,7 +35,7 @@ class MiddleIssueController:
             # Service로 요청 전달 (타임아웃 5분 적용)
             result = await start_assessment_with_timeout(request, timeout_seconds=300)
             
-            logger.info(f"✅ 컨트롤러: Service 응답 수신 - {result.get('success', False)}")
+            logger.info(f"✅ 컨트롤러: Service 응답 수신 - {getattr(result, 'success', False)}")
             return result
             
         except Exception as e:
