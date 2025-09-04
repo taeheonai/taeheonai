@@ -237,8 +237,29 @@ export default function IndexPolisher({
         } : null
       });
       
-      // ESG 분류 ID 가져오기 (이슈풀에서 가져오거나 기본값 사용)
-      const esgClassificationId = issuePool?.esg_classification_id || 1; // 기본값을 1(사회)로 설정
+      // ESG 분류 ID 하드코딩으로 분류 (1:사회, 2,3:거버넌스, 4:환경)
+      const getESGClassification = (issuePool: string): number => {
+        const socialKeywords = ['고용', '노사', '공급망', '노동', '안전', '보건', '인재', '임직원', '제품안전', '품질'];
+        const governanceKeywords = ['경쟁', '재무', '리스크', '관리'];
+        const environmentKeywords = ['기후', '환경', '친환경', '원자재', '조달'];
+        
+        const issuePoolLower = issuePool.toLowerCase();
+        
+        // 환경(E) - 4
+        if (environmentKeywords.some(keyword => issuePoolLower.includes(keyword))) {
+          return 4;
+        }
+        
+        // 거버넌스(G) - 2 또는 3
+        if (governanceKeywords.some(keyword => issuePoolLower.includes(keyword))) {
+          return 2; // 기본적으로 2로 설정
+        }
+        
+        // 사회(S) - 1 (기본값)
+        return 1;
+      };
+      
+      const esgClassificationId = getESGClassification(issuePool?.issue_pool || '');
       
       console.log('✅ 윤문 완료:', {
         griIndex,
