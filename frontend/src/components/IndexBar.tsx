@@ -26,23 +26,8 @@ export default function IndexBar() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]); // 완료된 단계들
   const [maxReachedStep, setMaxReachedStep] = useState<string>('media-search'); // 최대 도달한 단계
 
-  // 저장된 상태 복원
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    try {
-      const savedState = localStorage.getItem('materialityProgressState');
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-        setVisibleSection(parsedState.visibleSection || 'media-search');
-        setCompletedSteps(parsedState.completedSteps || []);
-        setMaxReachedStep(parsedState.maxReachedStep || 'media-search');
-        console.log('🔄 IndexBar 상태 복원 완료:', parsedState);
-      }
-    } catch (error) {
-      console.error('❌ IndexBar 상태 복원 실패:', error);
-    }
-  }, []);
+  // 저장된 상태 복원 (materiality/page.tsx에서 관리하므로 제거)
+  // useEffect(() => { ... }, []); // 제거됨
 
   // 섹션 변경 이벤트 감지
   useEffect(() => {
@@ -145,7 +130,17 @@ export default function IndexBar() {
       
       // 현재 단계를 완료된 단계에 추가
       if (!completedSteps.includes(visibleSection)) {
-        setCompletedSteps(prev => [...prev, visibleSection]);
+        const newCompletedSteps = [...completedSteps, visibleSection];
+        setCompletedSteps(newCompletedSteps);
+        
+        // localStorage에 상태 저장
+        const stateToSave = {
+          visibleSection: nextStep.id,
+          completedSteps: newCompletedSteps,
+          maxReachedStep: nextStep.id
+        };
+        localStorage.setItem('materialityProgressState', JSON.stringify(stateToSave));
+        console.log('💾 진행률 상태 저장:', stateToSave);
       }
       
       // 최대 도달 단계 업데이트

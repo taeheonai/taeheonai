@@ -96,7 +96,7 @@ export default function MaterialityHomePage() {
   // 화면 표시 제어를 위한 별도 상태
   const [isDataHidden, setIsDataHidden] = useState(true); // 처음 접속 시 데이터 숨김
   
-  // 사용자 활동 감지하여 데이터 표시
+  // 사용자 활동 감지하여 데이터 표시 및 상태 복원
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -105,6 +105,9 @@ export default function MaterialityHomePage() {
       setIsDataHidden(false);
       console.log('✅ 사용자 활동 감지: 데이터 표시 활성화');
     }
+
+    // 저장된 상태 복원
+    restoreSavedState();
   }, []);
 
   // 모달 상태
@@ -420,7 +423,7 @@ export default function MaterialityHomePage() {
     };
   }, []);
 
-  // IndexBar에 상태 정보 전달
+  // IndexBar에 상태 정보 전달 및 상태 저장
   useEffect(() => {
     const updateIndexBarState = () => {
       const sectionChangeEvent = new CustomEvent('sectionChange', { 
@@ -434,6 +437,9 @@ export default function MaterialityHomePage() {
     };
 
     updateIndexBarState();
+    
+    // 상태 변경 시 자동 저장
+    saveCurrentState();
   }, [visibleSection, completedSteps, maxReachedStep]);
 
   // 로그인한 사용자의 기업 정보 가져오기
