@@ -211,8 +211,8 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
     console.log('✅ 사용자 활동 기록됨');
   };
 
-  // 가중치 변경 핸들러
-  const handleWeightChange = async (newWeights: WeightConfig) => {
+  // 가중치 변경 핸들러 (로컬 스토리지만 사용)
+  const handleWeightChange = (newWeights: WeightConfig) => {
     try {
       setIsWeightUpdateLoading(true);
       setWeights(newWeights);
@@ -220,32 +220,15 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
       // 가중치 설정을 localStorage에 저장
       localStorage.setItem('materialityWeights', JSON.stringify(newWeights));
 
-      // 백엔드 API 호출하여 새로운 가중치로 결과 업데이트
-      const response = await axios.post(
-        `/api/v1/materiality/middleissue/assessment/weights`,
-        {
-          weights: {
-            frequency_weight: newWeights.frequency.value,
-            relevance_weight: newWeights.relevance.value,
-            recent_weight: newWeights.recent.value,
-            rank_weight: newWeights.rank.value,
-            negative_weight: newWeights.negative.value,
-            frequency_boost: newWeights.negative.boost.frequency,
-            relevance_boost: newWeights.negative.boost.relevance
-          }
-        }
-      );
-
-      if (response.data.success) {
-        // 결과 업데이트
-        setAssessmentResult(response.data.data);
-        console.log('✅ 가중치 업데이트 및 결과 반영 완료');
-      } else {
-        throw new Error(response.data.message || '가중치 업데이트 실패');
-      }
+      // 로컬에서 가중치 적용 (백엔드 API 호출 제거)
+      console.log('✅ 가중치 설정이 로컬 스토리지에 저장되었습니다:', newWeights);
+      
+      // TODO: 필요시 프론트엔드에서 가중치를 적용한 결과 재계산 로직 추가
+      // 현재는 가중치만 저장하고, 실제 계산은 다른 곳에서 처리
+      
     } catch (error) {
-      console.error('❌ 가중치 업데이트 중 오류:', error);
-      alert('가중치 업데이트 중 오류가 발생했습니다.');
+      console.error('❌ 가중치 저장 중 오류:', error);
+      alert('가중치 저장 중 오류가 발생했습니다.');
     } finally {
       setIsWeightUpdateLoading(false);
     }
@@ -255,7 +238,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   const handleWeightReset = () => {
     setWeights(DEFAULT_WEIGHTS);
     localStorage.removeItem('materialityWeights');
-    handleWeightChange(DEFAULT_WEIGHTS);
+    console.log('✅ 가중치가 기본값으로 초기화되었습니다');
   };
 
   // 저장된 가중치 불러오기
