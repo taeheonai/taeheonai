@@ -243,6 +243,13 @@ export default function IndexPolisher({
         category_id: categoryId,
         esg_classification_id: esgClassificationId,
       }, categoryId, esgClassificationId);
+      
+      // 윤문 완료 후 로컬스토리지 확인
+      setTimeout(() => {
+        const mgStore = JSON.parse(localStorage.getItem('taeheon-mg') || '{}');
+        console.log('🔍 윤문 완료 후 MG Store 확인:', mgStore.state?.resultsByIndex);
+        console.log('🔍 현재 GRI 인덱스 결과:', mgStore.state?.resultsByIndex?.[griIndex]);
+      }, 1000);
 
     } catch (error) {
       console.error('❌ 윤문 처리 중 오류:', error);
