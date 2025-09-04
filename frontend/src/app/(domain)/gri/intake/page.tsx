@@ -86,6 +86,8 @@ export default function GRIIntakePage() {
 
   // ------- Markdown 표 생성기 -------
   function toMarkdownTable(answer: string) {
+    console.log('🔍 toMarkdownTable 시작:', answer);
+    
     // 줄 단위 분해
     const lines = answer
       .replace(/\r\n/g, '\n')
@@ -93,29 +95,49 @@ export default function GRIIntakePage() {
       .map((s) => safeTrim(s))
       .filter(Boolean);
 
+    console.log('🔍 분리된 줄들:', lines);
+
     const rows: string[] = [];
 
     for (const raw of lines) {
-      // 불릿(-, *, •)로 시작하는 줄만 데이터로 취급
-      if (!/^\s*([-*•])\s+/.test(raw)) continue;
+      console.log('🔍 처리할 줄:', raw);
+      
+      let line = raw;
+      
+      // 불릿(-, *, •)로 시작하는 경우 불릿 제거
+      if (/^\s*([-*•])\s+/.test(raw)) {
+        line = raw.replace(/^\s*([-*•])\s+/, '');
+        console.log('🔍 불릿 제거 후:', line);
+      }
 
-      // 불릿 제거
-      const line = raw.replace(/^\s*([-*•])\s+/, '');
-
-      // "항목: 값" 형태만 추출
+      // "항목: 값" 형태 추출
       const m = line.match(/^(.+?):\s*(.+)$/);
-      if (!m) continue;
+      if (m) {
+        const key = safeTrim(m[1]);
+        // 값에서 "숫자,숫자" 형태의 콤마만 제거(텍스트 콤마는 보존)
+        const value = safeTrim(m[2]).replace(/(?<=\d),(?=\d)/g, '');
+        const row = `| ${key} | ${value} |`;
+        rows.push(row);
+        console.log('🔍 콜론 매치:', { key, value, row });
+        continue;
+      }
 
-      const key = safeTrim(m[1]);
-
-      // 값에서 "숫자,숫자" 형태의 콤마만 제거(텍스트 콤마는 보존)
-      const value = safeTrim(m[2]).replace(/(?<=\d),(?=\d)/g, '');
-
-      rows.push(`| ${key} | ${value} |`);
+      // 불릿이 없고 콜론도 없는 경우 단순 값으로 처리
+      const row = `| 항목 ${rows.length + 1} | ${safeTrim(raw)} |`;
+      rows.push(row);
+      console.log('🔍 단순 값:', { raw, row });
     }
 
-    if (!rows.length) return '';
-    return ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');
+    console.log('🔍 생성된 행들:', rows);
+
+    if (!rows.length) {
+      console.log('🔍 빈 행들 - 빈 문자열 반환');
+      return '';
+    }
+    
+    const result = ['| 항목 | 값 |', '| --- | --- |', ...rows].join('\n');
+    console.log('🔍 최종 결과:', result);
+    return result;
   }
 
   // 현재 아이템의 질문들 중 'table'로 선택한 것만 표로 변환하여 하나의 마크다운으로 합치기
@@ -140,7 +162,9 @@ export default function GRIIntakePage() {
         const text = savedItems[selectedItem.index_no]?.answers[q.key_alpha]?.answer_text || '';
         if (!text) continue;
 
+      console.log(`🔍 toMarkdownTable 입력:`, text);
       const table = toMarkdownTable(text);
+      console.log(`🔍 toMarkdownTable 출력:`, table);
       if (!table) continue;
 
       md += `\n\n#### ${selectedItem.index_no}-${q.key_alpha}) ${q.question_text || ''}\n${table}\n`;
