@@ -168,9 +168,10 @@ class GriPolisher:
                                 f"모든 'ABC', '회사', '조직' 등의 표현을 '{meta['company_name']}'으로 대체하고, "
                                 f"기업 특성에 맞게 응답을 조정하세요."
                             )
+                            logger.info(f"✅ 회사이름 적용됨: {meta['company_name']}")
                             logger.info(f"Created company context: {company_context}")
                         else:
-                            logger.info("Company context not enabled or company name missing")
+                            logger.warning(f"⚠️ 회사 컨텍스트 누락: company_context={meta.get('company_context')}, company_name={meta.get('company_name')}")
                 except Exception as e:
                     logger.error(f"Error processing company context: {str(e)}")
 
