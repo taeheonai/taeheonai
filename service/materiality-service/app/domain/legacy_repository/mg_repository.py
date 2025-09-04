@@ -93,20 +93,34 @@ class MGRepository:
 
             # 새로운 세션을 사용하여 트랜잭션 오류 방지
             async with AsyncSessionLocal() as new_session:
-                query = (
-                    select(
-                        IssuePoolGRIEntity.id.label("gri_id"),
-                        IssuePoolGRIEntity.gri_index,
-                        IssuePoolGRIEntity.frequency,
-                        IssuePoolGRIEntity.grade,
-                    )
-                    .where(IssuePoolGRIEntity.category_id == category_id)
-                    .order_by(IssuePoolGRIEntity.frequency.desc(), IssuePoolGRIEntity.grade)
+                # 먼저 issuepool_gri 테이블 존재 여부 확인
+                from sqlalchemy import text
+                result = await new_session.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'issuepool_gri')"))
+                table_exists = result.scalar()
+                print(f"[MG Repository] issuepool_gri 테이블 존재 여부: {table_exists}")
+                
+                if not table_exists:
+                    print(f"[MG Repository] issuepool_gri 테이블이 존재하지 않습니다!")
+                    return []
+                
+                # 직접 SQL 쿼리로 테스트
+                result = await new_session.execute(
+                    text("""
+                        SELECT id as gri_id, gri_index, frequency, grade
+                        FROM issuepool_gri 
+                        WHERE category_id = :category_id 
+                        ORDER BY frequency DESC, grade
+                    """),
+                    {"category_id": category_id}
                 )
-
-                result = await new_session.execute(query)
+                
                 rows = result.mappings().all()
                 print(f"[MG Repository] 카테고리 {category_id}에서 {len(rows)}개 GRI 인덱스 조회됨")
+                
+                # 조회된 데이터 로그 출력
+                for row in rows:
+                    print(f"[MG Repository] GRI 인덱스: {row.gri_index}, 빈도: {row.frequency}, 등급: {row.grade}")
+                
                 return rows
 
         except Exception as e:
