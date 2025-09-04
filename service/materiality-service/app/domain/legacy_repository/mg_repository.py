@@ -316,11 +316,20 @@ class MGRepository:
                 # Dict 형태로 변환
                 question_list = []
                 for question in questions:
+                    # 질문 텍스트 포맷팅: 로마자 표기 앞에 줄바꿈 추가
+                    formatted_question_text = question.question_text
+                    if formatted_question_text:
+                        # i., ii., iii., iv., v. 등의 로마자 표기 앞에 줄바꿈 추가
+                        import re
+                        formatted_question_text = re.sub(r'\s+(i\.|ii\.|iii\.|iv\.|v\.|vi\.|vii\.|viii\.|ix\.|x\.)', r'\n\1', formatted_question_text)
+                        # 연속된 줄바꿈 정리
+                        formatted_question_text = re.sub(r'\n\s*\n', '\n', formatted_question_text)
+                    
                     question_dict = {
                         "id": question.id,
                         "item_id": question.item_id,
                         "key_alpha": question.key_alpha,
-                        "question_text": question.question_text,
+                        "question_text": formatted_question_text,
                         "reference_text": question.reference_text,
                         "question_type": question.question_type,
                         "display_order": question.display_order,
