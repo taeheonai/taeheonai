@@ -96,7 +96,7 @@ export default function MaterialityHomePage() {
   // 화면 표시 제어를 위한 별도 상태
   const [isDataHidden, setIsDataHidden] = useState(true); // 처음 접속 시 데이터 숨김
   
-  // 사용자 활동 감지하여 데이터 표시 및 상태 복원
+  // 사용자 활동 감지하여 데이터 표시
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -106,8 +106,7 @@ export default function MaterialityHomePage() {
       console.log('✅ 사용자 활동 감지: 데이터 표시 활성화');
     }
 
-    // 저장된 상태 복원
-    restoreSavedState();
+    // 상태 복원은 IndexBar에서 처리
   }, []);
 
   // 모달 상태
