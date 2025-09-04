@@ -28,6 +28,26 @@ export default function MGPage() {
   }, [ensureSession]);
 
   useEffect(() => {
+    // localStorage에서 최종 이슈풀 데이터 확인
+    const finalIssuePools = localStorage.getItem('finalIssuePools');
+    if (finalIssuePools) {
+      try {
+        const parsedData = JSON.parse(finalIssuePools);
+        console.log('🔍 localStorage에서 최종 이슈풀 데이터 발견:', parsedData);
+        
+        // 최종 이슈풀 데이터를 MG store에 설정
+        const { setSelected } = useMGStore.getState();
+        setSelected(parsedData);
+        
+        // localStorage에서 데이터 제거 (한 번만 사용)
+        localStorage.removeItem('finalIssuePools');
+      } catch (error) {
+        console.error('❌ 최종 이슈풀 데이터 파싱 실패:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     // selected가 변경되었을 때만 loadIndexes 실행
     if (selected.length > 0) {
       console.log('🔍 selected 데이터로 loadIndexes 실행:', selected.length, '개');

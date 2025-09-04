@@ -434,19 +434,50 @@ export default function Finish({ companyId }: FinishProps) {
               </button>
             </div>
           ) : finalCategories.length > 0 ? (
-            
-            <div className="space-y-3">
-              {finalCategories.map((category, index) => (
-                <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
-                          {category.category || '카테고리명 없음'}
-                        </h4>
+            <div>
+              {/* MG index 윤문하기 버튼 */}
+              <div className="mb-6 text-center">
+                <button
+                  onClick={() => {
+                    // 최종 카테고리 목록을 MG 페이지로 전달하고 이동
+                    const finalIssuePools = finalCategories.map((category, index) => ({
+                      id: index + 1,
+                      category: category.category,
+                      category_id: category.category_id || 1, // 기본값 설정
+                      ranking: index + 1,
+                      score: category.score || 0
+                    }));
+                    
+                    // Zustand store에 최종 이슈풀 저장
+                    localStorage.setItem('finalIssuePools', JSON.stringify(finalIssuePools));
+                    
+                    // MG 페이지로 이동
+                    window.location.href = '/mg';
+                  }}
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center"
+                >
+                  <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  MG Index 윤문하기
+                </button>
+                <p className="text-sm text-gray-600 mt-2">
+                  최종 중대성 평가 결과를 바탕으로 GRI 인덱스를 윤문합니다
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                {finalCategories.map((category, index) => (
+                  <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {category.category || '카테고리명 없음'}
+                          </h4>
                         {category.esg_classification && (
                           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${
                             category.esg_classification === '환경' ? 'bg-green-100 text-green-700' :
