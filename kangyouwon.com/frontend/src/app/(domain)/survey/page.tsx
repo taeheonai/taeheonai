@@ -516,13 +516,13 @@ export default function SurveyPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-900 mb-2">소속 *</label>
+                      <label className="block text-sm font-bold text-gray-900 mb-2">이메일 *</label>
                       <input
                         type="text"
                         value={participantInfo.company}
                         onChange={(e) => setParticipantInfo(prev => ({ ...prev, company: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="회사명을 입력하세요"
+                        placeholder="이메일을 입력하세요"
                       />
                     </div>
                   </div>
