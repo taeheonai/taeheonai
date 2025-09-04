@@ -128,7 +128,7 @@ export default function IndexPolisher({
       const table = toMarkdownTable(text);
       if (!table) continue;
 
-      md += `\n\n#### ${griIndex}-${key}) ${q.text || ''}\n${table}\n`;
+      md += `\n\n#### ${griIndex}-${key}) ${q.question_text || ''}\n${table}\n`;
     }
     return safeTrim(md);
   }
