@@ -295,8 +295,8 @@ export default function IndexPolisher({
 
   return (
     <div className="space-y-4">
-      {/* 질문 입력 필드들 - 숨김 처리 */}
-      <div className="grid gap-4" style={{ display: 'none' }}>
+      {/* 질문 입력 필드들 */}
+      <div className="grid gap-4">
         {block.questions.map(q => {
           const key = q.key_alpha ?? "";
           const mode = displayMode[key] ?? 'prose';
