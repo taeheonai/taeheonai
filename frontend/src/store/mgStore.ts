@@ -213,13 +213,18 @@ export const useMGStore = create<MGState>()(
               state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
+            const finalEsgId = result.esg_classification_id || issuePool?.esg_classification_id;
+            
             console.log('🔍 ESG 분류 체크:', {
               griIndex,
               resultEsgId: result.esg_classification_id,
               issuePoolEsgId: issuePool?.esg_classification_id,
-              finalEsgId: result.esg_classification_id || issuePool?.esg_classification_id,
+              finalEsgId,
               issuePool: issuePool?.issue_pool,
-              hasIssuePool: !!issuePool
+              hasIssuePool: !!issuePool,
+              willBeClassifiedAs: finalEsgId === 4 ? 'Environmental' : 
+                                 finalEsgId === 1 ? 'Social' : 
+                                 (finalEsgId === 2 || finalEsgId === 3) ? 'Governance' : 'Unknown'
             });
 
             if (issuePool) {
