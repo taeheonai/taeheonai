@@ -22,24 +22,20 @@ middleissue_router = APIRouter()
 
 # 엔드포인트
 @middleissue_router.post("/middleissue/assessment", response_model=MiddleIssueResponse)
-async def start_middleissue_assessment(request):
-    """새로운 중대성 평가 시작 또는 가중치 업데이트"""
+async def start_middleissue_assessment(request: MiddleIssueRequest):
+    """새로운 중대성 평가 시작"""
     try:
-        # request_type이 'weight_update'이거나 weights 필드가 있으면 가중치 업데이트로 처리
-        if (hasattr(request, 'request_type') and request.request_type == 'weight_update') or (hasattr(request, 'weights') and request.weights):
-            logger.info("⚖️ 가중치 업데이트 요청으로 인식")
-            weight_request = WeightUpdateRequest(weights=request.weights)
-            result = await middleissue_controller.update_weights(weight_request)
-            return result
-        else:
-            # 기존 중대성 평가 시작 로직
-            logger.info(f"📊 중대성 평가 시작 요청 받음 - 기업: {request.company_id}")
-            result = await middleissue_controller.start_assessment(request)
-            logger.info(f"✅ 중대성 평가 시작 응답 전송 - {getattr(result, 'success', False)}")
-            return result
+        logger.info(f"📊 중대성 평가 시작 요청 받음 - 기업: {request.company_id}")
+        
+        # 컨트롤러로 요청 전달
+        result = await middleissue_controller.start_assessment(request)
+        
+        logger.info(f"✅ 중대성 평가 시작 응답 전송 - {getattr(result, 'success', False)}")
+        
+        return result
         
     except Exception as e:
-        logger.error(f"❌ 요청 처리 중 오류: {str(e)}")
+        logger.error(f"❌ 중대성 평가 시작 처리 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @middleissue_router.get("/middleissue/list", response_model=List[dict])
