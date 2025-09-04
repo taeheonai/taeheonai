@@ -32,6 +32,12 @@ class MiddleIssueController:
         try:
             logger.info(f"🔍 컨트롤러: 중대성 평가 시작 요청을 Service로 전달 - 기업: {request.company_id}")
             
+            # 가중치 정보 로깅
+            if request.weights:
+                logger.info(f"⚖️ 가중치 설정 적용됨: {request.weights}")
+            else:
+                logger.info("⚖️ 기본 가중치 사용")
+            
             # Service로 요청 전달 (타임아웃 5분 적용)
             result = await start_assessment_with_timeout(request, timeout_seconds=300)
             

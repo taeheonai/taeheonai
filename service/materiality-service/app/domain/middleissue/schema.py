@@ -29,6 +29,7 @@ class MiddleIssueRequest(BaseModel):
     timestamp: str = datetime.now().isoformat()
     articles: List[Article] = Field(default_factory=list)
     total_results: int = 0
+    weights: Optional[WeightConfig] = None  # 가중치 설정 추가
 
 class MiddleIssueResponse(BaseModel):
     """중간 이슈 응답 스키마"""
