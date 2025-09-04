@@ -299,14 +299,24 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
     const currentSurveySent = sentSurveys.find(s => s.surveyId === selectedSurveyId);
     const totalSent = currentSurveySent ? currentSurveySent.totalSent : 0;
     
-    setSendStatus((p) => ({ ...p, sent: totalSent }));
+    // 총 발송 대상자 수 = 현재 설문 대상자 + 발송 완료된 명단
+    const totalRecipients = validEmails.length + sentRecipientsCount;
+    
+    setSendStatus((p) => ({ 
+      ...p, 
+      sent: totalSent,
+      total: totalRecipients  // 총 발송 대상자 수 업데이트
+    }));
     console.log('📊 발송 상태 업데이트 (현재 활성 설문 기준):', { 
       selectedSurveyId, 
       totalSent, 
       currentSurveySent,
-      allSurveys: sentSurveys.length 
+      allSurveys: sentSurveys.length,
+      validEmails: validEmails.length,
+      sentRecipientsCount: sentRecipientsCount,
+      totalRecipients: totalRecipients
     });
-  }, [sentSurveys, selectedSurveyId]);
+  }, [sentSurveys, selectedSurveyId, validEmails.length, sentRecipientsCount]);
 
   // 선택된 설문 ID가 변경될 때 발송 현황 업데이트
   useEffect(() => {
