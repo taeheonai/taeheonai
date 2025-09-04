@@ -28,9 +28,9 @@ from app.router.mg_router import mg_router
 try:
     from app.legacy_router.issuepool_router import router as legacy_issuepool_router
     from app.legacy_router.mg_router import router as legacy_mg_router
-    logger.info("✅ 기존 프로젝트 라우터들 로드 성공")
+    legacy_router_loaded = True
 except ImportError as e:
-    logger.warning(f"⚠️ 기존 프로젝트 라우터 로드 실패: {e}")
+    legacy_router_loaded = False
     legacy_issuepool_router = None
     legacy_mg_router = None
 
@@ -50,6 +50,12 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]
 )
 logger = logging.getLogger("materiality_service")
+
+# 기존 프로젝트 라우터 로드 상태 로깅
+if legacy_router_loaded:
+    logger.info("✅ 기존 프로젝트 라우터들 로드 성공")
+else:
+    logger.warning("⚠️ 기존 프로젝트 라우터 로드 실패")
 
 # FastAPI 앱 생성
 app = FastAPI(
