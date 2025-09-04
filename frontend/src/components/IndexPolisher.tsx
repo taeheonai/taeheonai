@@ -239,7 +239,24 @@ export default function IndexPolisher({
       });
       
       // ESG 분류 ID 하드코딩으로 분류 (1:사회, 2,3:거버넌스, 4:환경)
-      const getESGClassification = (issuePool: string): number => {
+      const getESGClassification = (issuePool: string, griIndex: string): number => {
+        // GRI 인덱스 번호로 먼저 분류
+        const griNumber = parseInt(griIndex.split('-')[0]);
+        
+        // GRI 300번대: 환경 (Environmental)
+        if (griNumber >= 300 && griNumber < 400) {
+          return 4;
+        }
+        // GRI 400번대: 사회 (Social)  
+        else if (griNumber >= 400 && griNumber < 500) {
+          return 1;
+        }
+        // GRI 200번대: 경제 (Governance)
+        else if (griNumber >= 200 && griNumber < 300) {
+          return 2;
+        }
+        
+        // 이슈풀 이름으로 추가 분류
         const socialKeywords = ['고용', '노사', '공급망', '노동', '안전', '보건', '인재', '임직원', '제품안전', '품질'];
         const governanceKeywords = ['경쟁', '재무', '리스크', '관리'];
         const environmentKeywords = ['기후', '환경', '친환경', '원자재', '조달'];
@@ -260,7 +277,7 @@ export default function IndexPolisher({
         return 1;
       };
       
-      const esgClassificationId = getESGClassification(issuePool?.issue_pool || '');
+      const esgClassificationId = getESGClassification(issuePool?.issue_pool || '', griIndex);
       
       console.log('✅ 윤문 완료:', {
         griIndex,
