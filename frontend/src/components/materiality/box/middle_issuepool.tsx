@@ -222,7 +222,7 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
 
       // 백엔드 API 호출하여 새로운 가중치로 결과 업데이트
       const response = await axios.post(
-        `/api/v1/materiality/assessment/weights`,
+        `/api/v1/materiality/middleissue/assessment/weights`,
         {
           weights: {
             frequency_weight: newWeights.frequency.value,
