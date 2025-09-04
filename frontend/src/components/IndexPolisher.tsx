@@ -131,10 +131,18 @@ export default function IndexPolisher({
 
   // 현재 표 모드로 선택된 답변들을 마크다운 테이블로 변환
   function buildTablesMarkdown() {
-    if (!block) return '';
+    if (!block) {
+      console.log('🔍 buildTablesMarkdown: block이 없음');
+      return '';
+    }
+    
     let md = '';
+    let tableCount = 0;
+    
     for (const q of block.questions) {
       const key = q.key_alpha ?? "";
+      console.log(`🔍 질문 ${key}: displayMode=${displayMode[key]}, answer=${answers[key] ? '있음' : '없음'}`);
+      
       if (displayMode[key] !== 'table') continue;
       const text = safeTrim(answers[key]);
       if (!text) continue;
@@ -143,7 +151,10 @@ export default function IndexPolisher({
       if (!table) continue;
 
       md += `\n\n#### ${griIndex}-${key}) ${q.question_text || ''}\n${table}\n`;
+      tableCount++;
     }
+    
+    console.log(`🔍 buildTablesMarkdown 결과: ${tableCount}개 표 생성, md 길이: ${md.length}`);
     return safeTrim(md);
   }
 
@@ -283,7 +294,7 @@ export default function IndexPolisher({
                     </div>
                   </div>
 
-                                     <div className="text-sm font-medium mb-2">{q.question_text}</div>
+                                     <div className="text-sm font-medium mb-2 whitespace-pre-line">{q.question_text}</div>
                   <textarea
                     className="w-full border rounded-md p-2 text-sm"
                     rows={3}

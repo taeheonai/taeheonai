@@ -285,47 +285,14 @@ export default function MGPage() {
 
                               {isOpen && (
                                 <div className="mt-4">
-                                  {/* 질문들 표시 */}
-                                  {questionsByItem[gri.gri_id] && questionsByItem[gri.gri_id].length > 0 ? (
-                                    <div className="space-y-4">
-                                      <h4 className="font-semibold text-gray-800">질문 목록:</h4>
-                                      {questionsByItem[gri.gri_id].map((question, qIndex) => (
-                                        <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
-                                          <div className="flex items-start space-x-3">
-                                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 text-sm font-medium rounded-full flex items-center justify-center">
-                                              {question.key_alpha || (qIndex + 1)}
-                                            </span>
-                                            <div className="flex-1">
-                                              <p className="text-gray-800 text-sm leading-relaxed">
-                                                {question.question_text}
-                                              </p>
-                                              {question.reference_text && (
-                                                <p className="text-gray-600 text-xs mt-2 italic">
-                                                  참조: {question.reference_text}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="text-center py-8 text-gray-500">
-                                      <p>질문을 불러오는 중...</p>
-                                    </div>
-                                  )}
-                                  
-                                  {/* 기존 IndexPolisher 컴포넌트도 유지 */}
-                                  <div className="mt-6">
-                                    <IndexPolisher
-                                      categoryId={issue.category_id}
-                                      griIndex={gri.gri_index}
-                                      sessionKey={sessionKey}
-                                      threadId={threadId}
-                                      corporationId={issue.corporation_id}
-                                      questions={questionsByItem[gri.gri_id] || []}
-                                    />
-                                  </div>
+                                  <IndexPolisher
+                                    categoryId={issue.category_id}
+                                    griIndex={gri.gri_index}
+                                    sessionKey={sessionKey}
+                                    threadId={threadId}
+                                    corporationId={issue.corporation_id}
+                                    questions={questionsByItem[gri.gri_id] || []}
+                                  />
                                 </div>
                               )}
                             </div>
