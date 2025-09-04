@@ -3,8 +3,8 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, desc, func, select, cast, Float
 from sqlalchemy.orm import selectinload
-from app.domain.entity.issuepool_entity import IssuePool
-from app.domain.schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter
+from app.domain.legacy_entity.issuepool_entity import IssuePool
+from app.domain.legacy_schema.issuepool_schema import IssuePoolDTO, IssuePoolFilter
 import logging
 import traceback
 

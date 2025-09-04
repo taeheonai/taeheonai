@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, Header, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.legacy_database import get_db
-from app.domain.schema.mg_schema import (
+from app.domain.legacy_schema.mg_schema import (
     MGResolveRequest,
     MGIndexMapResponse,
     MGIndexDTO,

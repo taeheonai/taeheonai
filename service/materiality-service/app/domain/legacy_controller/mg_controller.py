@@ -2,9 +2,9 @@
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.service.mg_service import MGService
-from app.domain.repository.mg_repository import MGRepository
-from app.domain.schema.mg_schema import (
+from app.domain.legacy_service.mg_service import MGService
+from app.domain.legacy_repository.mg_repository import MGRepository
+from app.domain.legacy_schema.mg_schema import (
     MGIndexDTO,
     MGResolveRequest,
     # ✅ 신규 DTO
