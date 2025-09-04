@@ -463,12 +463,25 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       localStorage.setItem('backendSurveyResponses', JSON.stringify(newResponses));
       console.log('💾 final_issuepool.tsx용 설문 데이터 저장 완료');
 
-      // 응답 현황 업데이트
+      // 응답 현황 업데이트 (발송 완료된 명단도 포함)
       const validEmails = (excelData || [])
         .map((r) => r.email?.trim())
         .filter((e): e is string => !!e && e.includes('@'));
       
-      const totalEmails = validEmails.length;
+      // 발송 완료된 명단 수 계산
+      let sentRecipientsCount = 0;
+      try {
+        const sentRecipients = localStorage.getItem('sentRecipients');
+        if (sentRecipients) {
+          const parsed = JSON.parse(sentRecipients);
+          sentRecipientsCount = parsed.length;
+        }
+      } catch (error) {
+        console.error('발송 완료된 명단 수 계산 실패:', error);
+      }
+      
+      // 총 발송 대상자 수 = 현재 설문 대상자 + 발송 완료된 명단
+      const totalEmails = validEmails.length + sentRecipientsCount;
       const responseRate = totalEmails > 0 ? Math.round((newResponses.length / totalEmails) * 100) : 0;
       
       setResponseStatus({
