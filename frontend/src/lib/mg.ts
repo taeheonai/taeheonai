@@ -29,9 +29,13 @@ export type MGIndexDTO = {
 /** ---------- 신규: 질문 조회/윤문 타입 ---------- */
 export type MGQuestion = {
   id: number;
+  item_id: number;
   key_alpha?: string | null;
-  text: string;
-  order: number;
+  question_text: string;
+  reference_text?: string | null;
+  question_type: string;
+  display_order: number;
+  required: boolean;
 };
 
 export type MGIndexBlock = {
