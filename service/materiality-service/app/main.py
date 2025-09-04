@@ -22,6 +22,7 @@ from app.router.middleissue_router import middleissue_router
 from app.router.category_router import category_router
 from app.router.survey_router import survey_router
 from app.router.email_router import email_router
+from app.router.mg_router import mg_router
 
 # 환경 변수 로드 (Railway 환경에서는 건너뛰기)
 if os.getenv("RAILWAY_ENVIRONMENT") != "true":
@@ -98,6 +99,7 @@ app.include_router(middleissue_router, prefix="/materiality-service", tags=["mid
 app.include_router(category_router, prefix="/materiality-service", tags=["category"])
 app.include_router(survey_router, prefix="/materiality-service", tags=["survey"])
 app.include_router(email_router, prefix="/materiality-service", tags=["email"])
+app.include_router(mg_router, prefix="/materiality-service", tags=["mg"])
 
 @app.get("/")
 async def root():
@@ -241,6 +243,11 @@ async def startup_event():
     logger.info("   - GET  /materiality-service/surveys/{survey_id} (신규: 설문 조회)")
     logger.info("   - GET  /materiality-service/surveys/corporation/{corporation_id} (신규: 회사별 설문 목록)")
     logger.info("   - POST /materiality-service/surveys/{survey_id}/responses (신규: 설문 응답 제출)")
+    logger.info("   - POST /materiality-service/mg/indexes (신규: MG 인덱스 조회)")
+    logger.info("   - GET  /materiality-service/mg/questions (신규: 카테고리별 질문 조회)")
+    logger.info("   - GET  /materiality-service/mg/questions/index (신규: 인덱스별 질문 조회)")
+    logger.info("   - POST /materiality-service/mg/polish (신규: 레거시 윤문)")
+    logger.info("   - POST /materiality-service/mg/polish/index (신규: 인덱스 단위 윤문)")
     logger.info("   - (search_router 내 엔드포인트들도 /materiality-service/* 로 노출)")
 
 @app.on_event("shutdown")
