@@ -52,6 +52,11 @@ export default function MGPage() {
     if (selected.length > 0) {
       console.log('🔍 selected 데이터로 loadIndexes 실행:', selected.length, '개');
       console.log('🔍 selected 데이터:', selected);
+      
+      // category_id 추출하여 로깅
+      const categoryIds = selected.map((i) => i.category_id).filter(Number.isFinite);
+      console.log('🔍 추출된 categoryIds:', categoryIds);
+      
       // store에서 직접 함수 호출하여 참조 문제 방지
       const { loadIndexes: storeLoadIndexes } = useMGStore.getState();
       storeLoadIndexes();
@@ -134,6 +139,14 @@ export default function MGPage() {
             const mgData = indexesByIssue[issue.category_id];
             const visible = visibleIndexesSelector(issue.category_id);
             const excluded = excludedByIssue[issue.category_id] ?? [];
+            
+            // 디버깅을 위한 로깅
+            console.log(`🔍 이슈풀 ${issue.issue_pool} (카테고리 ${issue.category_id}):`, {
+              mgData: mgData ? '데이터 있음' : '데이터 없음',
+              visibleCount: visible.length,
+              excludedCount: excluded.length,
+              griIndexes: mgData?.gri_indexes?.length || 0
+            });
 
             return (
               <section key={issue.id} className="bg-white rounded-lg shadow-md p-6">
