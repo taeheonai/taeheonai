@@ -224,6 +224,8 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   const filteredMarkdown =
           keepFromLLM === 'none' ? (safeTrim(prependMarkdown) ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
 
+  console.log('🔍 필터링 전 마크다운:', mergedMarkdown);
+  console.log('🔍 keepFromLLM 모드:', keepFromLLM);
   console.log('🔍 최종 렌더링 마크다운:', filteredMarkdown);
   
   return (

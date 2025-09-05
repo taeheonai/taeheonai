@@ -859,8 +859,8 @@ export default function GRIIntakePage() {
                           ...(selectedItem?.questions?.map((q) => q.question_text ?? '') ?? []),
                         ];
 
-                        // 한 개라도 '윤문'이 있으면 LLM의 prose만 살리고, 전부 표면 LLM은 숨김
-                        const keepFromLLM = anyProse ? 'prose' : 'none';
+                        // 표와 윤문 모두 표시
+                        const keepFromLLM = 'both';
 
                         return (
                           <PolishResult
