@@ -161,8 +161,15 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   } else if (polishedText && typeof polishedText === 'object') {
     // { text, table, model, created_at, ... } 형태
     const obj = polishedText as Record<string, unknown>;
-    proseText = String(obj.text ?? '');
+    proseText = String(obj.text ?? obj.polished_text ?? JSON.stringify(obj));
     tableText = String(obj.table ?? '');
+    
+    console.log('🔍 PolishResult 객체 변환:', {
+      original: polishedText,
+      proseText: proseText.substring(0, 100) + '...',
+      hasText: !!obj.text,
+      hasPolishedText: !!obj.polished_text
+    });
   }
 
   // 메타(모델/시간) 코드블록
