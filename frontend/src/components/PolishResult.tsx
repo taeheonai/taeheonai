@@ -224,6 +224,8 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   const filteredMarkdown =
           keepFromLLM === 'none' ? (safeTrim(prependMarkdown) ?? '') : filterMarkdown(mergedMarkdown, keepFromLLM, stripHeads);
 
+  console.log('🔍 최종 렌더링 마크다운:', filteredMarkdown);
+  
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4">intake_result</h3>
