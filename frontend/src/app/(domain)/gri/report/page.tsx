@@ -502,7 +502,7 @@ function ESGClassifiedMGDisplay() {
               <div key={griIndex} className="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-green-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full" style={{ display: 'none' }}>
+                  <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
                     {issuePool?.issue_pool || '이슈풀 없음'}
                   </span>
                 </div>
@@ -566,7 +566,7 @@ function ESGClassifiedMGDisplay() {
               <div key={griIndex} className="bg-white rounded-lg p-4 border border-blue-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-blue-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full" style={{ display: 'none' }}>
+                  <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
                     {issuePool?.issue_pool || '이슈풀 없음'}
                   </span>
                 </div>
@@ -630,7 +630,7 @@ function ESGClassifiedMGDisplay() {
               <div key={griIndex} className="bg-white rounded-lg p-4 border border-purple-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-purple-700 text-lg">GRI {griIndex}</span>
-                  <span className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full" style={{ display: 'none' }}>
+                  <span className="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
                     {issuePool?.issue_pool || '이슈풀 없음'}
                   </span>
                 </div>
