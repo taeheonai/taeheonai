@@ -329,7 +329,8 @@ export default function GRIIntakePage() {
           polishedText = result.polished_text;
         } else if (typeof result.polished_text === 'object' && result.polished_text !== null) {
           // 객체인 경우 text 필드 추출
-          polishedText = result.polished_text.text || JSON.stringify(result.polished_text);
+          const polishedObj = result.polished_text as { text?: string; polished_text?: string };
+          polishedText = polishedObj.text || polishedObj.polished_text || JSON.stringify(result.polished_text);
         }
         
         console.log('🔍 polished_text 변환:', {
