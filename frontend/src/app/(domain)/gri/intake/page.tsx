@@ -444,10 +444,20 @@ export default function GRIIntakePage() {
         if (item.answers && selectedItem) {
           acc[griIndex] = {};
           
-          // key_alpha를 그대로 사용 (a, b, c, d)
-          for (const keyAlpha of Object.keys(item.answers)) {
-            const answer = item.answers[keyAlpha];
+          // answers의 키는 question_id이므로, key_alpha로 매핑 필요
+          for (const questionId of Object.keys(item.answers)) {
+            const answer = item.answers[questionId];
             if (answer) {
+              // question_id를 key_alpha로 변환
+              const question = selectedItem.questions.find(q => q.id.toString() === questionId);
+              if (!question || !question.key_alpha) {
+                console.log(`⚠️ GRI ${griIndex}: question_id ${questionId}에 해당하는 key_alpha를 찾을 수 없음`);
+                continue;
+              }
+              const keyAlpha = question.key_alpha;
+              
+              console.log(`🔍 키 매핑: question_id ${questionId} -> key_alpha ${keyAlpha}`);
+              
               // polished_text를 문자열로 변환
               let polishedText = '';
               
