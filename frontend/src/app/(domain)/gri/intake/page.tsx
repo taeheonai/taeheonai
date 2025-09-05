@@ -301,7 +301,7 @@ export default function GRIIntakePage() {
 
       // GRI 윤문 API 호출 (GRIApiService 사용)
       // 회사명 정보 추가
-      let extra_meta = {
+      let extra_meta: Record<string, any> = {
         tables_markdown: tablesMarkdown, // 표 마크다운 포함
       };
       
