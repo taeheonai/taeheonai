@@ -238,25 +238,34 @@ export default function IndexPolisher({
         } : null
       });
       
-      // ESG 분류 ID 하드코딩으로 분류 (1:사회, 2,3:거버넌스, 4:환경)
-      const getESGClassification = (issuePool: string, griIndex: string): number => {
-        // GRI 인덱스 번호로 먼저 분류
+      // ESG 분류 ID: 데이터베이스 값 우선, 없으면 하드코딩 분류
+      const getESGClassification = (issuePool: string, griIndex: string, dbEsgId?: number): number => {
+        // 1. 데이터베이스에 esg_classification_id가 있으면 우선 사용
+        if (dbEsgId && dbEsgId > 0) {
+          console.log(`✅ 데이터베이스 ESG 분류 사용: ${dbEsgId} (${issuePool})`);
+          return dbEsgId;
+        }
+        
+        // 2. 데이터베이스 값이 없으면 GRI 인덱스 번호로 분류
         const griNumber = parseInt(griIndex.split('-')[0]);
         
         // GRI 300번대: 환경 (Environmental)
         if (griNumber >= 300 && griNumber < 400) {
+          console.log(`🔍 GRI 번호로 환경 분류: ${griIndex} (${griNumber}번대)`);
           return 4;
         }
         // GRI 400번대: 사회 (Social)  
         else if (griNumber >= 400 && griNumber < 500) {
+          console.log(`🔍 GRI 번호로 사회 분류: ${griIndex} (${griNumber}번대)`);
           return 1;
         }
         // GRI 200번대: 경제 (Governance)
         else if (griNumber >= 200 && griNumber < 300) {
+          console.log(`🔍 GRI 번호로 거버넌스 분류: ${griIndex} (${griNumber}번대)`);
           return 2;
         }
         
-        // 이슈풀 이름으로 추가 분류
+        // 3. GRI 번호로도 분류되지 않으면 이슈풀 이름으로 분류
         const socialKeywords = ['고용', '노사', '공급망', '노동', '안전', '보건', '인재', '임직원', '제품안전', '품질'];
         const governanceKeywords = ['경쟁', '재무', '리스크', '관리'];
         const environmentKeywords = ['기후', '환경', '친환경', '원자재', '조달'];
@@ -265,19 +274,26 @@ export default function IndexPolisher({
         
         // 환경(E) - 4
         if (environmentKeywords.some(keyword => issuePoolLower.includes(keyword))) {
+          console.log(`🔍 이슈풀 이름으로 환경 분류: ${issuePool}`);
           return 4;
         }
         
         // 거버넌스(G) - 2 또는 3
         if (governanceKeywords.some(keyword => issuePoolLower.includes(keyword))) {
+          console.log(`🔍 이슈풀 이름으로 거버넌스 분류: ${issuePool}`);
           return 2; // 기본적으로 2로 설정
         }
         
         // 사회(S) - 1 (기본값)
+        console.log(`🔍 기본값으로 사회 분류: ${issuePool}`);
         return 1;
       };
       
-      const esgClassificationId = getESGClassification(issuePool?.issue_pool || '', griIndex);
+      const esgClassificationId = getESGClassification(
+        issuePool?.issue_pool || '', 
+        griIndex, 
+        issuePool?.esg_classification_id
+      );
       
       console.log('✅ 윤문 완료:', {
         griIndex,
