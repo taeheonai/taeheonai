@@ -217,18 +217,15 @@ export const useMGStore = create<MGState>()(
             );
 
             // materiality_category의 esg_classification_id 우선 사용
-            const finalEsgId = result.esg_classification_id || 
-                              issuePool?.materiality_esg_classification_id || 
-                              issuePool?.esg_classification_id;
+            // issuePool에는 category_id가 있으므로 이를 통해 materiality_category 정보 조회 필요
+            const finalEsgId = result.esg_classification_id || issuePool?.esg_classification_id;
             
             console.log('🔍 ESG 분류 체크:', {
               griIndex,
               resultEsgId: result.esg_classification_id,
               issuePoolEsgId: issuePool?.esg_classification_id,
-              materialityEsgId: issuePool?.materiality_esg_classification_id,
               finalEsgId,
               issuePool: issuePool?.issue_pool,
-              categoryName: issuePool?.category_name,
               hasIssuePool: !!issuePool,
               willBeClassifiedAs: finalEsgId === 4 ? 'Environmental' : 
                                  finalEsgId === 1 ? 'Social' : 
@@ -353,4 +350,3 @@ export const useMGStore = create<MGState>()(
     { name: 'taeheon-mg' }
   )
 );
-
