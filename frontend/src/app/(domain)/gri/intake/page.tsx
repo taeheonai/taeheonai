@@ -300,14 +300,39 @@ export default function GRIIntakePage() {
       }
 
       // GRI 윤문 API 호출 (GRIApiService 사용)
+      // 회사명 정보 추가
+      let extra_meta = {
+        tables_markdown: tablesMarkdown, // 표 마크다운 포함
+      };
+      
+      // 사용자 정보에서 회사명 가져오기
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.corporation_id && user.companyname) {
+            extra_meta = {
+              ...extra_meta,
+              company_context: "true",
+              corporation_id: user.corporation_id,
+              corporation_name: user.companyname,
+            };
+            console.log('✅ intake에서 회사이름 전달:', {
+              corporation_name: user.companyname,
+              corporation_id: user.corporation_id,
+              extra_meta
+            });
+          }
+        } catch (e) {
+          console.warn('사용자 정보 파싱 실패:', e);
+        }
+      }
+      
       console.log('🔍 API 호출 데이터:', {
         session_key: sessionKey,
         gri_index: selectedItem.index_no,
         answers: answers.length,
-        tables_markdown: tablesMarkdown,
-        extra_meta: {
-          tables_markdown: tablesMarkdown,
-        }
+        extra_meta: extra_meta
       });
       
       const result = await GRIApiService.runPolish({
@@ -316,9 +341,7 @@ export default function GRIIntakePage() {
         item_title: selectedItem.title,
         answers: answers,
         extra_instructions: 'kor_gri_v1',
-        extra_meta: {
-          tables_markdown: tablesMarkdown, // 표 마크다운 포함
-        }
+        extra_meta: extra_meta
       });
       
       // 윤문 결과를 intake store에 저장
