@@ -14,6 +14,9 @@ type IssuePool = {
   issue_pool: string;
   category_id: number;
   esg_classification_id?: number;
+  // materiality_category 정보 추가
+  category_name?: string;
+  materiality_esg_classification_id?: number;
 };
 
 type PolishResultState = {
@@ -213,14 +216,19 @@ export const useMGStore = create<MGState>()(
               state.indexesByIssue[issue.id]?.gri_indexes.some(idx => idx.gri_index === griIndex)
             );
 
-            const finalEsgId = result.esg_classification_id || issuePool?.esg_classification_id;
+            // materiality_category의 esg_classification_id 우선 사용
+            const finalEsgId = result.esg_classification_id || 
+                              issuePool?.materiality_esg_classification_id || 
+                              issuePool?.esg_classification_id;
             
             console.log('🔍 ESG 분류 체크:', {
               griIndex,
               resultEsgId: result.esg_classification_id,
               issuePoolEsgId: issuePool?.esg_classification_id,
+              materialityEsgId: issuePool?.materiality_esg_classification_id,
               finalEsgId,
               issuePool: issuePool?.issue_pool,
+              categoryName: issuePool?.category_name,
               hasIssuePool: !!issuePool,
               willBeClassifiedAs: finalEsgId === 4 ? 'Environmental' : 
                                  finalEsgId === 1 ? 'Social' : 
