@@ -158,17 +158,32 @@ export const PolishResult: React.FC<PolishResultProps> = ({
   if (typeof polishedText === 'string') {
     // 순수 마크다운 문자열
     proseText = polishedText;
+    console.log('🔍 PolishResult 문자열:', polishedText.substring(0, 100) + '...');
   } else if (polishedText && typeof polishedText === 'object') {
     // { text, table, model, created_at, ... } 형태
     const obj = polishedText as Record<string, unknown>;
-    proseText = String(obj.text ?? obj.polished_text ?? JSON.stringify(obj));
+    
+    console.log('🔍 PolishResult 객체 상세:', {
+      original: polishedText,
+      keys: Object.keys(obj),
+      text: obj.text,
+      polished_text: obj.polished_text,
+      table: obj.table
+    });
+    
+    // 다양한 필드에서 텍스트 추출 시도
+    proseText = String(
+      obj.text ?? 
+      obj.polished_text ?? 
+      obj.content ?? 
+      obj.result ?? 
+      JSON.stringify(obj)
+    );
     tableText = String(obj.table ?? '');
     
-    console.log('🔍 PolishResult 객체 변환:', {
-      original: polishedText,
+    console.log('🔍 PolishResult 최종 변환:', {
       proseText: proseText.substring(0, 100) + '...',
-      hasText: !!obj.text,
-      hasPolishedText: !!obj.polished_text
+      tableText: tableText.substring(0, 50) + '...'
     });
   }
 

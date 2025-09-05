@@ -336,7 +336,9 @@ export default function GRIIntakePage() {
         console.log('🔍 polished_text 변환:', {
           original: result.polished_text,
           type: typeof result.polished_text,
-          converted: polishedText
+          converted: polishedText,
+          isObject: typeof result.polished_text === 'object',
+          objectKeys: typeof result.polished_text === 'object' ? Object.keys(result.polished_text as any) : []
         });
         
         // 표 마크다운과 윤문 결과 결합
@@ -344,6 +346,12 @@ export default function GRIIntakePage() {
           ? `${tablesMarkdown}\n\n${polishedText}`
           : polishedText;
           
+        console.log('🔍 저장할 데이터:', {
+          index_no: selectedItem.index_no,
+          combinedText: combinedText.substring(0, 200) + '...',
+          type: typeof combinedText
+        });
+        
         saveItem(selectedItem.index_no, { 
           polished_text: combinedText,
           last_modified: new Date().toISOString()
