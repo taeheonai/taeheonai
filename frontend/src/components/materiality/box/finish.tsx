@@ -8,8 +8,6 @@ type FinishProps = {
 
 export default function Finish({ companyId }: FinishProps) {
   const [finalCategories, setFinalCategories] = useState<any[]>([]);
-  // const [sentSurveyInfo, setSentSurveyInfo] = useState<any>(null);
-  // const [surveyResponses, setSurveyResponses] = useState<any[]>([]);
   const [isCalculationCompleted, setIsCalculationCompleted] = useState(false);
   const [allSurveys, setAllSurveys] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -101,12 +99,7 @@ export default function Finish({ companyId }: FinishProps) {
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
         const latestSurvey = sortedSurveys[0];
-        // setSentSurveyInfo({
-        //   surveyId: latestSurvey.id,
-        //   surveyUrl: latestSurvey.url,
-        //   sentEmails: latestSurvey.sent_emails || []
-        // });
-        // setSurveyResponses(latestSurvey.responses || []);
+        // 설문 정보는 allSurveys 상태에 저장됨
       }
     } catch (error) {
       console.error('❌ 설문 정보 로드 실패:', error);
