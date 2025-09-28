@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 type FinishProps = {
   companyId: string;
@@ -8,14 +8,14 @@ type FinishProps = {
 
 export default function Finish({ companyId }: FinishProps) {
   const [finalCategories, setFinalCategories] = useState<any[]>([]);
-  const [sentSurveyInfo, setSentSurveyInfo] = useState<any>(null);
-  const [surveyResponses, setSurveyResponses] = useState<any[]>([]);
+  // const [sentSurveyInfo, setSentSurveyInfo] = useState<any>(null);
+  // const [surveyResponses, setSurveyResponses] = useState<any[]>([]);
   const [isCalculationCompleted, setIsCalculationCompleted] = useState(false);
   const [allSurveys, setAllSurveys] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 모든 설문 정보 로드
-  const loadAllSurveys = async () => {
+  const loadAllSurveys = useCallback(async () => {
     if (typeof window === 'undefined') return;
     
     setLoading(true);
@@ -101,12 +101,12 @@ export default function Finish({ companyId }: FinishProps) {
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
         const latestSurvey = sortedSurveys[0];
-        setSentSurveyInfo({
-          surveyId: latestSurvey.id,
-          surveyUrl: latestSurvey.url,
-          sentEmails: latestSurvey.sent_emails || []
-        });
-        setSurveyResponses(latestSurvey.responses || []);
+        // setSentSurveyInfo({
+        //   surveyId: latestSurvey.id,
+        //   surveyUrl: latestSurvey.url,
+        //   sentEmails: latestSurvey.sent_emails || []
+        // });
+        // setSurveyResponses(latestSurvey.responses || []);
       }
     } catch (error) {
       console.error('❌ 설문 정보 로드 실패:', error);
@@ -114,12 +114,12 @@ export default function Finish({ companyId }: FinishProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId]);
 
   // 컴포넌트 마운트 시 모든 설문 정보 로드
   useEffect(() => {
     loadAllSurveys();
-  }, [companyId]);
+  }, [companyId, loadAllSurveys]);
 
   // 최종 추천 카테고리 데이터 로드 및 계산 완료 여부 확인
   useEffect(() => {
@@ -453,7 +453,7 @@ export default function Finish({ companyId }: FinishProps) {
               <div className="text-4xl mb-4">⚠️</div>
               <h4 className="text-lg font-medium text-gray-900 mb-2">최종 이슈풀 계산이 필요합니다</h4>
               <p className="text-gray-600 mb-4">
-                "설문 결과 자세히 보기" 섹션에서 "최종 이슈풀 계산하기" 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
+                &quot;설문 결과 자세히 보기&quot; 섹션에서 &quot;최종 이슈풀 계산하기&quot; 버튼을 클릭하여 최종 추천 카테고리를 확인하세요.
               </p>
               <button
                 onClick={() => {

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 import { handleViewReport } from '../handle_view_report';
 import { loadAssessmentResult } from '../load_assessment_result';
 import { fetchAllCategories } from '../fetch_all_categories';
-import { addNewCategory } from '../add_new_category';
+// import { addNewCategory } from '../add_new_category';
 import { WeightConfig, DEFAULT_WEIGHTS } from '../../../types/weights';
 import WeightSettingsPanel from './WeightSettingsPanel';
 
@@ -187,8 +187,8 @@ interface FirstAssessmentProps {
   assessmentResult: any;
   isIssuepoolLoading: boolean;
   isAssessmentStarting: boolean;
-  isBaseIssuePoolModalOpen: boolean;
-  isAddCategoryModalOpen: boolean;
+  // isBaseIssuePoolModalOpen: boolean;
+  // isAddCategoryModalOpen: boolean;
   selectedCategory: any;
   editingCategoryIndex: number;
   baseIssuePoolOptions: string[];
