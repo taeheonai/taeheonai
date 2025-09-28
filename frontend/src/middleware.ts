@@ -22,6 +22,11 @@ const PUBLIC_ROUTES = [
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // 데모모드: 모든 경로에 접근 허용
+  if (process.env.NEXT_PUBLIC_OPEN_ACCESS === 'true') {
+    return NextResponse.next();
+  }
+
   // 정적 파일 및 공개 경로 체크
   const isPublic =
     pathname.startsWith("/_next") ||
