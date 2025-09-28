@@ -9,17 +9,17 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  // 데모모드: 인증 우회
-  if (process.env.NEXT_PUBLIC_OPEN_ACCESS === 'true') {
-    return <>{children}</>;
-  }
-
   const router = useRouter();
   const hydrated = useHasHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
+    // 데모모드: 인증 우회
+    if (process.env.NEXT_PUBLIC_OPEN_ACCESS === 'true') {
+      return;
+    }
+
     if (!hydrated) return;               // 수화 전에는 판단하지 않음
     
     // 인증 상태나 사용자 정보가 없으면 로그인 페이지로
@@ -27,6 +27,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       router.replace('/auth/login');
     }
   }, [hydrated, isAuthenticated, user, router]);
+
+  // 데모모드: 인증 우회
+  if (process.env.NEXT_PUBLIC_OPEN_ACCESS === 'true') {
+    return <>{children}</>;
+  }
 
   // 수화되지 않았거나 인증되지 않았으면 아무것도 표시하지 않음
   if (!hydrated || !isAuthenticated || !user) {
