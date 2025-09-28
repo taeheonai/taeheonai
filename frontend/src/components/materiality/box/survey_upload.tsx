@@ -124,7 +124,7 @@ const SurveyUpload: React.FC<SurveyUploadProps> = ({
     return () => {
       window.removeEventListener('surveySent', handleSurveySent as EventListener);
     };
-  }, [isExcelValid, excelFilename, excelBase64]);
+  }, [isExcelValid, excelFilename, excelBase64, excelData.length, setExcelData]);
 
   // 발송 완료된 명단을 다시 설문 대상자 목록에 추가
   const addBackToRecipients = (recipient: any) => {
