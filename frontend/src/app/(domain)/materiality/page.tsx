@@ -895,14 +895,8 @@ export default function MaterialityHomePage() {
             setBaseIssuePoolOptions={setBaseIssuePoolOptions}
             setSelectedBaseIssuePool={setSelectedBaseIssuePool}
             setAllCategories={setAllCategories}
-            setSelectedNewCategory={setSelectedNewCategory}
-            setNewCategoryRank={setNewCategoryRank}
-            setNewBaseIssuePool={setNewBaseIssuePool}
-            setIsCustomBaseIssuePool={setIsCustomBaseIssuePool}
-            setCustomBaseIssuePoolText={setCustomBaseIssuePoolText}
             setIsDetailModalOpen={setIsDetailModalOpen}
             setCurrentWeights={setCurrentWeights}
-            excelData={excelData}
           />
           )}
 
