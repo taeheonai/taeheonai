@@ -1,16 +1,16 @@
 import type { NextConfig } from "next";
-import withPWA from "next-pwa";
+// import withPWA from "next-pwa";
 
-// PWA 설정 - 자동 생성(GenerateSW) 방식
-const withPWAConfig = withPWA({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development', // dev에서는 비활성화
-  register: true,
-  skipWaiting: true,
-  // Vercel 배포 시 PWA 파일 접근 문제 해결
-  buildExcludes: [/middleware-manifest\.json$/],
-  // runtimeCaching 같은 커스텀은 지금은 넣지 말고, 빌드 성공 후 점진 추가
-});
+// PWA 설정 - 임시 비활성화 (빌드 오류 해결 후 재활성화)
+// const withPWAConfig = withPWA({
+//   dest: 'public',
+//   disable: process.env.NODE_ENV === 'development', // dev에서는 비활성화
+//   register: true,
+//   skipWaiting: true,
+//   // Vercel 배포 시 PWA 파일 접근 문제 해결
+//   buildExcludes: [/middleware-manifest\.json$/],
+//   // runtimeCaching 같은 커스텀은 지금은 넣지 말고, 빌드 성공 후 점진 추가
+// });
 
 // Vercel 배포 환경인지 확인
 const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
@@ -103,4 +103,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWAConfig(nextConfig);
+export default nextConfig;
