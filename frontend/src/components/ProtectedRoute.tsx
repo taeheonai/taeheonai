@@ -9,6 +9,11 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  // 데모모드: 인증 우회
+  if (process.env.NEXT_PUBLIC_OPEN_ACCESS === 'true') {
+    return <>{children}</>;
+  }
+
   const router = useRouter();
   const hydrated = useHasHydrated();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
