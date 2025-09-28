@@ -98,7 +98,6 @@ export default function Finish({ companyId }: FinishProps) {
 
       // 가장 최근 설문 정보 설정
       if (sortedSurveys.length > 0) {
-        const latestSurvey = sortedSurveys[0];
         // 설문 정보는 allSurveys 상태에 저장됨
       }
     } catch (error) {

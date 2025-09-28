@@ -882,16 +882,6 @@ export default function MaterialityHomePage() {
             assessmentResult={assessmentResult}
             isIssuepoolLoading={isIssuepoolLoading}
             isAssessmentStarting={isAssessmentStarting}
-            selectedCategory={selectedCategory}
-            editingCategoryIndex={editingCategoryIndex}
-            baseIssuePoolOptions={baseIssuePoolOptions}
-            selectedBaseIssuePool={selectedBaseIssuePool}
-            allCategories={allCategories}
-            selectedNewCategory={selectedNewCategory}
-            newCategoryRank={newCategoryRank}
-            newBaseIssuePool={newBaseIssuePool}
-            isCustomBaseIssuePool={isCustomBaseIssuePool}
-            customBaseIssuePoolText={customBaseIssuePoolText}
             displayCategoryCount={displayCategoryCount}
             setDisplayCategoryCount={setDisplayCategoryCount}
             setAssessmentResult={setAssessmentResult}

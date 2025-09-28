@@ -187,16 +187,6 @@ interface FirstAssessmentProps {
   assessmentResult: any;
   isIssuepoolLoading: boolean;
   isAssessmentStarting: boolean;
-  selectedCategory: any;
-  editingCategoryIndex: number;
-  baseIssuePoolOptions: string[];
-  selectedBaseIssuePool: string;
-  allCategories: any[];
-  selectedNewCategory: string;
-  newCategoryRank: string;
-  newBaseIssuePool: string;
-  isCustomBaseIssuePool: boolean;
-  customBaseIssuePoolText: string;
   displayCategoryCount: number;
   setDisplayCategoryCount: (count: number) => void;
   setAssessmentResult: (result: any) => void;
@@ -210,14 +200,8 @@ interface FirstAssessmentProps {
   setBaseIssuePoolOptions: (options: string[]) => void;
   setSelectedBaseIssuePool: (option: string) => void;
   setAllCategories: (categories: any[]) => void;
-  setSelectedNewCategory: (category: string) => void;
-  setNewCategoryRank: (rank: string) => void;
-  setNewBaseIssuePool: (pool: string) => void;
-  setIsCustomBaseIssuePool: (custom: boolean) => void;
-  setCustomBaseIssuePoolText: (text: string) => void;
   setIsDetailModalOpen: (open: boolean) => void;
   setCurrentWeights: (weights: any) => void;
-  excelData: any[];
 }
 
 const FirstAssessment: React.FC<FirstAssessmentProps> = ({
@@ -227,16 +211,6 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   assessmentResult,
   isIssuepoolLoading,
   isAssessmentStarting,
-  selectedCategory,
-  editingCategoryIndex,
-  baseIssuePoolOptions,
-  selectedBaseIssuePool,
-  allCategories,
-  selectedNewCategory,
-  newCategoryRank,
-  newBaseIssuePool,
-  isCustomBaseIssuePool,
-  customBaseIssuePoolText,
   displayCategoryCount,
   setDisplayCategoryCount,
   setAssessmentResult,
@@ -250,14 +224,8 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   setBaseIssuePoolOptions,
   setSelectedBaseIssuePool,
   setAllCategories,
-  setSelectedNewCategory,
-  setNewCategoryRank,
-  setNewBaseIssuePool,
-  setIsCustomBaseIssuePool,
-  setCustomBaseIssuePoolText,
   setIsDetailModalOpen,
-  setCurrentWeights,
-  excelData
+  setCurrentWeights
 }) => {
   const [isDataHidden, setIsDataHidden] = React.useState(true);
   const [weights, setWeights] = React.useState<WeightConfig>(DEFAULT_WEIGHTS);
