@@ -187,8 +187,6 @@ interface FirstAssessmentProps {
   assessmentResult: any;
   isIssuepoolLoading: boolean;
   isAssessmentStarting: boolean;
-  // isBaseIssuePoolModalOpen: boolean;
-  // isAddCategoryModalOpen: boolean;
   selectedCategory: any;
   editingCategoryIndex: number;
   baseIssuePoolOptions: string[];
@@ -229,8 +227,6 @@ const FirstAssessment: React.FC<FirstAssessmentProps> = ({
   assessmentResult,
   isIssuepoolLoading,
   isAssessmentStarting,
-  isBaseIssuePoolModalOpen,
-  isAddCategoryModalOpen,
   selectedCategory,
   editingCategoryIndex,
   baseIssuePoolOptions,
