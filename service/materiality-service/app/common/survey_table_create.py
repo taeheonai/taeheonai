@@ -33,8 +33,8 @@ class SurveyTableManager:
     
     def __init__(self):
         """초기화"""
-        # Railway PostgreSQL 연결 정보 (1.py와 동일)
-        self.database_url = "postgresql://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway"
+        # Railway PostgreSQL 연결 정보 (환경변수 DATABASE_URL 필요)
+        self.database_url = os.environ["DATABASE_URL"]
         self.engine = None
         self.SessionLocal = None
         

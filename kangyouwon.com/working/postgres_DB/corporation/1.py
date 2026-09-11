@@ -6,7 +6,7 @@ class ExcelUploader:
     def __init__(self):
         """초기화"""
         # psycopg2를 사용하여 동기 연결
-        self.database_url = "postgresql://postgres:REDACTED_DB_PASSWORD_4@trolley.proxy.rlwy.net:52468/railway"
+        self.database_url = os.environ["DATABASE_URL"]
         self.engine = None
         # 업로드할 파일 목록
         self.files_to_upload = [

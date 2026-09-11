@@ -16,7 +16,7 @@ PYTHONUNBUFFERED=1
 #### **데이터베이스 연결**
 ```bash
 # PostgreSQL 연결 (Railway PostgreSQL)
-DATABASE_URL=postgresql+asyncpg://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway
+DATABASE_URL=postgresql+asyncpg://your_db_user:your_db_password_here@your_db_host:your_db_port/your_db_name
 ```
 
 #### **프론트엔드 도메인 설정**

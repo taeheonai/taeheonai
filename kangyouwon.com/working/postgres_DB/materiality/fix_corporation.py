@@ -1,11 +1,12 @@
+import os
 import psycopg2
 
 def fix_corporation_table():
     """corporation 테이블에 프라이머리 키 제약조건을 추가하는 함수"""
-    
+
     # 데이터베이스 연결
     conn = psycopg2.connect(
-        'postgresql://postgres:REDACTED_DB_PASSWORD_4@trolley.proxy.rlwy.net:52468/railway'
+        os.environ["DATABASE_URL"]
     )
     cur = conn.cursor()
     

@@ -49,7 +49,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8008
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+asyncpg://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway
+      - DATABASE_URL=${DATABASE_URL}
       - GATEWAY_URL=https://taeheonai-production-2130.up.railway.app
 
 
@@ -101,7 +101,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8009
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+asyncpg://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway
+      - DATABASE_URL=${DATABASE_URL}
     restart: always
     networks:
       - taeheonai-network
@@ -125,7 +125,7 @@ services:
       - ENVIRONMENT=development
       - PORT=8002
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+asyncpg://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway
+      - DATABASE_URL=${DATABASE_URL}
       - FRONTEND_URL=https://taeheonai.com
       - SURVEY_BASE_URL=https://taeheonai.com/survey
     restart: always
@@ -155,7 +155,7 @@ services:
       - VERSION=1.0.0
       - LLM_SERVICE_URL=http://llm-service:8005  # llm-service 포트로 수정
       - LLM_SERVICE_TIMEOUT=30.0
-      - DATABASE_URL=postgresql+asyncpg://postgres:REDACTED_DB_PASSWORD_1@gondola.proxy.rlwy.net:15963/railway
+      - DATABASE_URL=${DATABASE_URL}
       - SERVICE_API_KEY=default-service-key  # LLM 서비스와 동일한 키 사용
     restart: always
     networks:

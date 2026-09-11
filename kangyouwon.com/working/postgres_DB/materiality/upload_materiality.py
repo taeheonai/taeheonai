@@ -32,7 +32,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(os.path.dirname(__file__), "materiality_db.xlsx"))
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:REDACTED_DB_PASSWORD_4@trolley.proxy.rlwy.net:52468/railway")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def die(msg: str, code: int = 1):
     print(f"[EXIT] {msg}")
@@ -40,7 +40,7 @@ def die(msg: str, code: int = 1):
 
 def get_engine() -> Engine:
     if not DATABASE_URL:
-        die("DATABASE_URL is not set. Example: postgresql://postgres:REDACTED_DB_PASSWORD_4@trolley.proxy.rlwy.net:52468/railway")
+        die("DATABASE_URL is not set. Example: postgresql://<user>:<password>@<host>:<port>/railway")
     try:
         engine = create_engine(DATABASE_URL, future=True, pool_pre_ping=True)
         with engine.connect() as conn:
