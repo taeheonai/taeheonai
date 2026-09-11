@@ -73,3 +73,6 @@ Thumbs.db
 
 # Documentation
 docs/
+
+# Sensitive local data dumps (backed up outside the repo)
+kangyouwon.com/working/postgres_DB/**/*.xlsx
