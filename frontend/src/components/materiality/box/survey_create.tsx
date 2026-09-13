@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { normalizeSurveyKey } from '@/lib/surveyKey';
+import { getApiBaseUrl } from '@/lib/api';
 import { ExcelRow } from '@/store/excelDataStore';
 
 interface Category {
@@ -481,7 +482,7 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
         };
 
         // Gateway를 통해 materiality-service로 전송
-        const response = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys', {
+        const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys`, {
           method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(surveyRequest),

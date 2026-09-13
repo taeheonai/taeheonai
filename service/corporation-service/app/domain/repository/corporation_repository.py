@@ -42,13 +42,9 @@ class CorporationRepository:
     async def search_by_name(self, query: str, limit: int = 20) -> List[Corporation]:
         """기업명으로 부분 검색"""
         try:
-            from sqlalchemy import or_
             result = await self.db.execute(
                 select(Corporation)
-                .where(or_(
-                    Corporation.companyname.ilike(f"%{query}%"),
-                    Corporation.industry.ilike(f"%{query}%") if Corporation.industry else False
-                ))
+                .where(Corporation.companyname.ilike(f"%{query}%"))
                 .limit(limit)
                 .order_by(Corporation.companyname)
             )

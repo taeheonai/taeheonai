@@ -1,5 +1,6 @@
 import React from 'react';
 import { normalizeSurveyKey } from '@/lib/surveyKey';
+import { getApiBaseUrl } from '@/lib/api';
 
 interface SurveyResultProps {
   excelData: any[];
@@ -424,7 +425,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       });
 
       // 먼저 설문 정보를 가져와서 content_hash 확인
-      const surveyResponse = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${targetSurveyId}`);
+      const surveyResponse = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${targetSurveyId}`);
       if (!surveyResponse.ok) {
         throw new Error(`설문 정보 조회 실패: ${surveyResponse.status}`);
       }
@@ -436,7 +437,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
       let newResponses = [];
       if (contentHash) {
         // 동일한 내용 해시를 가진 설문들의 모든 응답을 가져오기
-        const responsesResponse = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
+        const responsesResponse = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${targetSurveyId}/responses?content_hash=${contentHash}`);
         if (responsesResponse.ok) {
           const data = await responsesResponse.json();
           newResponses = data.responses || [];
@@ -444,7 +445,7 @@ const SurveyResult: React.FC<SurveyResultProps> = ({ excelData, surveyResult }) 
         }
       } else {
         // content_hash가 없으면 기존 방식으로 단일 설문 응답만 가져오기
-        const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${targetSurveyId}/responses`);
+        const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${targetSurveyId}/responses`);
         if (response.ok) {
           const data = await response.json();
           newResponses = data.responses || [];

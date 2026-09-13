@@ -7,6 +7,7 @@ import IndexBar from '@/components/IndexBar';
 import { useMediaStore } from '@/store/mediaStore';
 import { IssuepoolData } from "../../lib/types";
 import axios from 'axios';
+import { getApiBaseUrl } from '@/lib/api';
 // import * as XLSX from 'xlsx';
 import { useExcelDataStore } from '@/store/excelDataStore';
 import FinalIssuepool from '@/components/materiality/box/final_issuepool';
@@ -590,9 +591,8 @@ export default function MaterialityHomePage() {
         console.log('🔍 기업 목록을 Gateway를 통해 가져오는 중...');
         
         // Gateway를 통해 materiality-service 호출 (GET 방식)
-        const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
         const response = await axios.get(
-          `${gatewayUrl}/api/v1/search/companies`,
+          `${getApiBaseUrl()}/v1/search/companies`,
           {
             headers: {
               'Content-Type': 'application/json',

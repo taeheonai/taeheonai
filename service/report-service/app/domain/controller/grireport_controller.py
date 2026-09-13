@@ -17,7 +17,7 @@ class GRIReportController:
     async def get_report_structure(
         self,
         corporation_id: int,
-        companyname: str | None = None
+        companyname: Optional[str] = None
     ) -> GRIReportStructureResponse:
         """GRI 보고서 구조 조회"""
         data = await self._service.get_report_structure(

@@ -158,9 +158,9 @@ class NaverNewsClient:
     def __init__(
         self,
         *,
-        min_interval: float | None = None,
-        per_keyword_pause: float | None = None,
-        max_retries: int | None = None,
+        min_interval: Optional[float] = None,
+        per_keyword_pause: Optional[float] = None,
+        max_retries: Optional[int] = None,
     ) -> None:
         self.client_id = os.getenv("NAVER_CLIENT_ID")
         self.client_secret = os.getenv("NAVER_CLIENT_SECRET")
@@ -289,7 +289,7 @@ class NaverNewsClient:
 # 유틸: 카테고리 슬래시 분해 & 중복 제거
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _split_category_tokens(raw: str | None) -> List[str]:
+def _split_category_tokens(raw: Optional[str]) -> List[str]:
     """
     'A/B/C' 또는 'A／B｜C' 형태의 카테고리를 '/' 기준으로 분해하여 토큰 리스트 생성.
     공백 제거 및 빈 토큰 제거.

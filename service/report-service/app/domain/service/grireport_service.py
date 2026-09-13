@@ -20,7 +20,7 @@ class GRIReportService:
     async def get_report_structure(
         self,
         corporation_id: int,
-        companyname: str | None = None
+        companyname: Optional[str] = None
     ) -> GRIReportStructureResponse:
         """ESG 섹션별 GRI 보고서 구조 조회"""
         try:

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getApiBaseUrl } from '@/lib/api';
 
 // 미디어 검색 데이터를 gateway로 전송하는 함수
 export const handleMediaSearch = async (companyId: any, searchPeriod: any, setLoading: any, setSearchResult: any, setExcelFilename: any, setExcelBase64: any) => {
@@ -37,9 +38,8 @@ export const handleMediaSearch = async (companyId: any, searchPeriod: any, setLo
       console.log('🚀 미디어 검색 데이터를 Gateway로 전송:', searchData);
 
       // Gateway를 통해 materiality-service 호출
-      const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
       const response = await axios.post(
-        `${gatewayUrl}/api/v1/materiality/search-media`, 
+        `${getApiBaseUrl()}/v1/materiality/search-media`,
         searchData,
         {
           headers: {

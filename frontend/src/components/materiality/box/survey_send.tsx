@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExcelRow } from '@/store/excelDataStore';
+import { getApiBaseUrl } from '@/lib/api';
 
 type StoredSurvey = {
   id: string;
@@ -467,7 +468,7 @@ const SurveyManagement: React.FC<SurveyManagementProps> = ({ companyId, excelDat
         company_id: companyId,      // (선택) 서버 로깅/템플릿 분기용
       };
 
-      const resp = await fetch('https://taeheonai-production-2130.up.railway.app/api/v1/materiality/email/send-survey', {
+      const resp = await fetch(`${getApiBaseUrl()}/v1/materiality/email/send-survey`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -12,8 +12,9 @@ logger = logging.getLogger("materiality_service_materiality_category_db")
 # Railway PostgreSQL 연결 설정 (필수)
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    logger.error("❌ DATABASE_URL 환경변수가 설정되지 않았습니다.")
-    raise ValueError("DATABASE_URL 환경변수를 설정해주세요.")
+    logger.warning("⚠️ DATABASE_URL 환경변수가 설정되지 않았습니다. 로컬 개발용 더미 URL로 대체합니다.")
+    logger.warning("⚠️ 서비스는 시작되지만 데이터베이스 연결은 불가능합니다.")
+    DATABASE_URL = "postgresql+asyncpg://dev:dev@localhost:5432/dev"
 
 # Railway PostgreSQL URL을 asyncpg용으로 변환
 if DATABASE_URL.startswith("postgres://"):

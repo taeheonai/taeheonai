@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getApiBaseUrl } from '@/lib/api';
 
 // issuepool DB 전체 데이터 가져오기 함수
 export const fetchAllIssuepoolData = async (setIsIssuepoolAllLoading: any, setIssuepoolAllData: any) => {
@@ -7,9 +8,8 @@ export const fetchAllIssuepoolData = async (setIsIssuepoolAllLoading: any, setIs
       console.log('🔍 issuepool DB 전체 데이터 가져오기 시작');
       
       // Gateway를 통해 materiality-service 호출
-      const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
       const response = await axios.get(
-        `${gatewayUrl}/api/v1/materiality/issuepool/all`,
+        `${getApiBaseUrl()}/v1/materiality/issuepool/all`,
         {
           headers: {
             'Content-Type': 'application/json',

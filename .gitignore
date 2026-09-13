@@ -66,6 +66,7 @@ coverage/
 service/llm-service/outputs/**/*.safetensors
 service/llm-service/outputs/**/merged/
 service/llm-service/outputs/**/adapter/
+wandb/
 
 # Misc
 .DS_Store

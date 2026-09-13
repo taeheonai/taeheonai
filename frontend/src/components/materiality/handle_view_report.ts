@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getApiBaseUrl } from '@/lib/api';
 
 
 // 지난 중대성 평가 목록 조회
@@ -42,9 +43,8 @@ export const handleViewReport = async (searchResult: any, setIsIssuepoolLoading:
       console.log('지난 중대성 평가 목록 요청 데이터:', requestData);
 
       // Gateway를 통해 materiality-service 호출
-      const gatewayUrl = 'https://taeheonai-production-2130.up.railway.app';
-              const response = await axios.post(
-        `${gatewayUrl}/api/v1/materiality/issuepool/list`,
+      const response = await axios.post(
+        `${getApiBaseUrl()}/v1/materiality/issuepool/list`,
         requestData,
         {
           headers: {

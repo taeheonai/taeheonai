@@ -1,9 +1,8 @@
 // frontend/src/lib/api/mg.ts
 import axios from 'axios';
+import { getApiBaseUrl } from '@/lib/api';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'https://taeheonai-production-2130.up.railway.app/api';
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({ baseURL: API_BASE_URL });
 

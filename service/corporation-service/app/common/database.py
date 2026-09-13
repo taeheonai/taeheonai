@@ -4,10 +4,9 @@ import os
 from typing import AsyncGenerator
 
 # 환경 변수에서 데이터베이스 URL 가져오기
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+asyncpg://postgres:password@localhost:5432/taeheonai"
-)
+# os.getenv(key, default)의 default는 키가 아예 없을 때만 적용되고
+# docker-compose가 빈 문자열("")을 넘기는 경우엔 적용되지 않으므로 or로 처리
+DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql+asyncpg://postgres:password@localhost:5432/taeheonai"
 
 # 비동기 엔진 생성
 engine = create_async_engine(

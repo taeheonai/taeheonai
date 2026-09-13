@@ -63,6 +63,30 @@ async def get_all_corporations_with_slash(
             detail={"error": str(e), "type": type(e).__name__}
         )
 
+@corporation_router.get("/search", summary="기업 검색", response_model=list[CorporationResponse])
+async def search_corporations(
+    query: str = Query(..., description="검색할 기업명 또는 산업"),
+    limit: int = Query(20, ge=1, le=100, description="검색 결과 개수"),
+    db: AsyncSession = Depends(get_db)
+):
+    """기업명이나 산업으로 기업을 검색합니다."""
+    try:
+        logger.info(f"📝 기업 검색 요청: 쿼리={query}, 제한={limit}")
+
+        result = await corporation_controller.search_corporations(db, query, limit)
+
+        logger.info(f"✅ 기업 검색 성공: {len(result)}개 결과")
+        return result
+
+    except Exception as e:
+        logger.exception(f"❌ 기업 검색 실패: 쿼리={query}")  # ← 스택까지 기록
+        raise HTTPException(
+            status_code=500,
+            detail={"error": str(e), "type": type(e).__name__}
+        )
+
+# 주의: /{corporation_id}는 반드시 /search, /code/{corp_code} 등 리터럴 경로보다 뒤에 있어야 함
+# (FastAPI는 등록 순서대로 매칭하므로, 앞에 있으면 "search" 같은 문자열도 corporation_id로 잡아먹음)
 @corporation_router.get("/{corporation_id}", summary="기업 정보 조회", response_model=CorporationResponse)
 async def get_corporation(
     corporation_id: int = Path(..., description="기업 ID"),
@@ -104,28 +128,6 @@ async def get_corporation_by_code(
         raise
     except Exception as e:
         logger.exception(f"❌ 기업 코드로 조회 실패: 코드={corp_code}")  # ← 스택까지 기록
-        raise HTTPException(
-            status_code=500, 
-            detail={"error": str(e), "type": type(e).__name__}
-        )
-
-@corporation_router.get("/search", summary="기업 검색", response_model=list[CorporationResponse])
-async def search_corporations(
-    query: str = Query(..., description="검색할 기업명 또는 산업"),
-    limit: int = Query(20, ge=1, le=100, description="검색 결과 개수"),
-    db: AsyncSession = Depends(get_db)
-):
-    """기업명이나 산업으로 기업을 검색합니다."""
-    try:
-        logger.info(f"📝 기업 검색 요청: 쿼리={query}, 제한={limit}")
-        
-        result = await corporation_controller.search_corporations(db, query, limit)
-        
-        logger.info(f"✅ 기업 검색 성공: {len(result)}개 결과")
-        return result
-        
-    except Exception as e:
-        logger.exception(f"❌ 기업 검색 실패: 쿼리={query}")  # ← 스택까지 기록
         raise HTTPException(
             status_code=500, 
             detail={"error": str(e), "type": type(e).__name__}

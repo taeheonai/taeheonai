@@ -7,13 +7,14 @@ import { UserInfo } from "@/types/user";
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isLocalhost, setIsLocalhost] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     // 로컬 스토리지에서 로그인 상태 확인
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
-    
+
     if (token && user) {
       setIsLoggedIn(true);
       try {
@@ -22,6 +23,10 @@ export default function HomePage() {
         console.error('사용자 정보 파싱 오류:', e);
       }
     }
+
+    // 서버/클라이언트 렌더링 결과가 달라 hydration mismatch가 나지 않도록
+    // window 참조는 마운트 이후(useEffect)에만 반영
+    setIsLocalhost(window.location.hostname === 'localhost');
   }, []);
 
   const handleLogout = () => {
@@ -236,7 +241,7 @@ export default function HomePage() {
           )}
 
           {/* Login Status Debug */}
-          {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
+          {isLocalhost && (
             <div className="mt-8 p-4 bg-gray-100 rounded-lg">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">🔍 개발자 디버그 정보</h3>
               <div className="text-xs text-gray-600 space-y-1">
@@ -244,7 +249,7 @@ export default function HomePage() {
                 {userInfo && (
                   <div>사용자 정보: {JSON.stringify(userInfo, null, 2)}</div>
                 )}
-                <div>API URL: {typeof window !== 'undefined' ? window.location.origin : '설정되지 않음'}</div>
+                <div>API URL: {window.location.origin}</div>
                 <div>환경: 개발</div>
               </div>
             </div>

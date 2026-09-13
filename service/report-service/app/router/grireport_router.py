@@ -50,7 +50,7 @@ router = APIRouter(
 )
 async def get_report_structure(
     corporation_id: int,
-    companyname: str | None = None,
+    companyname: Optional[str] = None,
     controller: GRIReportController = Depends()
 ):
     """

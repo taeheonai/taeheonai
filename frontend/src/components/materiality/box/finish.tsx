@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getApiBaseUrl } from '@/lib/api';
 
 type FinishProps = {
   companyId: string;
@@ -25,11 +26,11 @@ export default function Finish({ companyId }: FinishProps) {
       let response;
       if (companyId === '한온시스템' || companyId === '1') {
         console.log('🔍 한온시스템을 숫자 ID 1로 변환하여 요청');
-        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/1`);
+        response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/corporation/1`);
       } else {
         const encodedCompanyId = encodeURIComponent(companyId);
         console.log('🔍 회사 ID 인코딩:', { companyId, encodedCompanyId });
-        response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/corporation/${encodedCompanyId}`);
+        response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/corporation/${encodedCompanyId}`);
       }
       
       if (!response.ok) {
@@ -66,7 +67,7 @@ export default function Finish({ companyId }: FinishProps) {
           }
           
           console.log('🔍 설문 응답 데이터 요청:', surveyId);
-          const responseData = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`);
+          const responseData = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${surveyId}/responses`);
           console.log('🔍 설문 응답 API 상태:', surveyId, responseData.status, responseData.ok);
           if (responseData.ok) {
             const responses = await responseData.json();
@@ -374,7 +375,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`, {
+                              const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${surveyId}/responses`, {
                                 method: 'DELETE'
                               });
 
@@ -402,7 +403,7 @@ export default function Finish({ companyId }: FinishProps) {
                         onClick={async () => {
                           if (confirm('⚠️ 경고: 이 작업은 되돌릴 수 없습니다.\n\n설문과 모든 응답 데이터를 완전히 삭제하시겠습니까?')) {
                             try {
-                              const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}`, {
+                              const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${surveyId}`, {
                                 method: 'DELETE'
                               });
 

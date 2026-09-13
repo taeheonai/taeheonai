@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, HttpUrl
 
@@ -6,17 +7,17 @@ class Settings(BaseSettings):
     # 서비스 설정
     service_name: str = "gri-service"
     environment: str = "production"
-    
+
     # 데이터베이스 설정
-    database_url: str | None = Field(None, alias="DATABASE_URL")
-    
+    database_url: Optional[str] = Field(None, alias="DATABASE_URL")
+
     # LLM 서비스 설정
     llm_service_url: HttpUrl = Field(..., alias="LLM_SERVICE_URL")
     llm_service_timeout: float = Field(30.0, alias="LLM_SERVICE_TIMEOUT")
     service_api_key: str = Field("default-service-key", alias="SERVICE_API_KEY")
-    
+
     # CORS 설정
-    cors_url: str | None = Field(None, alias="CORS_URL")
+    cors_url: Optional[str] = Field(None, alias="CORS_URL")
     
     model_config = SettingsConfigDict(
         env_file=".env",

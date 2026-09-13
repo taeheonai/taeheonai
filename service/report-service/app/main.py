@@ -203,9 +203,9 @@ async def startup_event():
         await init_db()
         logger.info("✅ 데이터베이스 초기화 완료!")
     except Exception as e:
-        logger.error(f"❌ 애플리케이션 시작 시 오류: {e}")
+        logger.error(f"❌ 데이터베이스 초기화 실패: {e}")
         logger.error(traceback.format_exc())
-        raise  # 데이터베이스 초기화 실패 시 서버 시작 중단
+        logger.warning("⚠️ 데이터베이스 없이 서비스는 계속 시작됩니다. DB 관련 기능은 사용할 수 없습니다.")
 
 # 라우터를 앱에 포함
 app.include_router(report_router)

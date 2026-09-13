@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '@/lib/api';
 
 // React를 명시적으로 사용하여 linter 경고 해결
 const reactVersion = React.version;
@@ -68,7 +69,7 @@ export default function SurveyPage() {
         
         if (id) {
           // 백엔드에서 설문 데이터 로드
-          const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${id}`);
+          const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${id}`);
           
           if (!response.ok) {
             if (response.status === 404) {
@@ -330,7 +331,7 @@ export default function SurveyPage() {
             total_responses: allResponses.length
           });
 
-          const response = await fetch(`https://taeheonai-production-2130.up.railway.app/api/v1/materiality/surveys/${surveyId}/responses`, {
+          const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/${surveyId}/responses`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

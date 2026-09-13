@@ -1,7 +1,8 @@
 // frontend/src/lib/api/issuepool.ts
 import axios from 'axios';
+import { getApiBaseUrl } from '@/lib/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://taeheonai-production-2130.up.railway.app/api';
+const API_BASE_URL = getApiBaseUrl();
 
 export interface IssuePool {
   id: number;
