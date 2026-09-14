@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 
+import { useAuthStore } from '@/store/useAuthStore';
 import type { User } from '@/contexts/AuthContext';
 
 interface NavigationProps {
@@ -12,9 +13,12 @@ interface NavigationProps {
 export default function Navigation({ user }: NavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const clearAuth = useAuthStore((s) => s.clear);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
+    clearAuth();
+    localStorage.removeItem('user');
+    sessionStorage.clear();
     router.push('/login');
   };
 
