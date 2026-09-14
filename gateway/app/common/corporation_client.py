@@ -14,7 +14,7 @@ class CorporationClient:
         """ID로 회사 정보 조회"""
         try:
             async with httpx.AsyncClient() as client:
-                url = f"{self.base_url}/v1/corporations/{corporation_id}"
+                url = f"{self.base_url}/v1/corporation/{corporation_id}"
                 logger.info(f"corporation-service 호출: {url}")
                 
                 response = await client.get(url, timeout=10.0)
@@ -30,6 +30,8 @@ class CorporationClient:
                     logger.error(f"corporation-service 오류: {response.status_code}")
                     raise HTTPException(status_code=response.status_code, detail="회사 정보 조회 중 오류가 발생했습니다")
                     
+        except HTTPException:
+            raise
         except httpx.TimeoutException:
             logger.error(f"corporation-service 타임아웃: ID={corporation_id}")
             raise HTTPException(status_code=504, detail="회사 정보 조회 시간 초과")
