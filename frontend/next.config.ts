@@ -37,19 +37,19 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       // gri-service API 프록시 (Gateway)
-      { 
-        source: '/api/gri/:path*', 
-        destination: 'https://taeheonai-production-2130.up.railway.app/gri/:path*' 
+      {
+        source: '/api/gri/:path*',
+        destination: 'https://taeheonai-production-2130.up.railway.app/api/v1/gri/:path*'
       },
       // auth-service API 프록시 (Gateway)
-      { 
-        source: '/api/auth/:path*', 
-        destination: 'https://taeheonai-production-2130.up.railway.app/auth/:path*' 
+      {
+        source: '/api/auth/:path*',
+        destination: 'https://taeheonai-production-2130.up.railway.app/api/v1/auth/:path*'
       },
       // materiality-service API 프록시 (Gateway)
-      { 
-        source: '/api/v1/materiality/:path*', 
-        destination: 'https://taeheonai-production-2130.up.railway.app/v1/materiality/:path*' 
+      {
+        source: '/api/v1/materiality/:path*',
+        destination: 'https://taeheonai-production-2130.up.railway.app/api/v1/materiality/:path*'
       },
 
       // (domain) 그룹 폴더를 위한 rewrites
