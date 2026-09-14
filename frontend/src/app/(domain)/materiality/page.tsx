@@ -8,6 +8,7 @@ import { useMediaStore } from '@/store/mediaStore';
 import { IssuepoolData } from "../../lib/types";
 import axios from 'axios';
 import { getApiBaseUrl } from '@/lib/api';
+import { getCorporationId } from '@/lib/corporation';
 // import * as XLSX from 'xlsx';
 import { useExcelDataStore } from '@/store/excelDataStore';
 import FinalIssuepool from '@/components/materiality/box/final_issuepool';
@@ -342,21 +343,23 @@ export default function MaterialityHomePage() {
       try {
         if (companyId) {
           // 1. 설문 목록 조회
-          const surveysResponse = await fetch(`/api/v1/materiality/surveys/company/${companyId}`);
+          const surveysResponse = await fetch(`/api/v1/materiality/surveys/corporation/${getCorporationId()}`);
           if (surveysResponse.ok) {
             const surveysData = await surveysResponse.json();
-            if (surveysData.surveys && surveysData.surveys.length > 0) {
+            // 백엔드는 List[SurveyDataResponse]를 그대로 반환한다
+            const surveys = Array.isArray(surveysData) ? surveysData : (surveysData.surveys || []);
+            if (surveys.length > 0) {
               // 가장 최근 설문을 현재 설문으로 설정
-              const latestSurvey = surveysData.surveys[0];
+              const latestSurvey = surveys[0];
               setSurveyResult({
-                survey_id: latestSurvey.id,
+                survey_id: latestSurvey.survey_id,
                 content_hash: latestSurvey.content_hash,
-                created_at: latestSurvey.created_at,
-                categoryCount: latestSurvey.category_count
+                created_at: latestSurvey.timestamp,
+                categoryCount: latestSurvey.total_categories
               });
 
               // 2. 최근 설문의 응답 데이터 조회
-              const responsesResponse = await fetch(`/api/v1/materiality/surveys/${latestSurvey.id}/responses`);
+              const responsesResponse = await fetch(`/api/v1/materiality/surveys/${latestSurvey.survey_id}/responses`);
               if (responsesResponse.ok) {
                 const responsesData = await responsesResponse.json();
                 // backendSurveyResponses 키에 저장 (final_issuepool.tsx에서 사용)
@@ -368,9 +371,9 @@ export default function MaterialityHomePage() {
               alert(
                 '✅ 로컬 데이터가 초기화되었습니다.\n\n' +
                 '💡 기존에 생성된 설문 데이터는 유지됩니다:\n' +
-                `• 최근 설문 ID: ${latestSurvey.id}\n` +
-                `• 생성일: ${new Date(latestSurvey.created_at).toLocaleDateString()}\n` +
-                `• 문항 수: ${latestSurvey.category_count}개\n\n` +
+                `• 최근 설문 ID: ${latestSurvey.survey_id}\n` +
+                `• 생성일: ${new Date(latestSurvey.timestamp).toLocaleDateString()}\n` +
+                `• 문항 수: ${latestSurvey.total_categories}개\n\n` +
                 '이제 미디어 검색부터 다시 시작하세요.'
               );
             } else {

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { normalizeSurveyKey } from '@/lib/surveyKey';
 import { getApiBaseUrl } from '@/lib/api';
+import { getCorporationId } from '@/lib/corporation';
 import { ExcelRow } from '@/store/excelDataStore';
 
 interface Category {
@@ -461,9 +462,8 @@ const SurveyCreate: React.FC<SurveyCreateProps> = ({
         }));
 
       // 백엔드 요청 페이로드
-      const corpId = '1'; // TODO: 실제 corporation 테이블의 id 사용
         const surveyRequest = {
-          corporation_id: corpId,
+          corporation_id: getCorporationId(),
           categories: categoriesWithQuestionNumbers,
         excel_data:
           excelData.length > 0

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getApiBaseUrl } from '@/lib/api';
+import { getCorporationId } from '@/lib/corporation';
 
 type FinishProps = {
   companyId: string;
@@ -22,17 +23,8 @@ export default function Finish({ companyId }: FinishProps) {
       // 특정 기업의 설문 정보만 가져오기 (corporation_id 기준)
       console.log('🔍 companyId 값 확인:', { companyId, type: typeof companyId });
       
-      // 한온시스템은 항상 숫자 ID 1로 변환
-      let response;
-      if (companyId === '한온시스템' || companyId === '1') {
-        console.log('🔍 한온시스템을 숫자 ID 1로 변환하여 요청');
-        response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/corporation/1`);
-      } else {
-        const encodedCompanyId = encodeURIComponent(companyId);
-        console.log('🔍 회사 ID 인코딩:', { companyId, encodedCompanyId });
-        response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/corporation/${encodedCompanyId}`);
-      }
-      
+      const response = await fetch(`${getApiBaseUrl()}/v1/materiality/surveys/corporation/${getCorporationId()}`);
+
       if (!response.ok) {
         throw new Error(`설문 정보 조회 실패: ${response.status}`);
       }
